@@ -585,9 +585,9 @@ mole_use_system_proxy_if_unset() {
 get_latest_version() {
     local location version
     location=$(curl -fsSLI --connect-timeout "${MOLE_LOOKUP_CONNECT_TIMEOUT:-2}" --max-time "${MOLE_LOOKUP_MAX_TIME:-3}" -o /dev/null -w '%{url_effective}' \
-        "https://github.com/tw93/Mole/releases/latest" 2> /dev/null || true)
+        "https://github.com/jhows/Mole/releases/latest" 2> /dev/null || true)
     case "$location" in
-        https://github.com/tw93/[Mm]ole/releases/tag/[Vv]*) version="${location##*/}" ;;
+        https://github.com/jhows/[Mm]ole/releases/tag/[Vv]*) version="${location##*/}" ;;
         *) return 0 ;;
     esac
     version="${version#[Vv]}"
@@ -598,7 +598,7 @@ get_latest_version() {
 get_latest_version_from_github() {
     local version
     version=$(curl -fsSL --connect-timeout "${MOLE_LOOKUP_CONNECT_TIMEOUT:-2}" --max-time "${MOLE_LOOKUP_MAX_TIME:-3}" \
-        "https://api.github.com/repos/tw93/mole/releases/latest" 2> /dev/null |
+        "https://api.github.com/repos/jhows/mole/releases/latest" 2> /dev/null |
         /usr/bin/plutil -extract tag_name raw -o - - 2> /dev/null || true)
     version="${version#[Vv]}"
     [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && printf '%s\n' "$version"
