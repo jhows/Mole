@@ -63,6 +63,8 @@ type model struct {
 	animFrame     int
 	catHidden     bool // true = hidden, false = visible
 	game          *snakeGame
+	cpuHist       []float64
+	memHist       []float64
 	snakeOpen     bool // S abre/fecha o jogo, que ocupa metade da tela
 	cpuCores      int  // how many CPU cores to list; 0 = all
 }
@@ -157,6 +159,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if !msg.data.CollectedAt.IsZero() {
 			m.metrics = msg.data
 			m.lastUpdated = msg.data.CollectedAt
+			m.cpuHist = appendHistory(m.cpuHist, msg.data.CPU.Usage)
+			m.memHist = appendHistory(m.memHist, msg.data.Memory.UsedPercent)
 		}
 		if msg.mode == collectionFull && msg.err == nil {
 			m.fullCollected = true
@@ -211,6 +215,7 @@ func (m model) View() string {
 				cardWidth -= 2
 			}
 			cards := buildCards(m.metrics, cardWidth, cpuCores, m.fullCollected)
+			cards = append(cards, renderHistoryCard(m.cpuHist, m.memHist, m.metrics, cardWidth))
 
 			var rendered []string
 			for i, c := range cards {
@@ -223,6 +228,7 @@ func (m model) View() string {
 		} else {
 			cardWidth := max(24, termWidth/2-4)
 			cards := buildCards(m.metrics, cardWidth, cpuCores, m.fullCollected)
+			cards = append(cards, renderHistoryCard(m.cpuHist, m.memHist, m.metrics, cardWidth))
 			cardContent = renderTwoColumns(cards, termWidth)
 		}
 
@@ -234,7 +240,7 @@ func (m model) View() string {
 		if mole != "" {
 			parts = append(parts, mole)
 		}
-		parts = append(parts, cardContent)
+		parts = append(parts, cardContent, "", renderFooter(termWidth, m.snakeOpen))
 		return lipgloss.JoinVertical(lipgloss.Left, parts...)
 	}
 

@@ -637,7 +637,7 @@ func ioBar(rate float64) string {
 
 func renderProcessCard(procs []ProcessInfo, cardWidth int) cardData {
 	var lines []string
-	maxProcs := 3
+	maxProcs := 5
 	for i, p := range procs {
 		if i >= maxProcs {
 			break
@@ -1220,4 +1220,32 @@ func renderTwoColumns(cards []cardData, width int) string {
 		return stacked
 	}
 	return fixed
+}
+
+// renderHistoryCard draws the last minutes of CPU and memory load as sparklines.
+func renderHistoryCard(cpuHist, memHist []float64, m MetricsSnapshot, cardWidth int) cardData {
+	graphWidth := min(max(cardWidth-22, 5), 24)
+	return cardData{icon: iconCPU, title: "Histórico", lines: []string{
+		fmt.Sprintf("%-*s %s  %5.1f%%", metricLabelWidth, "CPU", sparkline(cpuHist, m.CPU.Usage, graphWidth), m.CPU.Usage),
+		fmt.Sprintf("%-*s %s  %5.1f%%", metricLabelWidth, "Mem", sparkline(memHist, m.Memory.UsedPercent, graphWidth), m.Memory.UsedPercent),
+	}}
+}
+
+// appendHistory keeps the most recent samples, capped so the buffer never grows.
+func appendHistory(hist []float64, v float64) []float64 {
+	const limit = 120
+	hist = append(hist, v)
+	if len(hist) > limit {
+		hist = hist[len(hist)-limit:]
+	}
+	return hist
+}
+
+// renderFooter is the brutalist key bar at the bottom of the dashboard.
+func renderFooter(width int, snakeOpen bool) string {
+	game := "S Cobrinha"
+	if snakeOpen {
+		game = "S Fechar jogo"
+	}
+	return titleStyle.Render(game + "  ·  C Núcleos  ·  Q Sair")
 }
