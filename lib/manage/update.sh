@@ -1121,11 +1121,11 @@ run_mole_command() {
 # UI helpers
 show_brand_banner() {
     cat << EOF
-${GREEN} __  __       _      ${NC}
-${GREEN}|  \/  | ___ | | ___ ${NC}
-${GREEN}| |\/| |/ _ \| |/ _ \\${NC}
-${GREEN}| |  | | (_) | |  __/${NC}  ${BLUE}https://mole.fit${NC}
-${GREEN}|_|  |_|\___/|_|\___|${NC}  ${GREEN}${MOLE_TAGLINE}${NC}
+${BLUE} __  __       _      ${NC}
+${BLUE}|  \/  | ___ | | ___ ${NC}
+${BLUE}| |\/| |/ _ \| |/ _ \\${NC}
+${BLUE}| |  | | (_) | |  __/${NC}  ${BLUE}https://mole.fit${NC}
+${BLUE}|_|  |_|\___/|_|\___|${NC}  ${BLUE}${MOLE_TAGLINE}${NC}
 
 EOF
 }

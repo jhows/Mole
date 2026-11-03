@@ -113,7 +113,7 @@ trap cleanup_temp_files EXIT INT TERM
 
 # Version and update helpers
 VERSION="1.68.0"
-MOLE_TAGLINE="Deep clean and optimize your Mac."
+MOLE_TAGLINE="Limpeza profunda e otimização do seu Mac."
 
 is_touchid_configured() {
     mole_pam_enables_touchid /etc/pam.d/sudo || mole_pam_enables_touchid /etc/pam.d/sudo_local
@@ -131,14 +131,14 @@ source "$SCRIPT_DIR/lib/manage/remove.sh"
 _main_menu_controls_line() {
     local touchid_configured="$1"
     local show_update="$2"
-    local controls="${GRAY}↑↓  |  Enter  |  M More  |  V Version"
+    local controls="${GRAY}↑↓  |  Enter  |  M Mais  |  V Versão"
     if [[ "$touchid_configured" != "true" ]]; then
         controls="${controls}  |  T TouchID"
     fi
     if [[ "$show_update" == "true" ]]; then
-        controls="${controls}  |  U Update"
+        controls="${controls}  |  U Atualizar"
     fi
-    controls="${controls}  |  Q Quit${NC}"
+    controls="${controls}  |  Q Sair${NC}"
     printf '%s' "$controls"
 }
 
@@ -183,11 +183,11 @@ show_main_menu() {
 
     printf '\r\033[2K\n'
 
-    printf '\r\033[2K%s\n' "$(show_menu_option 1 "Clean        Free up disk space" "$([[ $selected -eq 1 ]] && echo true || echo false)")"
-    printf '\r\033[2K%s\n' "$(show_menu_option 2 "Uninstall    Remove apps completely" "$([[ $selected -eq 2 ]] && echo true || echo false)")"
-    printf '\r\033[2K%s\n' "$(show_menu_option 3 "Optimize     Refresh caches and services" "$([[ $selected -eq 3 ]] && echo true || echo false)")"
-    printf '\r\033[2K%s\n' "$(show_menu_option 4 "Analyze      Explore disk usage" "$([[ $selected -eq 4 ]] && echo true || echo false)")"
-    printf '\r\033[2K%s\n' "$(show_menu_option 5 "Status       Monitor system health" "$([[ $selected -eq 5 ]] && echo true || echo false)")"
+    printf '\r\033[2K%s\n' "$(show_menu_option 1 "Limpar       Liberar espaço em disco" "$([[ $selected -eq 1 ]] && echo true || echo false)")"
+    printf '\r\033[2K%s\n' "$(show_menu_option 2 "Desinstalar  Remover apps por completo" "$([[ $selected -eq 2 ]] && echo true || echo false)")"
+    printf '\r\033[2K%s\n' "$(show_menu_option 3 "Otimizar     Renovar caches e serviços" "$([[ $selected -eq 3 ]] && echo true || echo false)")"
+    printf '\r\033[2K%s\n' "$(show_menu_option 4 "Analisar     Explorar o uso do disco" "$([[ $selected -eq 4 ]] && echo true || echo false)")"
+    printf '\r\033[2K%s\n' "$(show_menu_option 5 "Status       Monitorar a saúde do sistema" "$([[ $selected -eq 5 ]] && echo true || echo false)")"
 
     if [[ -t 0 ]]; then
         printf '\r\033[2K\n'
