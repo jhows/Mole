@@ -22,7 +22,9 @@ func renderTerminalTooSmall(width, height int) string {
 }
 
 var (
-	titleStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#1A56DB")).Bold(true)
+	// Brutalist label bar: white bold text on a solid royal-blue block.
+	titleStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")).Background(lipgloss.Color("#1A56DB")).Bold(true).Padding(0, 1)
+	ruleStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF"))
 	subtleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#737373"))
 	warnStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFD75F"))
 	dangerStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF5F5F")).Bold(true)
@@ -965,11 +967,10 @@ func renderCard(data cardData, width int) string {
 	}
 
 	titleText := data.icon + " " + data.title
-	lineLen := max(width-lipgloss.Width(titleText)-2, 0)
-
 	header := titleStyle.Render(titleText)
+	lineLen := max(width-lipgloss.Width(header)-1, 0)
 	if lineLen > 0 {
-		header += "  " + lineStyle.Render(strings.Repeat("╌", lineLen))
+		header += " " + ruleStyle.Render(strings.Repeat("━", lineLen))
 	}
 
 	lines := wrapToWidth(header, width)
