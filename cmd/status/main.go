@@ -63,7 +63,8 @@ type model struct {
 	animFrame     int
 	catHidden     bool // true = hidden, false = visible
 	game          *snakeGame
-	cpuCores      int // how many CPU cores to list; 0 = all
+	snakeOpen     bool // S abre/fecha o jogo, que ocupa metade da tela
+	cpuCores      int  // how many CPU cores to list; 0 = all
 }
 
 // padViewToHeight ensures the rendered frame always overwrites the full
@@ -85,7 +86,7 @@ func newModel() model {
 	return model{
 		collector: NewCollector(processWatchOptionsFromFlags()),
 		catHidden: loadCatHidden(),
-		game:      newSnakeGame(snakeMaxCols),
+		game:      newSnakeGame(snakeMinCols, snakeMinRows),
 		cpuCores:  loadCPUCores(),
 	}
 }
@@ -123,10 +124,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.catHidden = !m.catHidden
 			saveCatHidden(m.catHidden)
 			return m, nil
-		case "up", "down", "left", "right", "w", "a", "s", "d", "r", " ", "enter":
-			if !m.catHidden && m.game != nil {
+		case "up", "down", "left", "right", "w", "a", "d", "r", " ", "enter":
+			if m.snakeOpen && m.game != nil {
 				m.game.handleKey(msg.String())
 			}
+			return m, nil
+		case "s":
+			m.snakeOpen = !m.snakeOpen
 			return m, nil
 		case "c":
 			// Cycle how many CPU cores the card lists (2 → 4 → 8 → all) and persist.
@@ -161,7 +165,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		delay := m.schedule.recordCompletion(msg, refreshInterval)
 		return m, tickAfter(delay)
 	case snakeTickMsg:
-		if !m.catHidden && m.game != nil {
+		if m.snakeOpen && m.game != nil {
 			m.game.step()
 		}
 		return m, snakeTick()
@@ -183,11 +187,13 @@ func (m model) View() string {
 	}
 
 	header, mole := renderHeader(m.metrics, m.errMessage, m.animFrame, termWidth, m.catHidden)
-	if mole != "" {
+	// The game only exists while S has it open; the old mole sprite is gone.
+	mole = ""
+	if m.snakeOpen {
 		if m.game == nil {
-			m.game = newSnakeGame(snakeColsFor(termWidth))
+			m.game = newSnakeGame(snakeMinCols, snakeMinRows)
 		}
-		m.game.ensureCols(snakeColsFor(termWidth))
+		m.game.ensureSize(snakeSizeFor(termWidth, m.height))
 		mole = m.game.render()
 	}
 	alertBar := renderProcessAlertBar(
@@ -238,6 +244,15 @@ func (m model) View() string {
 	// preference is untouched, so a taller window gets it back.
 	cpuCores := m.cpuCores
 	output := renderFrame(cpuCores)
+	// With the game open it owns half the screen; the dashboard below is
+	// cropped to what is left instead of falling back to "terminal too small".
+	if m.snakeOpen && m.height > 0 {
+		lines := strings.Split(output, "\n")
+		if len(lines) > m.height {
+			lines = lines[:m.height]
+		}
+		return padViewToHeight(strings.Join(lines, "\n"), m.height)
+	}
 	for m.height > 0 && lipgloss.Height(output) > m.height && cpuCores != cpuCoresCycle[0] {
 		cpuCores = smallerCPUCores(cpuCores)
 		output = renderFrame(cpuCores)
