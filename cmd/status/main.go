@@ -62,7 +62,8 @@ type model struct {
 	collecting    bool
 	animFrame     int
 	catHidden     bool // true = hidden, false = visible
-	cpuCores      int  // how many CPU cores to list; 0 = all
+	game          *snakeGame
+	cpuCores      int // how many CPU cores to list; 0 = all
 }
 
 // padViewToHeight ensures the rendered frame always overwrites the full
@@ -84,6 +85,7 @@ func newModel() model {
 	return model{
 		collector: NewCollector(processWatchOptionsFromFlags()),
 		catHidden: loadCatHidden(),
+		game:      newSnakeGame(snakeMaxCols),
 		cpuCores:  loadCPUCores(),
 	}
 }
@@ -107,7 +109,7 @@ func validateFlags() error {
 }
 
 func (m model) Init() tea.Cmd {
-	return tea.Batch(tickAfter(0), animTick())
+	return tea.Batch(tickAfter(0), animTick(), snakeTick())
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -117,9 +119,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q", "esc", "ctrl+c":
 			return m, tea.Quit
 		case "k":
-			// Toggle cat visibility and persist preference
+			// Toggle the snake game (formerly the cat) visibility and persist preference
 			m.catHidden = !m.catHidden
 			saveCatHidden(m.catHidden)
+			return m, nil
+		case "up", "down", "left", "right", "w", "a", "s", "d", "r", " ", "enter":
+			if !m.catHidden && m.game != nil {
+				m.game.handleKey(msg.String())
+			}
 			return m, nil
 		case "c":
 			// Cycle how many CPU cores the card lists (2 → 4 → 8 → all) and persist.
@@ -153,6 +160,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.collecting = false
 		delay := m.schedule.recordCompletion(msg, refreshInterval)
 		return m, tickAfter(delay)
+	case snakeTickMsg:
+		if !m.catHidden && m.game != nil {
+			m.game.step()
+		}
+		return m, snakeTick()
 	case animTickMsg:
 		m.animFrame++
 		return m, animTickWithSpeed(m.metrics.CPU.Usage)
@@ -162,7 +174,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
 	if !m.schedule.hasSnapshot {
-		return "Loading..."
+		return "Carregando..."
 	}
 
 	termWidth := m.width
@@ -171,6 +183,13 @@ func (m model) View() string {
 	}
 
 	header, mole := renderHeader(m.metrics, m.errMessage, m.animFrame, termWidth, m.catHidden)
+	if mole != "" {
+		if m.game == nil {
+			m.game = newSnakeGame(snakeColsFor(termWidth))
+		}
+		m.game.ensureCols(snakeColsFor(termWidth))
+		mole = m.game.render()
+	}
 	alertBar := renderProcessAlertBar(
 		m.metrics.ProcessAlerts,
 		m.metrics.ProcessStale,

@@ -26,7 +26,7 @@ func TestStatusViewFitsShortViewport(t *testing.T) {
 				view := m.View()
 				got := lipgloss.Height(view)
 				t.Logf("frame=%d terminal=%d", got, height)
-				if !strings.Contains(stripANSI(view), "Network") && !strings.Contains(stripANSI(view), "Terminal too small") {
+				if !strings.Contains(stripANSI(view), "Rede") && !strings.Contains(stripANSI(view), "Terminal pequeno demais") {
 					t.Fatal("neither dashboard nor resize guidance visible")
 				}
 				for line := range strings.SplitSeq(view, "\n") {
@@ -39,7 +39,7 @@ func TestStatusViewFitsShortViewport(t *testing.T) {
 				}
 				grown, _ := m.Update(tea.WindowSizeMsg{Width: width, Height: 100})
 				restored := grown.(model)
-				if strings.Count(stripANSI(restored.View()), "Core") != 20 || lipgloss.Height(restored.View()) != 100 || !strings.Contains(stripANSI(restored.View()), "Network") || strings.Contains(restored.View(), "Terminal too small") {
+				if strings.Count(stripANSI(restored.View()), "Core") != 20 || lipgloss.Height(restored.View()) != 100 || !strings.Contains(stripANSI(restored.View()), "Rede") || strings.Contains(restored.View(), "Terminal pequeno demais") {
 					t.Fatal("tall resize did not recover")
 				}
 				if got > height {
@@ -108,7 +108,7 @@ func TestStatusRendererShowsHeightFallback(t *testing.T) {
 			if hasCPU != (height == 60) {
 				t.Fatalf("unexpected CPU visibility at height %d: %q", height, plain)
 			}
-			if strings.Contains(plain, "Terminal too small") != (height == 10) {
+			if strings.Contains(plain, "Terminal pequeno demais") != (height == 10) {
 				t.Fatalf("unexpected resize guidance at height %d: %q", height, plain)
 			}
 		})

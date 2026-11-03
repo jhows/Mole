@@ -8,50 +8,50 @@ import (
 func statusDiagnosisLine(m MetricsSnapshot) string {
 	for _, disk := range m.Disks {
 		if disk.SmartStatus == smartStatusFailing {
-			return "SMART failing, back up now"
+			return "SMART falhando, faça backup agora"
 		}
 	}
 	if m.CPU.Usage > cpuHighThreshold {
 		if processSnapshotFresh(m.ProcessStale) {
 			if proc, ok := leadingCPUProcess(m.TopProcesses, 50); ok {
-				return fmt.Sprintf("%s high CPU", shorten(proc.Name, 18))
+				return fmt.Sprintf("%s CPU alta", shorten(proc.Name, 18))
 			}
 		}
-		return "CPU load high"
+		return "Carga de CPU alta"
 	}
 	if m.Memory.Pressure == "warn" || m.Memory.Pressure == "critical" || m.Memory.UsedPercent > memHighThreshold {
 		if processSnapshotFresh(m.ProcessStale) {
 			if proc, ok := leadingMemoryProcess(m.TopProcesses); ok && proc.Memory > 0 {
-				return fmt.Sprintf("%s memory pressure", shorten(proc.Name, 18))
+				return fmt.Sprintf("%s pressão de memória", shorten(proc.Name, 18))
 			}
 		}
-		return "Memory pressure high"
+		return "Pressão de memória alta"
 	}
 	if disk, ok := rootDisk(m.Disks); ok && diskIsCritical(disk) {
 		free := uint64(0)
 		if disk.Total > disk.Used {
 			free = disk.Total - disk.Used
 		}
-		return fmt.Sprintf("Disk low, %s free", humanBytesShort(free))
+		return fmt.Sprintf("Pouco disco, %s livres", humanBytesShort(free))
 	}
 	for _, battery := range m.Batteries {
 		if battery.Capacity > 0 && battery.Capacity < batteryCapWarn {
-			return "Battery health low"
+			return "Saúde da bateria baixa"
 		}
 		if battery.CycleCount > batteryCycleWarn {
-			return "Battery cycles high"
+			return "Ciclos de bateria altos"
 		}
 	}
 	if m.Thermal.CPUTemp > thermalNormalThreshold {
-		return "CPU temperature high"
+		return "Temperatura da CPU alta"
 	}
 	if totalIO := m.DiskIO.ReadRate + m.DiskIO.WriteRate; totalIO > ioHighThreshold {
-		return "Disk I/O busy"
+		return "Disco (E/S) ocupado"
 	}
 	if strings.Contains(m.HealthScoreMsg, ":") {
 		return m.HealthScoreMsg
 	}
-	return "All clear"
+	return "Tudo certo"
 }
 
 func leadingCPUProcess(procs []ProcessInfo, threshold float64) (ProcessInfo, bool) {

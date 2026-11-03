@@ -18,7 +18,7 @@ func renderTerminalTooSmall(width, height int) string {
 		Width(width).
 		MaxWidth(width).
 		MaxHeight(height).
-		Render("Terminal too small. Enlarge the window to view status.")
+		Render("Terminal pequeno demais. Aumente a janela para ver o status.")
 }
 
 var (
@@ -164,7 +164,7 @@ func renderHeader(m MetricsSnapshot, errMsg string, animFrame int, termWidth int
 	title := titleStyle.Render("Status")
 
 	scoreStyle := getScoreStyle(m.HealthScore)
-	scoreText := subtleStyle.Render("Health ") + scoreStyle.Render(fmt.Sprintf("● %d", m.HealthScore))
+	scoreText := subtleStyle.Render("Saúde ") + scoreStyle.Render(fmt.Sprintf("● %d", m.HealthScore))
 	if errMsg == "" {
 		diagnosis := statusDiagnosisLine(m)
 		scoreText += " " + subtleStyle.Render(diagnosis)
@@ -190,9 +190,9 @@ func renderHeader(m MetricsSnapshot, errMsg string, animFrame int, termWidth int
 		specParts = append(specParts, "RAM "+humanBytes(m.Memory.Total))
 	}
 	if m.Hardware.DiskSize != "" {
-		specParts = append(specParts, "Disk "+m.Hardware.DiskSize)
+		specParts = append(specParts, "Disco "+m.Hardware.DiskSize)
 	} else if disk, ok := rootDisk(m.Disks); ok && disk.Total > 0 {
-		specParts = append(specParts, "Disk "+humanBytes(disk.Total))
+		specParts = append(specParts, "Disco "+humanBytes(disk.Total))
 	}
 	refreshParts := []string{}
 	if m.Hardware.RefreshRate != "" {
@@ -203,7 +203,7 @@ func renderHeader(m MetricsSnapshot, errMsg string, animFrame int, termWidth int
 		optionalInfoParts = append(optionalInfoParts, m.Hardware.OSVersion)
 	}
 	if !compactHeader && m.Uptime != "" {
-		uptimeText := "up " + m.Uptime
+		uptimeText := "ligado há " + m.Uptime
 		switch uptimeSeverity(m.UptimeSeconds) {
 		case "danger":
 			uptimeText = dangerStyle.Render(uptimeText + " ↻")
@@ -317,7 +317,7 @@ func renderProcessAlertBar(alerts []ProcessAlert, processStale *bool, processCol
 	}
 
 	detail := fmt.Sprintf(
-		"%s at %.1f%% for %s (threshold %.1f%%)",
+		"%s em %.1f%% por %s (limite %.1f%%)",
 		formatProcessLabel(ProcessInfo{PID: focus.PID, Name: focus.Name}),
 		focus.CPU,
 		focus.Window,
@@ -325,7 +325,7 @@ func renderProcessAlertBar(alerts []ProcessAlert, processStale *bool, processCol
 	)
 	text := prefix + " " + detail
 	if len(active) > 1 {
-		text += fmt.Sprintf(" · +%d more", len(active)-1)
+		text += fmt.Sprintf(" · +%d mais", len(active)-1)
 	}
 	if historical {
 		freshnessWidth := -1
@@ -390,7 +390,7 @@ func renderCPUCard(cpu CPUStatus, thermal ThermalStatus, cpuCores int) cardData 
 	lines = append(lines, fmt.Sprintf("Total  %s  %s", usageBar, headerText))
 
 	if cpu.PerCoreEstimated {
-		lines = append(lines, subtleStyle.Render("Per-core data unavailable, using averaged load"))
+		lines = append(lines, subtleStyle.Render("Dados por núcleo indisponíveis, usando a carga média"))
 	} else if len(cpu.PerCore) > 0 {
 		type coreUsage struct {
 			idx int
@@ -416,10 +416,10 @@ func renderCPUCard(cpu CPUStatus, thermal ThermalStatus, cpuCores int) cardData 
 
 	// Load line at the end
 	if cpu.PCoreCount > 0 && cpu.ECoreCount > 0 {
-		lines = append(lines, fmt.Sprintf("Load   %.2f / %.2f / %.2f, %dP+%dE",
+		lines = append(lines, fmt.Sprintf("Carga  %.2f / %.2f / %.2f, %dP+%dE",
 			cpu.Load1, cpu.Load5, cpu.Load15, cpu.PCoreCount, cpu.ECoreCount))
 	} else {
-		lines = append(lines, fmt.Sprintf("Load   %.2f / %.2f / %.2f, %d cores",
+		lines = append(lines, fmt.Sprintf("Carga  %.2f / %.2f / %.2f, %d núcleos",
 			cpu.Load1, cpu.Load5, cpu.Load15, cpu.LogicalCPU))
 	}
 
@@ -485,7 +485,7 @@ func renderMemoryCard(mem MemoryStatus, cardWidth int) cardData {
 		}
 		lines = append(lines, pressureStyle.Render(pressureText))
 	}
-	return cardData{icon: iconMemory, title: "Memory", lines: lines}
+	return cardData{icon: iconMemory, title: "Memória", lines: lines}
 }
 
 func formatMemoryDetailLine(label string, value string, available uint64, cardWidth int) string {
@@ -499,7 +499,7 @@ func formatMemoryDetailLine(label string, value string, available uint64, cardWi
 func renderDiskCard(disks []DiskStatus, io DiskIOStatus, _ uint64, _ bool) cardData {
 	var lines []string
 	if len(disks) == 0 {
-		lines = append(lines, subtleStyle.Render("Collecting..."))
+		lines = append(lines, subtleStyle.Render("Coletando..."))
 	} else {
 		internal, external := splitDisks(disks)
 		addGroup := func(prefix string, list []DiskStatus) {
@@ -514,7 +514,7 @@ func renderDiskCard(disks []DiskStatus, io DiskIOStatus, _ uint64, _ bool) cardD
 		addGroup("INTR", internal)
 		addGroup("EXTR", external)
 		if len(lines) == 0 {
-			lines = append(lines, subtleStyle.Render("No disks detected"))
+			lines = append(lines, subtleStyle.Render("Nenhum disco detectado"))
 		} else if len(disks) == 1 {
 			lines = append(lines, formatDiskMetaLine(disks[0]))
 		}
@@ -523,7 +523,7 @@ func renderDiskCard(disks []DiskStatus, io DiskIOStatus, _ uint64, _ bool) cardD
 		}
 	}
 	lines = append(lines, formatDiskIOLine(io))
-	return cardData{icon: iconDisk, title: "Disk", lines: lines}
+	return cardData{icon: iconDisk, title: "Disco", lines: lines}
 }
 
 func splitDisks(disks []DiskStatus) (internal, external []DiskStatus) {
@@ -562,7 +562,7 @@ func formatDiskLine(label string, d DiskStatus) string {
 	} else {
 		free = 0
 	}
-	return fmt.Sprintf("%-6s %s  %s used, %s free", label, bar, used, humanBytesShort(free))
+	return fmt.Sprintf("%-6s %s  %s usado, %s livre", label, bar, used, humanBytesShort(free))
 }
 
 func formatDiskMetaLine(d DiskStatus) string {
@@ -571,7 +571,7 @@ func formatDiskMetaLine(d DiskStatus) string {
 		parts = append(parts, strings.ToUpper(d.Fstype))
 	}
 	if d.Purgeable > 0 {
-		parts = append(parts, humanBytesShort(d.Purgeable)+" purgeable")
+		parts = append(parts, humanBytesShort(d.Purgeable)+" purgável")
 	}
 	return fmt.Sprintf("Total  %s", strings.Join(parts, " · "))
 }
@@ -607,7 +607,7 @@ func formatDiskSMARTLine(disks []DiskStatus) string {
 		return ""
 	}
 
-	failingLabels = append(failingLabels, dangerStyle.Render("Back up now"))
+	failingLabels = append(failingLabels, dangerStyle.Render("Faça backup agora"))
 	return fmt.Sprintf("%-*s %s", metricLabelWidth, "SMART", strings.Join(failingLabels, " · "))
 }
 
@@ -657,9 +657,9 @@ func renderProcessCard(procs []ProcessInfo, cardWidth int) cardData {
 		lines = append(lines, strings.TrimRight(line, " "))
 	}
 	if len(lines) == 0 {
-		lines = append(lines, subtleStyle.Render("Collecting..."))
+		lines = append(lines, subtleStyle.Render("Coletando..."))
 	}
-	return cardData{icon: iconProcs, title: "Processes", lines: lines}
+	return cardData{icon: iconProcs, title: "Processos", lines: lines}
 }
 
 func processBar(percent float64, cardWidth int) string {
@@ -693,9 +693,9 @@ func buildCards(m MetricsSnapshot, width int, cpuCores int, batteryProbed bool) 
 	switch {
 	case processSnapshotFresh(m.ProcessStale):
 		if !hasRenderedProcessData {
-			message := "No process activity"
+			message := "Sem atividade de processos"
 			if hasActiveProcessAlert {
-				message = "No process rows · active alert above"
+				message = "Sem linhas de processo · alerta ativo"
 			}
 			processCard.lines = []string{subtleStyle.Render(message)}
 		}
@@ -758,7 +758,7 @@ func renderNetworkCard(netStats []NetworkStatus, history NetworkHistory, proxy P
 	}
 
 	if len(netStats) == 0 {
-		lines = append(lines, subtleStyle.Render("Collecting..."))
+		lines = append(lines, subtleStyle.Render("Coletando..."))
 	} else {
 		// Calculate dynamic width
 		// Layout: "Down   " (7) + graph + "  " (2) + rate (approx 10-12)
@@ -769,8 +769,8 @@ func renderNetworkCard(netStats []NetworkStatus, history NetworkHistory, proxy P
 		// sparkline graphs
 		rxSparkline := sparkline(history.RxHistory, totalRx, graphWidth)
 		txSparkline := sparkline(history.TxHistory, totalTx, graphWidth)
-		lines = append(lines, fmt.Sprintf("Down   %s  %s", rxSparkline, formatRate(totalRx)))
-		lines = append(lines, fmt.Sprintf("Up     %s  %s", txSparkline, formatRate(totalTx)))
+		lines = append(lines, fmt.Sprintf("Baixa  %s  %s", rxSparkline, formatRate(totalRx)))
+		lines = append(lines, fmt.Sprintf("Envio  %s  %s", txSparkline, formatRate(totalTx)))
 		// Show proxy and IP on one line.
 		var infoParts []string
 		if proxy.Enabled {
@@ -787,7 +787,7 @@ func renderNetworkCard(netStats []NetworkStatus, history NetworkHistory, proxy P
 			lines = append(lines, strings.Join(infoParts, " · "))
 		}
 	}
-	return cardData{icon: iconNetwork, title: "Network", lines: lines}
+	return cardData{icon: iconNetwork, title: "Rede", lines: lines}
 }
 
 // 8 levels: ▁▂▃▄▅▆▇█
@@ -841,17 +841,17 @@ func renderBatteryCard(batts []BatteryStatus, thermal ThermalStatus, probed bool
 	var lines []string
 	if len(batts) == 0 && !probed {
 		// The first collection is the fast one, and it does not read batteries.
-		// Saying "No battery" here told every laptop it had none for the couple
+		// Saying "Sem bateria" here told every laptop it had none for the couple
 		// of seconds before the first full collection landed. Hold the card's
 		// shape with placeholders instead, so the real values replace them
 		// without the layout jumping.
 		lines = append(lines,
-			fmt.Sprintf("Level  %s  %6s", batteryProgressBar(0), placeholderValue),
-			fmt.Sprintf("Health %s  %6s", batteryProgressBar(0), placeholderValue),
+			fmt.Sprintf("Nível  %s  %6s", batteryProgressBar(0), placeholderValue),
+			fmt.Sprintf("Saúde  %s  %6s", batteryProgressBar(0), placeholderValue),
 			subtleStyle.Render(placeholderValue),
 		)
 	} else if len(batts) == 0 {
-		lines = append(lines, subtleStyle.Render("No battery"))
+		lines = append(lines, subtleStyle.Render("Sem bateria"))
 	} else {
 		b := batts[0]
 		statusLower := strings.ToLower(b.Status)
@@ -859,7 +859,7 @@ func renderBatteryCard(batts []BatteryStatus, thermal ThermalStatus, probed bool
 		if b.Percent < 20 && statusLower != "charging" && statusLower != "charged" {
 			percentText = dangerStyle.Render(percentText)
 		}
-		lines = append(lines, fmt.Sprintf("Level  %s  %s", batteryProgressBar(b.Percent), percentText))
+		lines = append(lines, fmt.Sprintf("Nível  %s  %s", batteryProgressBar(b.Percent), percentText))
 
 		// Add capacity line if available.
 		if b.Capacity > 0 {
@@ -869,14 +869,14 @@ func renderBatteryCard(batts []BatteryStatus, thermal ThermalStatus, probed bool
 			} else if b.Capacity < 85 {
 				capacityText = warnStyle.Render(capacityText)
 			}
-			lines = append(lines, fmt.Sprintf("Health %s  %s", batteryProgressBar(float64(b.Capacity)), capacityText))
+			lines = append(lines, fmt.Sprintf("Saúde  %s  %s", batteryProgressBar(float64(b.Capacity)), capacityText))
 		}
 
 		if thermal.AdapterPower > 0 && isPoweredByAC(statusLower) {
 			lines = append(lines, fmt.Sprintf("%-6s %s  %6s",
-				"Input",
+				"Entrada",
 				okStyle.Render(plainProgressBar(100)),
-				fmt.Sprintf("%.0fW max", thermal.AdapterPower),
+				fmt.Sprintf("%.0fW máx", thermal.AdapterPower),
 			))
 		}
 
@@ -910,7 +910,7 @@ func renderBatteryCard(batts []BatteryStatus, thermal ThermalStatus, probed bool
 		}
 
 		if b.CycleCount > 0 {
-			cycleText := fmt.Sprintf("%d cycles", b.CycleCount)
+			cycleText := fmt.Sprintf("%d ciclos", b.CycleCount)
 			if b.CycleCount > batteryCycleWarn {
 				cycleText = warnStyle.Render(cycleText)
 			}
@@ -930,7 +930,7 @@ func renderBatteryCard(batts []BatteryStatus, thermal ThermalStatus, probed bool
 		lines = append(lines, strings.Join(summaryParts, " · "))
 	}
 
-	return cardData{icon: iconBattery, title: "Power", lines: lines}
+	return cardData{icon: iconBattery, title: "Energia", lines: lines}
 }
 
 func isPoweredByAC(statusLower string) bool {
@@ -943,18 +943,18 @@ func isPoweredByAC(statusLower string) bool {
 func formatBatteryStatus(status string) string {
 	status = strings.TrimSpace(status)
 	if status == "" {
-		return "Unknown"
+		return "Desconhecido"
 	}
 	lower := strings.ToLower(status)
 	switch lower {
 	case "ac":
 		return "AC"
 	case "charged":
-		return "Charged"
+		return "Carregada"
 	case "charging":
-		return "Charging"
+		return "Carregando"
 	case "discharging":
-		return "Discharging"
+		return "Descarregando"
 	}
 	return strings.ToUpper(status[:1]) + strings.ToLower(status[1:])
 }

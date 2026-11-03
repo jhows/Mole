@@ -374,7 +374,7 @@ func TestDiskIsCriticalNeedsNinetyPercentAndUnderThirtyGBFree(t *testing.T) {
 				t.Fatalf("health message %q disagrees with diskIsCritical=%v", msg, tc.want)
 			}
 			line := statusDiagnosisLine(MetricsSnapshot{Disks: []DiskStatus{disk}})
-			if strings.HasPrefix(line, "Disk low") != tc.want {
+			if strings.HasPrefix(line, "Pouco disco") != tc.want {
 				t.Fatalf("diagnosis %q disagrees with diskIsCritical=%v", line, tc.want)
 			}
 		})

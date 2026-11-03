@@ -416,7 +416,7 @@ func TestRenderProcessAlertBar(t *testing.T) {
 	if !strings.Contains(bar, "node (10)") {
 		t.Fatalf("missing lead process label: %q", bar)
 	}
-	if !strings.Contains(bar, "+1 more") {
+	if !strings.Contains(bar, "+1 mais") {
 		t.Fatalf("missing additional alert count: %q", bar)
 	}
 	if strings.Contains(bar, "terminate") || strings.Contains(bar, "ignore") {
