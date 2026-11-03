@@ -672,7 +672,7 @@ get_remote_main_commit_hash() {
     local response=""
     local commit_hash=""
     response=$(curl -fsSL --connect-timeout 3 --max-time 5 \
-        "https://api.github.com/repos/tw93/mole/commits/main" 2> /dev/null || true)
+        "https://api.github.com/repos/jhows/mole/commits/main" 2> /dev/null || true)
     commit_hash=$(printf '%s\n' "$response" |
         sed -n 's/.*"sha"[[:space:]]*:[[:space:]]*"\([a-f0-9]\{40\}\)".*/\1/p' | head -1)
     [[ "$commit_hash" =~ ^[0-9a-f]{40}$ ]] || return 1
@@ -684,11 +684,11 @@ source_archive_url() {
     local source_commit="${2:-}"
 
     if [[ "$branch" == "main" && "$source_commit" =~ ^[0-9a-f]{40}$ ]]; then
-        printf 'https://github.com/tw93/mole/archive/%s.tar.gz\n' "$source_commit"
+        printf 'https://github.com/jhows/mole/archive/%s.tar.gz\n' "$source_commit"
     elif [[ "$branch" == "main" || "$branch" == "dev" ]]; then
-        printf 'https://github.com/tw93/mole/archive/refs/heads/%s.tar.gz\n' "$branch"
+        printf 'https://github.com/jhows/mole/archive/refs/heads/%s.tar.gz\n' "$branch"
     else
-        printf 'https://github.com/tw93/mole/archive/refs/tags/%s.tar.gz\n' "$branch"
+        printf 'https://github.com/jhows/mole/archive/refs/tags/%s.tar.gz\n' "$branch"
     fi
 }
 
@@ -785,7 +785,7 @@ resolve_source_dir() {
         local clone_succeeded=false
         if [[ -n "$source_commit" ]]; then
             if git init -q "$tmp/mole" > /dev/null 2>&1 &&
-                git -C "$tmp/mole" remote add origin https://github.com/tw93/mole.git > /dev/null 2>&1 &&
+                git -C "$tmp/mole" remote add origin https://github.com/jhows/mole.git > /dev/null 2>&1 &&
                 git -C "$tmp/mole" fetch -q --depth=1 origin "$source_commit" > /dev/null 2>&1 &&
                 git -C "$tmp/mole" checkout -q --detach FETCH_HEAD > /dev/null 2>&1; then
                 clone_succeeded=true
@@ -795,7 +795,7 @@ resolve_source_dir() {
             if [[ "$branch" != "main" ]]; then
                 git_args+=("--branch" "$branch")
             fi
-            if git clone "${git_args[@]}" https://github.com/tw93/mole.git "$tmp/mole" > /dev/null 2>&1; then
+            if git clone "${git_args[@]}" https://github.com/jhows/mole.git "$tmp/mole" > /dev/null 2>&1; then
                 clone_succeeded=true
             fi
         fi
@@ -839,7 +839,7 @@ get_latest_release_tag() {
         return 1
     fi
     tag=$(curl -fsSL --connect-timeout 2 --max-time 3 \
-        "https://api.github.com/repos/tw93/mole/releases/latest" 2> /dev/null |
+        "https://api.github.com/repos/jhows/mole/releases/latest" 2> /dev/null |
         sed -n 's/.*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p' | head -n1)
     if [[ -z "$tag" || ! "$tag" =~ ^V[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
         return 1
@@ -870,7 +870,7 @@ get_latest_release_tag_from_git() {
     # install.sh has no timeout helper, so a stalled transfer is cut off by
     # git's own low-speed limit instead.
     git -c http.lowSpeedLimit=1000 -c http.lowSpeedTime=10 \
-        ls-remote --tags --refs https://github.com/tw93/mole.git 2> /dev/null |
+        ls-remote --tags --refs https://github.com/jhows/mole.git 2> /dev/null |
         awk -F/ '{print $NF}' |
         grep -E '^V[0-9]+\.[0-9]+\.[0-9]+$' |
         sort -V |
@@ -890,7 +890,7 @@ normalize_release_tag() {
 
 release_checksums_url() {
     local tag="$1"
-    printf 'https://github.com/tw93/mole/releases/download/%s/SHA256SUMS\n' "$tag"
+    printf 'https://github.com/jhows/mole/releases/download/%s/SHA256SUMS\n' "$tag"
 }
 
 download_release_checksums() {
@@ -1387,7 +1387,7 @@ download_binary() {
     local release_tag
     release_tag="$(normalize_release_tag "$version")"
     local asset_name="${binary_name}-darwin-${arch_suffix}"
-    local url="https://github.com/tw93/mole/releases/download/${release_tag}/${asset_name}"
+    local url="https://github.com/jhows/mole/releases/download/${release_tag}/${asset_name}"
 
     # Skip preflight network checks to avoid false negatives.
 
@@ -1424,7 +1424,7 @@ download_binary() {
         fallback_tag=$(get_latest_release_tag_from_git 2> /dev/null || true)
     fi
     if [[ -n "$fallback_tag" && "$fallback_tag" != "$release_tag" ]]; then
-        local fallback_url="https://github.com/tw93/mole/releases/download/${fallback_tag}/${asset_name}"
+        local fallback_url="https://github.com/jhows/mole/releases/download/${fallback_tag}/${asset_name}"
         start_line_spinner "Retrying ${binary_name} from ${fallback_tag}..."
         if curl_download_with_retry "$fallback_url" "$staged_path" 2> /dev/null; then
             if [[ -t 1 ]]; then stop_line_spinner; fi
