@@ -8,7 +8,7 @@ set -euo pipefail
 # User state and installed tools must never run with inherited root privileges.
 # Individual maintenance operations request administrator access themselves.
 if [[ "$EUID" -eq 0 ]]; then
-    printf '%s\n' 'Run Mole without sudo; it requests administrator access when needed.' >&2
+    printf '%s\n' 'Execute o Mole sem sudo; ele solicita acesso de administrador quando necessário.' >&2
     exit 1
 fi
 
@@ -81,9 +81,9 @@ touchid_dry_run_enabled() {
 # Show current Touch ID status
 show_status() {
     if is_touchid_configured; then
-        echo -e "${GREEN}${ICON_SUCCESS}${NC} Touch ID is enabled for sudo"
+        echo -e "${GREEN}${ICON_SUCCESS}${NC} Touch ID está ativado para o sudo"
     else
-        echo -e "${YELLOW}${ICON_WARNING}${NC} Touch ID is not configured for sudo"
+        echo -e "${YELLOW}${ICON_WARNING}${NC} Touch ID não está configurado para o sudo"
     fi
 }
 
@@ -94,20 +94,20 @@ enable_touchid() {
 
     if touchid_dry_run_enabled; then
         if is_touchid_configured; then
-            echo -e "${GREEN}${ICON_SUCCESS} Touch ID is already enabled, no changes needed${NC}"
+            echo -e "${GREEN}${ICON_SUCCESS} Touch ID já está ativado, nenhuma alteração necessária${NC}"
         else
-            echo -e "${GREEN}${ICON_SUCCESS} [DRY RUN] Would enable Touch ID for sudo${NC}"
-            echo -e "${GRAY}${ICON_REVIEW} Target files: ${PAM_SUDO_FILE} and/or ${PAM_SUDO_LOCAL_FILE}${NC}"
+            echo -e "${GREEN}${ICON_SUCCESS} [SIMULAÇÃO] Ativaria o Touch ID para o sudo${NC}"
+            echo -e "${GRAY}${ICON_REVIEW} Arquivos-alvo: ${PAM_SUDO_FILE} e/ou ${PAM_SUDO_LOCAL_FILE}${NC}"
         fi
         return 0
     fi
 
     # First check if system supports Touch ID
     if ! supports_touchid; then
-        log_warning "This Mac may not support Touch ID"
-        read -rp "Continue anyway? [y/N] " confirm
+        log_warning "Este Mac pode não ser compatível com Touch ID"
+        read -rp "Continuar mesmo assim? [y/N] " confirm
         if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
-            echo -e "${YELLOW}Cancelled${NC}"
+            echo -e "${YELLOW}Cancelado${NC}"
             return 1
         fi
         echo ""
@@ -123,10 +123,10 @@ enable_touchid() {
                 temp_file=$(create_temp_file)
                 grep -v "pam_tid.so" "$PAM_SUDO_FILE" > "$temp_file"
                 if secure_install_pam "$temp_file" "$PAM_SUDO_FILE" 2> /dev/null; then
-                    echo -e "${GREEN}${ICON_SUCCESS} Cleanup legacy configuration${NC}"
+                    echo -e "${GREEN}${ICON_SUCCESS} Configuração legada removida${NC}"
                 fi
             fi
-            echo -e "${GREEN}${ICON_SUCCESS} Touch ID is already enabled${NC}"
+            echo -e "${GREEN}${ICON_SUCCESS} Touch ID já está ativado${NC}"
             return 0
         fi
 
@@ -165,14 +165,14 @@ enable_touchid() {
                 temp_file=$(create_temp_file)
                 grep -v "pam_tid.so" "$PAM_SUDO_FILE" > "$temp_file"
                 secure_install_pam "$temp_file" "$PAM_SUDO_FILE"
-                log_success "Touch ID migrated to sudo_local"
+                log_success "Touch ID migrado para o sudo_local"
             else
-                log_success "Touch ID enabled, via sudo_local, try: sudo ls"
+                log_success "Touch ID ativado, via sudo_local, experimente: sudo ls"
             fi
             log_operation "touchid" "REBUILT" "$PAM_SUDO_LOCAL_FILE" "touchid enabled"
             return 0
         else
-            log_error "Failed to write to sudo_local"
+            log_error "Falha ao gravar no sudo_local"
             return 1
         fi
     fi
@@ -181,14 +181,14 @@ enable_touchid() {
 
     # Check if already configured (Legacy)
     if is_touchid_configured; then
-        echo -e "${GREEN}${ICON_SUCCESS} Touch ID is already enabled${NC}"
+        echo -e "${GREEN}${ICON_SUCCESS} Touch ID já está ativado${NC}"
         return 0
     fi
 
     # Create backup only if it doesn't exist to preserve original state
     if [[ ! -f "${PAM_SUDO_FILE}.mole-backup" ]]; then
         if ! sudo cp "$PAM_SUDO_FILE" "${PAM_SUDO_FILE}.mole-backup" 2> /dev/null; then
-            log_error "Failed to create backup"
+            log_error "Falha ao criar o backup"
             return 1
         fi
     fi
@@ -209,17 +209,17 @@ enable_touchid() {
 
     # Verify content change
     if cmp -s "$PAM_SUDO_FILE" "$temp_file"; then
-        log_error "Failed to modify configuration"
+        log_error "Falha ao modificar a configuração"
         return 1
     fi
 
     # Apply the changes
     if secure_install_pam "$temp_file" "$PAM_SUDO_FILE" 2> /dev/null; then
-        log_success "Touch ID enabled, try: sudo ls"
+        log_success "Touch ID ativado, experimente: sudo ls"
         log_operation "touchid" "REBUILT" "$PAM_SUDO_FILE" "touchid enabled"
         return 0
     else
-        log_error "Failed to enable Touch ID"
+        log_error "Falha ao ativar o Touch ID"
         return 1
     fi
 }
@@ -231,16 +231,16 @@ disable_touchid() {
 
     if touchid_dry_run_enabled; then
         if ! is_touchid_configured; then
-            echo -e "${YELLOW}Touch ID is not currently enabled${NC}"
+            echo -e "${YELLOW}Touch ID não está ativado no momento${NC}"
         else
-            echo -e "${GREEN}${ICON_SUCCESS} [DRY RUN] Would disable Touch ID for sudo${NC}"
-            echo -e "${GRAY}${ICON_REVIEW} Target files: ${PAM_SUDO_FILE} and/or ${PAM_SUDO_LOCAL_FILE}${NC}"
+            echo -e "${GREEN}${ICON_SUCCESS} [SIMULAÇÃO] Desativaria o Touch ID para o sudo${NC}"
+            echo -e "${GRAY}${ICON_REVIEW} Arquivos-alvo: ${PAM_SUDO_FILE} e/ou ${PAM_SUDO_LOCAL_FILE}${NC}"
         fi
         return 0
     fi
 
     if ! is_touchid_configured; then
-        echo -e "${YELLOW}Touch ID is not currently enabled${NC}"
+        echo -e "${YELLOW}Touch ID não está ativado no momento${NC}"
         return 0
     fi
 
@@ -257,12 +257,12 @@ disable_touchid() {
                 grep -v "pam_tid.so" "$PAM_SUDO_FILE" > "$temp_file"
                 secure_install_pam "$temp_file" "$PAM_SUDO_FILE"
             fi
-            echo -e "${GREEN}${ICON_SUCCESS} Touch ID disabled, removed from sudo_local${NC}"
+            echo -e "${GREEN}${ICON_SUCCESS} Touch ID desativado, removido do sudo_local${NC}"
             echo ""
             log_operation "touchid" "REBUILT" "$PAM_SUDO_LOCAL_FILE" "touchid disabled"
             return 0
         else
-            log_error "Failed to disable Touch ID from sudo_local"
+            log_error "Falha ao desativar o Touch ID no sudo_local"
             return 1
         fi
     fi
@@ -272,7 +272,7 @@ disable_touchid() {
         # Create backup only if it doesn't exist
         if [[ ! -f "${PAM_SUDO_FILE}.mole-backup" ]]; then
             if ! sudo cp "$PAM_SUDO_FILE" "${PAM_SUDO_FILE}.mole-backup" 2> /dev/null; then
-                log_error "Failed to create backup"
+                log_error "Falha ao criar o backup"
                 return 1
             fi
         fi
@@ -282,18 +282,18 @@ disable_touchid() {
         grep -v "pam_tid.so" "$PAM_SUDO_FILE" > "$temp_file"
 
         if secure_install_pam "$temp_file" "$PAM_SUDO_FILE" 2> /dev/null; then
-            echo -e "${GREEN}${ICON_SUCCESS} Touch ID disabled${NC}"
+            echo -e "${GREEN}${ICON_SUCCESS} Touch ID desativado${NC}"
             echo ""
             log_operation "touchid" "REBUILT" "$PAM_SUDO_FILE" "touchid disabled"
             return 0
         else
-            log_error "Failed to disable Touch ID"
+            log_error "Falha ao desativar o Touch ID"
             return 1
         fi
     fi
 
     # Should not reach here if is_touchid_configured was true
-    log_error "Could not find Touch ID configuration to disable"
+    log_error "Não foi possível encontrar a configuração do Touch ID para desativar"
     return 1
 }
 
@@ -302,7 +302,7 @@ show_menu() {
     echo ""
     show_status
     if is_touchid_configured; then
-        echo -ne "${PURPLE}${ICON_CONFIRM}${NC} Press ${GREEN}Enter${NC} to disable, ${GRAY}Q${NC} to quit: "
+        echo -ne "${PURPLE}${ICON_CONFIRM}${NC} Pressione ${GREEN}Enter${NC} para desativar, ${GRAY}Q${NC} para sair: "
         if ! IFS= read -r -s -n1 key; then
             printf '\n'
             return 1
@@ -320,11 +320,11 @@ show_menu() {
                 ;;
             *)
                 echo ""
-                log_error "Invalid key"
+                log_error "Tecla inválida"
                 ;;
         esac
     else
-        echo -ne "${PURPLE}${ICON_CONFIRM}${NC} Press ${GREEN}Enter${NC} to enable, ${GRAY}Q${NC} to quit: "
+        echo -ne "${PURPLE}${ICON_CONFIRM}${NC} Pressione ${GREEN}Enter${NC} para ativar, ${GRAY}Q${NC} para sair: "
         if ! IFS= read -r -s -n1 key; then
             printf '\n'
             return 1
@@ -341,7 +341,7 @@ show_menu() {
                 ;;
             *)
                 echo ""
-                log_error "Invalid key"
+                log_error "Tecla inválida"
                 ;;
         esac
     fi
@@ -365,19 +365,19 @@ main() {
                 if [[ -z "$command" ]]; then
                     command="$arg"
                 else
-                    log_error "Only one touchid command is supported per run"
+                    log_error "Apenas um comando touchid é aceito por execução"
                     return 1
                 fi
                 ;;
             *)
-                log_error "Unknown command: $arg"
+                log_error "Comando desconhecido: $arg"
                 return 1
                 ;;
         esac
     done
 
     if touchid_dry_run_enabled; then
-        echo -e "${YELLOW}${ICON_DRY_RUN} DRY RUN MODE${NC}, No sudo authentication files will be modified"
+        echo -e "${YELLOW}${ICON_DRY_RUN} MODO SIMULAÇÃO (DRY RUN)${NC}, nenhum arquivo de autenticação do sudo será modificado"
         echo ""
     fi
 
@@ -395,7 +395,7 @@ main() {
             show_menu
             ;;
         *)
-            log_error "Unknown command: $command"
+            log_error "Comando desconhecido: $command"
             exit 1
             ;;
     esac

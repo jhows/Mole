@@ -41,7 +41,7 @@ func TestParseArgsHelpGoesToStdout(t *testing.T) {
 			if stderr.Len() != 0 {
 				t.Errorf("stderr = %q, want empty: help is data, not an error", stderr.String())
 			}
-			if !strings.HasPrefix(stdout.String(), "Usage: mo status") {
+			if !strings.HasPrefix(stdout.String(), "Uso: mo status") {
 				t.Errorf("stdout = %q, want it to start with the mo status usage line", stdout.String())
 			}
 		})

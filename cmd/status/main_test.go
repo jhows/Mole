@@ -581,7 +581,7 @@ func TestWriteJSONSnapshotFailsWhenNothingWasCollected(t *testing.T) {
 		if stdout.Len() != 0 {
 			t.Fatalf("empty snapshot printed JSON: %q", &stdout)
 		}
-		if !strings.Contains(stderr.String(), "status: collect failed:") {
+		if !strings.Contains(stderr.String(), "status: falha na coleta:") {
 			t.Fatalf("empty snapshot gave no reason: %q", &stderr)
 		}
 	}
@@ -644,7 +644,7 @@ func TestWriteJSONSnapshotReportsOutputFailure(t *testing.T) {
 	if code := writeJSONSnapshot(writer, &stderr, data, nil); code != 1 {
 		t.Fatalf("output failure exit = %d, want 1", code)
 	}
-	if !strings.Contains(stderr.String(), "error encoding JSON:") {
+	if !strings.Contains(stderr.String(), "erro ao codificar JSON:") {
 		t.Fatalf("missing output error: %q", &stderr)
 	}
 }

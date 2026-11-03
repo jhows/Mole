@@ -557,15 +557,15 @@ history_join_counts() {
     local rebuilt="$5"
     local other="$6"
 
-    [[ "$removed" -gt 0 ]] && parts+=("removed $removed")
-    [[ "$trashed" -gt 0 ]] && parts+=("trashed $trashed")
-    [[ "$skipped" -gt 0 ]] && parts+=("skipped $skipped")
-    [[ "$failed" -gt 0 ]] && parts+=("failed $failed")
-    [[ "$rebuilt" -gt 0 ]] && parts+=("rebuilt $rebuilt")
-    [[ "$other" -gt 0 ]] && parts+=("other $other")
+    [[ "$removed" -gt 0 ]] && parts+=("removidos $removed")
+    [[ "$trashed" -gt 0 ]] && parts+=("na Lixeira $trashed")
+    [[ "$skipped" -gt 0 ]] && parts+=("ignorados $skipped")
+    [[ "$failed" -gt 0 ]] && parts+=("falhas $failed")
+    [[ "$rebuilt" -gt 0 ]] && parts+=("reconstruídos $rebuilt")
+    [[ "$other" -gt 0 ]] && parts+=("outros $other")
 
     if [[ ${#parts[@]} -eq 0 ]]; then
-        printf 'no file actions'
+        printf 'nenhuma ação em arquivos'
         return 0
     fi
 
@@ -584,7 +584,7 @@ history_size_label() {
     if [[ "$size_kb" =~ ^[0-9]+$ ]]; then
         bytes_to_human_kb "$size_kb"
     else
-        printf 'unknown'
+        printf 'desconhecido'
     fi
 }
 
@@ -693,13 +693,13 @@ history_render_text() {
 
     # Logs from V1.58.0 and earlier can still hold raw control bytes. Every
     # field read from them is printed escaped; --json keeps the stored value.
-    printf '\n%sMole History%s\n\n' "$BLUE" "$NC"
+    printf '\n%sHistórico do Mole%s\n\n' "$BLUE" "$NC"
 
     if [[ "$session_count" -eq 0 ]]; then
-        printf 'Recent sessions\n'
-        printf '  No operation history yet.\n'
+        printf 'Sessões recentes\n'
+        printf '  Ainda não há histórico de operações.\n'
     else
-        printf 'Recent sessions\n'
+        printf 'Sessões recentes\n'
         local start=$((session_count - limit))
         [[ "$start" -lt 0 ]] && start=0
         local idx=$((session_count - 1))
@@ -723,21 +723,21 @@ history_render_text() {
             _mole_escape_log_value size "$size"
             count_text=$(history_join_counts "$removed" "$trashed" "$skipped" "$failed" "$rebuilt" "$other")
             if [[ "$failed_tasks" -gt 0 ]]; then
-                count_text+=", $failed_tasks optimize tasks failed"
+                count_text+=", $failed_tasks tarefas de otimização com falha"
             fi
             if [[ "${HISTORY_SESSION_AMBIGUOUS[$idx]}" == 1 ]]; then
-                count_text+=", legacy run attribution uncertain"
+                count_text+=", atribuição de execução legada incerta"
             fi
-            [[ -z "$ended" ]] && ended="not ended"
-            printf '  %-10s %s, %s items, %s\n' "$command" "$started" "$items" "$size"
-            printf '             %s, ended %s\n' "$count_text" "$ended"
+            [[ -z "$ended" ]] && ended="não finalizada"
+            printf '  %-10s %s, %s itens, %s\n' "$command" "$started" "$items" "$size"
+            printf '             %s, finalizada %s\n' "$count_text" "$ended"
             idx=$((idx - 1))
         done
     fi
 
-    printf '\nDeletion audit\n'
+    printf '\nAuditoria de exclusões\n'
     if [[ "$deletion_count" -eq 0 ]]; then
-        printf '  No deletion audit entries yet.\n'
+        printf '  Ainda não há entradas na auditoria de exclusões.\n'
     else
         local start=$((deletion_count - limit))
         [[ "$start" -lt 0 ]] && start=0
@@ -760,8 +760,8 @@ history_render_text() {
     fi
 
     printf '\nLogs\n'
-    printf '  operations: %s\n' "$operations_log"
-    printf '  deletions:  %s\n\n' "$deletions_log"
+    printf '  operações:  %s\n' "$operations_log"
+    printf '  exclusões:  %s\n\n' "$deletions_log"
 }
 
 history_render_json_sessions() {

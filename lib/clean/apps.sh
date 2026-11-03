@@ -21,7 +21,7 @@ clean_ds_store_tree() {
     local spinner_active="false"
     if [[ -t 1 ]]; then
         MOLE_SPINNER_PREFIX="  "
-        start_inline_spinner "Cleaning Finder metadata..."
+        start_inline_spinner "Limpando metadados do Finder..."
         spinner_active="true"
     fi
     local -a exclude_paths=(
@@ -101,11 +101,11 @@ clean_ds_store_tree() {
         size_human=$(bytes_to_human "$total_bytes")
         local size_kb=$(((total_bytes + 1023) / 1024))
         if [[ "$DRY_RUN" == "true" ]]; then
-            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} $label${NC} · ${YELLOW}$file_count files, $size_human dry${NC}"
+            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} $label${NC} · ${YELLOW}$file_count arquivos, $size_human simulado${NC}"
         else
             local line_color
             line_color=$(cleanup_result_color_kb "$size_kb")
-            echo -e "  ${line_color}${ICON_SUCCESS}${NC} $label${NC} · ${line_color}$file_count files, $(colorize_human_size "${size_human}")"
+            echo -e "  ${line_color}${ICON_SUCCESS}${NC} $label${NC} · ${line_color}$file_count arquivos, $(colorize_human_size "${size_human}")"
         fi
         mole_add_cleaned_row "$file_count" "$size_kb"
         note_activity
@@ -664,11 +664,11 @@ orphan_cleanup_candidate_still_eligible() {
 clean_orphaned_app_data() {
     if ! ls "$HOME/Library/Caches" > /dev/null 2>&1; then
         stop_section_spinner
-        echo -e "  ${GRAY}${ICON_WARNING}${NC} Skipped: No permission to access Library folders"
+        echo -e "  ${GRAY}${ICON_WARNING}${NC} Ignorado: sem permissão para acessar as pastas da Biblioteca (Library)"
         note_activity
         return 0
     fi
-    start_section_spinner "Scanning installed apps..."
+    start_section_spinner "Analisando apps instalados..."
     local installed_bundles=""
     local scan_status=0
     # Explicit if-not capture keeps the graceful skip below reachable even for
@@ -686,10 +686,10 @@ clean_orphaned_app_data() {
         stop_section_spinner
         local scan_detail="${MOLE_APP_SCAN_FAILURE_DETAIL:-}"
         if [[ -n "$scan_detail" ]]; then
-            printf '  %b Skipped: Unable to scan installed applications (%s)\n' \
+            printf '  %b Ignorado: não foi possível analisar os aplicativos instalados (%s)\n' \
                 "${GRAY}${ICON_WARNING}${NC}" "$scan_detail"
         else
-            echo -e "  ${GRAY}${ICON_WARNING}${NC} Skipped: Unable to scan installed applications"
+            echo -e "  ${GRAY}${ICON_WARNING}${NC} Ignorado: não foi possível analisar os aplicativos instalados"
         fi
         note_activity
         return 0
@@ -699,7 +699,7 @@ clean_orphaned_app_data() {
     debug_log "Found $app_count active/installed apps"
     local orphaned_count=0
     local total_orphaned_kb=0
-    start_section_spinner "Scanning orphaned app resources..."
+    start_section_spinner "Analisando recursos órfãos de apps..."
 
     # Dynamically discover Claude VM bundles (path may vary across versions).
     local claude_support_dir="$HOME/Library/Application Support/Claude"
@@ -766,7 +766,7 @@ clean_orphaned_app_data() {
                         local claude_clean_rc=0
                         safe_clean_guarded orphan_cleanup_candidate_still_eligible \
                             "$claude_vm_bundle" \
-                            "Orphaned Claude workspace VM" || claude_clean_rc=$?
+                            "VM órfã do workspace do Claude" || claude_clean_rc=$?
                         if mole_rc_timeout_or_signal "$claude_clean_rc"; then
                             claude_result_rc=$claude_clean_rc
                             break
@@ -792,7 +792,7 @@ clean_orphaned_app_data() {
     local -a resource_types=(
         "$HOME/Library/Caches|Caches|com.*:org.*:net.*:io.*"
         "$HOME/Library/Logs|Logs|com.*:org.*:net.*:io.*"
-        "$HOME/Library/Saved Application State|States|*.savedState"
+        "$HOME/Library/Saved Application State|Estados|*.savedState"
     )
     for resource_type in "${resource_types[@]}"; do
         IFS='|' read -r base_path label patterns <<< "$resource_type"
@@ -877,7 +877,7 @@ clean_orphaned_app_data() {
                         local _ORPHAN_CLEANUP_KIND="bundle"
                         local clean_rc=0
                         safe_clean_guarded orphan_cleanup_candidate_still_eligible \
-                            "$match" "Orphaned $label: $bundle_id" || clean_rc=$?
+                            "$match" "${label} órfãos: $bundle_id" || clean_rc=$?
                         if mole_rc_timeout_or_signal "$clean_rc"; then
                             rm -f -- "$installed_bundles" 2> /dev/null || true # SAFE: exact tracked temp file created above
                             return "$clean_rc"
@@ -896,9 +896,9 @@ clean_orphaned_app_data() {
     if [[ $orphaned_count -gt 0 ]]; then
         local orphaned_mb=$(echo "$total_orphaned_kb" | awk '{printf "%.1f", $1/1024}')
         if [[ "${DRY_RUN:-false}" == "true" ]]; then
-            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Would clean $(mole_count_label "$orphaned_count" item), about ${orphaned_mb}MB"
+            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Limparia $(mole_count_label "$orphaned_count" item), cerca de ${orphaned_mb}MB"
         else
-            echo -e "  ${GREEN}${ICON_SUCCESS}${NC} Cleaned $(mole_count_label "$orphaned_count" item), about ${orphaned_mb}MB"
+            echo -e "  ${GREEN}${ICON_SUCCESS}${NC} Limpos $(mole_count_label "$orphaned_count" item), cerca de ${orphaned_mb}MB"
         fi
         note_activity
     fi
@@ -1006,7 +1006,7 @@ clean_orphaned_system_services() {
             -n true < /dev/null 2> /dev/null || service_auth_rc=$?
     fi
     if mole_rc_timeout "$service_auth_rc"; then
-        echo -e "  ${YELLOW}${ICON_WARNING}${NC} Orphaned system services · ${GRAY}authorization check timed out, skipped cleanup${NC}"
+        echo -e "  ${YELLOW}${ICON_WARNING}${NC} Serviços de sistema órfãos · ${GRAY}tempo esgotado na verificação de autorização, limpeza ignorada${NC}"
         note_activity
         return 0
     elif [[ $service_auth_rc -ge 128 ]]; then
@@ -1014,7 +1014,7 @@ clean_orphaned_system_services() {
     fi
     [[ $service_auth_rc -eq 0 ]] || return 0
 
-    start_section_spinner "Scanning orphaned system services..."
+    start_section_spinner "Analisando serviços de sistema órfãos..."
 
     local orphaned_count=0
     local -a orphaned_files=()
@@ -1785,7 +1785,7 @@ clean_orphaned_system_services() {
         if [[ $service_scan_status -ge 128 ]]; then
             return "$service_scan_status"
         fi
-        echo -e "  ${YELLOW}${ICON_WARNING}${NC} Orphaned system services · ${GRAY}scan incomplete, skipped cleanup${NC}"
+        echo -e "  ${YELLOW}${ICON_WARNING}${NC} Serviços de sistema órfãos · ${GRAY}análise incompleta, limpeza ignorada${NC}"
         note_activity
         return 0
     fi
@@ -1835,7 +1835,7 @@ clean_orphaned_system_services() {
     if [[ $orphaned_count -eq 0 ]]; then
         stop_section_spinner
     else
-        start_section_spinner "Checking orphaned system services..."
+        start_section_spinner "Verificando serviços de sistema órfãos..."
         debug_log "Found $orphaned_count orphaned system services"
 
         local removed_count=0
@@ -1854,7 +1854,7 @@ clean_orphaned_system_services() {
             _orphan_service_candidate_still_eligible "$orphan_file" "$expected_identity" || eligibility_rc=$?
             if mole_rc_timeout "$eligibility_rc"; then
                 stop_section_spinner
-                echo -e "  ${YELLOW}${ICON_WARNING}${NC} Orphaned system services · ${GRAY}time limit reached, stopped cleanup${NC}"
+                echo -e "  ${YELLOW}${ICON_WARNING}${NC} Serviços de sistema órfãos · ${GRAY}limite de tempo atingido, limpeza interrompida${NC}"
                 debug_log "Orphaned services stopped by deadline at stage: eligibility recheck"
                 note_activity
                 return 0
@@ -1888,7 +1888,7 @@ clean_orphaned_system_services() {
                 fi
                 if mole_rc_timeout "$orphan_size_rc"; then
                     stop_section_spinner
-                    echo -e "  ${YELLOW}${ICON_WARNING}${NC} Orphaned system services · ${GRAY}time limit reached, stopped cleanup${NC}"
+                    echo -e "  ${YELLOW}${ICON_WARNING}${NC} Serviços de sistema órfãos · ${GRAY}limite de tempo atingido, limpeza interrompida${NC}"
                     debug_log "Orphaned services stopped by deadline at stage: dry-run sizing"
                     note_activity
                     return 0
@@ -1916,7 +1916,7 @@ clean_orphaned_system_services() {
                 fi
                 if mole_rc_timeout "$file_size_rc"; then
                     stop_section_spinner
-                    echo -e "  ${YELLOW}${ICON_WARNING}${NC} Orphaned system services · ${GRAY}time limit reached, stopped cleanup${NC}"
+                    echo -e "  ${YELLOW}${ICON_WARNING}${NC} Serviços de sistema órfãos · ${GRAY}limite de tempo atingido, limpeza interrompida${NC}"
                     debug_log "Orphaned services stopped by deadline at stage: plist removal"
                     note_activity
                     return 0
@@ -1938,7 +1938,7 @@ clean_orphaned_system_services() {
                     "$expected_identity" || final_eligibility_rc=$?
                 if mole_rc_timeout "$final_eligibility_rc"; then
                     stop_section_spinner
-                    echo -e "  ${YELLOW}${ICON_WARNING}${NC} Orphaned system services · ${GRAY}time limit reached, stopped cleanup${NC}"
+                    echo -e "  ${YELLOW}${ICON_WARNING}${NC} Serviços de sistema órfãos · ${GRAY}limite de tempo atingido, limpeza interrompida${NC}"
                     debug_log "Orphaned services stopped by deadline at stage: helper binary removal"
                     note_activity
                     return 0
@@ -1961,7 +1961,7 @@ clean_orphaned_system_services() {
                     skipped_protected_count=$((skipped_protected_count + 1))
                 elif mole_rc_timeout "$remove_rc"; then
                     stop_section_spinner
-                    echo -e "  ${YELLOW}${ICON_WARNING}${NC} Orphaned system services · ${GRAY}removal timed out, stopped cleanup${NC}"
+                    echo -e "  ${YELLOW}${ICON_WARNING}${NC} Serviços de sistema órfãos · ${GRAY}tempo esgotado na remoção, limpeza interrompida${NC}"
                     note_activity
                     return 0
                 elif [[ $remove_rc -ge 128 ]]; then
@@ -1976,12 +1976,12 @@ clean_orphaned_system_services() {
         stop_section_spinner
 
         if [[ "${DRY_RUN:-false}" == "true" ]]; then
-            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Orphaned services · ${YELLOW}${orphaned_count} found dry${NC}"
+            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Serviços órfãos · ${YELLOW}${orphaned_count} encontrados simulado${NC}"
             note_activity
         elif [[ $removed_count -gt 0 ]]; then
             local orphaned_kb_display
             orphaned_kb_display=$(bytes_to_human "$((removed_kb * 1024))")
-            echo -e "  ${GREEN}${ICON_SUCCESS}${NC} Orphaned services · cleaned ${removed_count}, ${orphaned_kb_display}"
+            echo -e "  ${GREEN}${ICON_SUCCESS}${NC} Serviços órfãos · ${removed_count} limpos, ${orphaned_kb_display}"
             note_activity
         fi
         # Surface protected/failed counts in BOTH dry-run and real-clean so the
@@ -1992,12 +1992,12 @@ clean_orphaned_system_services() {
         if [[ $skipped_protected_count -gt 0 || $failed_count -gt 0 ]]; then
             local issue_note=""
             if [[ $skipped_protected_count -gt 0 ]]; then
-                issue_note="skipped ${skipped_protected_count} protected"
+                issue_note="${skipped_protected_count} protegidos ignorados"
             fi
             if [[ $failed_count -gt 0 ]]; then
-                issue_note+="${issue_note:+, }${failed_count} failed"
+                issue_note+="${issue_note:+, }${failed_count} com falha"
             fi
-            echo -e "  ${GRAY}${ICON_WARNING}${NC} Orphaned services · ${issue_note}"
+            echo -e "  ${GRAY}${ICON_WARNING}${NC} Serviços órfãos · ${issue_note}"
             note_activity
         fi
     fi
@@ -2093,7 +2093,7 @@ clean_orphaned_container_stubs() {
     # Keep the section spinner alive: the mdfind probes below can take
     # seconds, and without a spinner the section looks hung after the
     # previous step's output (per-step loading feedback).
-    start_section_spinner "Scanning orphaned containers..."
+    start_section_spinner "Analisando containers órfãos..."
 
     # Format: "bundle_id_glob:app_path_to_check"
     # The app_path_to_check is the canonical .app location; the stub is removed
@@ -2209,15 +2209,15 @@ clean_orphaned_container_stubs() {
     stop_section_spinner
     if [[ $removed_count -gt 0 ]]; then
         if [[ "$DRY_RUN" == "true" ]]; then
-            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Orphaned app container stubs, ${YELLOW}${removed_count} stubs dry${NC}"
+            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Stubs de containers de apps órfãos, ${YELLOW}${removed_count} stubs simulado${NC}"
         else
-            echo -e "  ${GREEN}${ICON_SUCCESS}${NC} Orphaned app container stubs, ${GREEN}${removed_count} removed${NC}"
+            echo -e "  ${GREEN}${ICON_SUCCESS}${NC} Stubs de containers de apps órfãos, ${GREEN}${removed_count} removidos${NC}"
             note_activity
         fi
         mole_add_cleaned_row "$removed_count" 0
     fi
     if [[ $failed_count -gt 0 ]]; then
-        echo -e "  ${GRAY}${ICON_WARNING}${NC} Orphaned container stubs: $failed_count could not be removed"
+        echo -e "  ${GRAY}${ICON_WARNING}${NC} Stubs de containers órfãos: $failed_count não puderam ser removidos"
         # Keep the warning visible past the idle-section erase.
         note_activity
     fi

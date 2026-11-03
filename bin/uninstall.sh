@@ -8,7 +8,7 @@ set -euo pipefail
 # User state and installed tools must never run with inherited root privileges.
 # Individual maintenance operations request administrator access themselves.
 if [[ "$EUID" -eq 0 ]]; then
-    printf '%s\n' 'Run Mole without sudo; it requests administrator access when needed.' >&2
+    printf '%s\n' 'Execute o Mole sem sudo; ele solicita acesso de administrador quando necessário.' >&2
     exit 1
 fi
 
@@ -75,7 +75,7 @@ uninstall_normalize_last_used_display() {
     local display
     display=$(format_last_used_summary "$last_used")
     if [[ -z "$display" || "$display" == "Never" ]]; then
-        echo "Unknown"
+        echo "Desconhecido"
         return 0
     fi
     echo "$display"
@@ -1076,7 +1076,7 @@ _scan_resolve_uncached() {
         echo "${app_path}|${display_name}|${bundle_id}|${app_mtime}|${quick_size_kb}" >> "$output_file"
     }
 
-    update_scan_status "Scanning applications..." "0" "$total_apps"
+    update_scan_status "Analisando aplicativos..." "0" "$total_apps"
 
     # Skip Pass 2 when the warm cache already wrote every row to $scan_raw_file.
     # Also avoids expanding an empty array; macOS bash 3.2 (the /bin/bash that
@@ -1089,7 +1089,7 @@ _scan_resolve_uncached() {
             # timed mdls/du child from this background worker (issue #1222).
             process_app_metadata "$app_data_tuple" "$scan_raw_file" < /dev/null &
             metadata_worker_pids+=($!)
-            update_scan_status "Scanning applications..." "$app_count" "$total_apps"
+            update_scan_status "Analisando aplicativos..." "$app_count" "$total_apps"
 
             if ((${#metadata_worker_pids[@]} >= max_parallel)); then
                 local completed_pid="" worker_slot wait_rc=0
@@ -1217,7 +1217,7 @@ _scan_dedupe_bundle_ids() {
 # Returns: 0 on success (sorted path is echoed on stdout), 1 if sort
 #          fails or the sorted file did not materialize.
 _scan_finalize_index() {
-    update_scan_status "Merging cache data..." "0" "0"
+    update_scan_status "Mesclando dados do cache..." "0" "0"
     awk -F'|' '
         NR == FNR {
             cache_mtime[$1] = $2
@@ -1242,7 +1242,7 @@ _scan_finalize_index() {
     local metadata_total=0
     metadata_total=$(wc -l < "$merged_file" 2> /dev/null || echo "0")
     [[ "$metadata_total" =~ ^[0-9]+$ ]] || metadata_total=0
-    update_scan_status "Collecting metadata..." "0" "$metadata_total"
+    update_scan_status "Coletando metadados..." "0" "$metadata_total"
 
     awk -F'|' \
         -v now="$current_epoch" \
@@ -1378,7 +1378,7 @@ _scan_finalize_index() {
             }
         ' "$merged_file"
 
-    update_scan_status "Updating cache..." "0" "0"
+    update_scan_status "Atualizando o cache..." "0" "0"
     if [[ -s "$cache_snapshot_file" ]]; then
         if uninstall_acquire_metadata_lock "$MOLE_UNINSTALL_META_CACHE_LOCK"; then
             uninstall_persist_cache_file "$cache_snapshot_file" "$MOLE_UNINSTALL_META_CACHE_FILE"
@@ -1386,7 +1386,7 @@ _scan_finalize_index() {
         fi
     fi
 
-    update_scan_status "Sorting application list..." "0" "0"
+    update_scan_status "Ordenando a lista de aplicativos..." "0" "0"
     sort -t'|' -k1,1n "$temp_file" > "${temp_file}.sorted" || {
         stop_scan_spinner
         rm -f "$scan_inventory_file" "$temp_file" "$scan_raw_file" "$merged_file" "$refresh_file" "$cache_snapshot_file" "$discovered_file" "$cached_rows_file" "$uncached_rows_file"
@@ -1397,11 +1397,11 @@ _scan_finalize_index() {
     rm -f "$temp_file" "$scan_raw_file" "$merged_file" "$cache_snapshot_file" "$discovered_file" "$cached_rows_file" "$uncached_rows_file"
     [[ $cache_source_is_temp == true ]] && rm -f "$cache_source" 2> /dev/null || true
 
-    update_scan_status "Finalizing list..." "0" "0"
+    update_scan_status "Finalizando a lista..." "0" "0"
     debug_log "Uninstall finalization: metadata refresh begin (elapsed ${SECONDS}s, parent $$)"
     start_uninstall_metadata_refresh "$refresh_file"
     debug_log "Uninstall finalization: metadata refresh launched (elapsed ${SECONDS}s, parent $$)"
-    stop_scan_spinner "Preparing app list..."
+    stop_scan_spinner "Preparando a lista de apps..."
     debug_log "Uninstall finalization: spinner stopped (elapsed ${SECONDS}s, parent $$)"
 
     if [[ -f "${temp_file}.sorted" ]]; then
@@ -1524,7 +1524,7 @@ scan_applications() {
                 local status_line status_message status_completed status_total
                 status_line=$(cat "$scan_status_file" 2> /dev/null || echo "")
                 IFS='|' read -r status_message status_completed status_total <<< "$status_line"
-                [[ -z "$status_message" ]] && status_message="Scanning applications..."
+                [[ -z "$status_message" ]] && status_message="Analisando aplicativos..."
                 local c="${MO_SPINNER_FRAMES[$((i % ${#MO_SPINNER_FRAMES[@]}))]}"
                 if [[ "$status_completed" =~ ^[0-9]+$ && "$status_total" =~ ^[0-9]+$ && $status_total -gt 0 ]]; then
                     printf "\r\033[K%s %s %d/%d" "$c" "$status_message" "$status_completed" "$status_total" >&2
@@ -1561,7 +1561,7 @@ scan_applications() {
         rm -f "$spinner_shown_file" "$scan_status_file" 2> /dev/null || true
     }
 
-    update_scan_status "Scanning applications..." "0" "0"
+    update_scan_status "Analisando aplicativos..." "0" "0"
     start_scan_spinner
 
     # Phase 2: discover candidate apps.
@@ -1587,7 +1587,7 @@ scan_applications() {
         [[ $cache_source_is_temp == true ]] && rm -f "$cache_source" 2> /dev/null || true
         restore_scan_int_trap
         printf "\r\033[K" >&2
-        echo "No applications found to uninstall." >&2
+        echo "Nenhum aplicativo encontrado para desinstalar." >&2
         return 1
     fi
     # Phase 5: parallel metadata resolution for cold rows.
@@ -1602,11 +1602,11 @@ scan_applications() {
     fi
 
     # Phase 6: bail out if Pass 2 produced nothing.
-    update_scan_status "Building uninstall index..." "0" "0"
+    update_scan_status "Montando o índice de desinstalação..." "0" "0"
 
     if [[ ! -s "$scan_raw_file" ]]; then
         stop_scan_spinner
-        echo "No applications found to uninstall" >&2
+        echo "Nenhum aplicativo encontrado para desinstalar" >&2
         rm -f "$scan_inventory_file" "$temp_file" "$scan_raw_file" "$merged_file" "$refresh_file" "$cache_snapshot_file" "$discovered_file" "$cached_rows_file" "$uncached_rows_file" "${temp_file}.sorted" "$spinner_shown_file" 2> /dev/null || true
         [[ $cache_source_is_temp == true ]] && rm -f "$cache_source" 2> /dev/null || true
         restore_scan_int_trap
@@ -1623,7 +1623,7 @@ load_applications() {
     local apps_file="$1"
 
     if [[ ! -f "$apps_file" || ! -s "$apps_file" ]]; then
-        log_warning "No applications found for uninstallation"
+        log_warning "Nenhum aplicativo encontrado para desinstalação"
         return 1
     fi
 
@@ -1638,7 +1638,7 @@ load_applications() {
     done < "$apps_file"
 
     if [[ ${#apps_data[@]} -eq 0 ]]; then
-        log_warning "No applications available for uninstallation"
+        log_warning "Nenhum aplicativo disponível para desinstalação"
         return 1
     fi
 
@@ -1673,7 +1673,7 @@ uninstall_abort() {
     local reason="$1"
     stop_uninstall_interactive_screen
     show_cursor
-    log_error "Uninstall aborted: $reason"
+    log_error "Desinstalação abortada: $reason"
 }
 
 # Cleanup: restore cursor and kill keepalive.
@@ -1840,7 +1840,7 @@ match_apps_by_name() {
         fi
 
         if [[ "$found" == "false" ]]; then
-            echo -e "${YELLOW}Warning:${NC} No application found matching '$search_term'"
+            echo -e "${YELLOW}Aviso:${NC} Nenhum aplicativo encontrado correspondente a '$search_term'"
         fi
     done
 }
@@ -1866,16 +1866,16 @@ uninstall_list_json_escape() {
 uninstall_list_apps() {
     local apps_file=""
     if ! apps_file=$(scan_applications); then
-        uninstall_abort "could not complete the application scan"
+        uninstall_abort "não foi possível concluir a análise de aplicativos"
         return 1
     fi
     if [[ ! -f "$apps_file" ]]; then
-        uninstall_abort "application scan produced no list"
+        uninstall_abort "a análise de aplicativos não gerou lista"
         return 1
     fi
     if ! load_applications "$apps_file"; then
         rm -f "$apps_file" "${apps_file}.inventory" # SAFE: exact scan output and inventory sidecar
-        uninstall_abort "no applications available for uninstallation"
+        uninstall_abort "nenhum aplicativo disponível para desinstalação"
         return 1
     fi
     rm -f "$apps_file" "${apps_file}.inventory" # SAFE: exact scan output and inventory sidecar
@@ -1953,13 +1953,13 @@ uninstall_list_apps() {
 
     local total=${#apps_data[@]}
     if [[ $total -eq 0 ]]; then
-        echo "No applications found."
+        echo "Nenhum aplicativo encontrado."
         [[ -z "$brew_inventory_dir" ]] || rm -rf -- "$brew_inventory_dir" # SAFE: private read-only Homebrew inventory directory created above
         return 0
     fi
 
     printf '\n'
-    printf '%-36s %-30s %-30s %8s\n' 'NAME' 'BUNDLE ID' 'UNINSTALL NAME' 'SIZE'
+    printf '%-36s %-30s %-30s %8s\n' 'NOME' 'BUNDLE ID' 'NOME P/ DESINSTALAR' 'TAMANHO'
     printf -- '-%.0s' $(seq 1 108)
     printf '\n'
 
@@ -2001,7 +2001,7 @@ uninstall_list_apps() {
             "$size_display"
     done
 
-    printf '\n%d application(s)  |  Remove with: mo uninstall <UNINSTALL NAME>\n\n' "$total"
+    printf '\n%d aplicativo(s)  |  Remova com: mo uninstall <NOME P/ DESINSTALAR>\n\n' "$total"
     [[ -z "$brew_inventory_dir" ]] || rm -rf -- "$brew_inventory_dir" # SAFE: private read-only Homebrew inventory directory created above
     return 0
 }
@@ -2043,14 +2043,14 @@ main() {
                 list_mode=1
                 ;;
             "--whitelist")
-                echo "Unknown uninstall option: $arg" >&2
-                echo "Whitelist management is currently supported by: mo clean --whitelist / mo optimize --whitelist" >&2
-                echo "Use 'mo uninstall --help' for supported options." >&2
+                echo "Opção de desinstalação desconhecida: $arg" >&2
+                echo "A gestão da lista de proteção é suportada atualmente por: mo clean --whitelist / mo optimize --whitelist" >&2
+                echo "Use 'mo uninstall --help' para ver as opções suportadas." >&2
                 exit 1
                 ;;
             -*)
-                echo "Unknown uninstall option: $arg" >&2
-                echo "Use 'mo uninstall --help' for supported options." >&2
+                echo "Opção de desinstalação desconhecida: $arg" >&2
+                echo "Use 'mo uninstall --help' para ver as opções suportadas." >&2
                 exit 1
                 ;;
             *)
@@ -2072,7 +2072,7 @@ main() {
 
     hide_cursor
     if [[ "${MOLE_DRY_RUN:-0}" == "1" ]]; then
-        echo -e "${YELLOW}${ICON_DRY_RUN} DRY RUN MODE${NC}, No app files or settings will be modified"
+        echo -e "${YELLOW}${ICON_DRY_RUN} MODO SIMULAÇÃO${NC}, nenhum arquivo ou configuração de app será modificado"
         printf '\n'
     fi
 
@@ -2080,16 +2080,16 @@ main() {
     if [[ ${#app_name_args[@]} -gt 0 ]]; then
         local apps_file=""
         if ! apps_file=$(scan_applications); then
-            uninstall_abort "could not complete the application scan"
+            uninstall_abort "não foi possível concluir a análise de aplicativos"
             return 1
         fi
         if [[ ! -f "$apps_file" ]]; then
-            uninstall_abort "application scan produced no list"
+            uninstall_abort "a análise de aplicativos não gerou lista"
             return 1
         fi
         if ! load_applications "$apps_file"; then
             rm -f "$apps_file" "${apps_file}.inventory" # SAFE: exact scan output and inventory sidecar
-            uninstall_abort "no applications available for uninstallation"
+            uninstall_abort "nenhum aplicativo disponível para desinstalação"
             return 1
         fi
 
@@ -2098,14 +2098,14 @@ main() {
 
         if [[ ${#selected_apps[@]} -eq 0 ]]; then
             show_cursor
-            echo "No matching applications found."
+            echo "Nenhum aplicativo correspondente encontrado."
             return 1
         fi
 
         show_cursor
         clear_screen
         local selection_count=${#selected_apps[@]}
-        echo -e "${BLUE}${ICON_CONFIRM}${NC} Matched ${selection_count} app(s):"
+        echo -e "${BLUE}${ICON_CONFIRM}${NC} ${selection_count} app(s) correspondente(s):"
         local index=1
         for selected_app in "${selected_apps[@]}"; do
             IFS='|' read -r _ app_path app_name _ size last_used _ <<< "$selected_app"
@@ -2115,7 +2115,7 @@ main() {
             size_display=$(uninstall_normalize_size_display "$size" "$app_path")
             local last_display
             last_display=$(uninstall_normalize_last_used_display "$last_used")
-            printf "%d. %s  %s  |  Last: %s\n" "$index" "$safe_name" "$size_display" "$last_display"
+            printf "%d. %s  %s  |  Último uso: %s\n" "$index" "$safe_name" "$size_display" "$last_display"
             ((index++))
         done
 
@@ -2142,7 +2142,7 @@ main() {
         start_uninstall_interactive_screen
 
         if [[ $first_scan == false ]]; then
-            echo -e "${GRAY}Checking application list...${NC}" >&2
+            echo -e "${GRAY}Verificando a lista de aplicativos...${NC}" >&2
         fi
         first_scan=false
 
@@ -2166,9 +2166,9 @@ main() {
             local scan_abort_reason=""
             debug_log "Uninstall interactive scan begin (elapsed ${SECONDS}s, parent $$)"
             if ! apps_file=$(scan_applications); then
-                scan_abort_reason="could not complete the application scan"
+                scan_abort_reason="não foi possível concluir a análise de aplicativos"
             elif [[ ! -f "$apps_file" ]]; then
-                scan_abort_reason="application scan produced no list"
+                scan_abort_reason="a análise de aplicativos não gerou lista"
             fi
             if [[ -n "$scan_abort_reason" ]]; then
                 uninstall_abort "$scan_abort_reason"
@@ -2182,7 +2182,7 @@ main() {
             # static "Preparing app list..." line. Animate that line here until
             # the selector stops the spinner right before its first draw.
             if [[ "${MOLE_ALT_SCREEN_ACTIVE:-}" == "1" ]]; then
-                MOLE_SPINNER_PREFIX="" start_inline_spinner "Preparing app list..."
+                MOLE_SPINNER_PREFIX="" start_inline_spinner "Preparando a lista de apps..."
             fi
             cached_apps_file="$apps_file"
             debug_log "Uninstall inventory fingerprint begin (elapsed ${SECONDS}s, parent $$)"
@@ -2195,7 +2195,7 @@ main() {
         if ! load_applications "$apps_file"; then
             rm -f "$apps_file"
             [[ "$apps_file" == "$cached_apps_file" ]] && cached_apps_file=""
-            uninstall_abort "no applications available for uninstallation"
+            uninstall_abort "nenhum aplicativo disponível para desinstalação"
             return 1
         fi
 
@@ -2228,7 +2228,7 @@ main() {
                 [[ ${MOLE_UNINSTALL_FAILED_APPS:-0} -eq 0 ]] || return 1
                 return 0
             fi
-            uninstall_abort "application selection did not complete"
+            uninstall_abort "a seleção de aplicativos não foi concluída"
             return 1
         fi
 
@@ -2238,10 +2238,10 @@ main() {
         printf '\033[2J\033[H' >&2
         local selection_count=${#selected_apps[@]}
         if [[ $selection_count -eq 0 ]]; then
-            echo "No apps selected"
+            echo "Nenhum app selecionado"
             continue
         fi
-        echo -e "${BLUE}${ICON_CONFIRM}${NC} Selected ${selection_count} apps:"
+        echo -e "${BLUE}${ICON_CONFIRM}${NC} ${selection_count} app(s) selecionado(s):"
         local -a summary_rows=()
         local max_name_display_width=0
         local max_size_width=0
@@ -2320,7 +2320,7 @@ main() {
             local padding_needed=$((max_name_display_width - name_display_width))
             local printf_name_width=$((name_byte_count + padding_needed))
 
-            printf "%d. %-*s  %*s  |  Last: %s\n" "$index" "$printf_name_width" "$name_cell" "$max_size_width" "$size_cell" "$last_cell"
+            printf "%d. %-*s  %*s  |  Último uso: %s\n" "$index" "$printf_name_width" "$name_cell" "$max_size_width" "$size_cell" "$last_cell"
             ((index++))
         done
 
@@ -2340,7 +2340,7 @@ main() {
         local _key=""
         local _pressed=false
         while [[ $_countdown -gt 0 ]]; do
-            printf "\r${GRAY}Press Enter to return to the app list, press q to exit (%d)${NC} " "$_countdown"
+            printf "\r${GRAY}Pressione Enter para voltar à lista de apps ou q para sair (%d)${NC} " "$_countdown"
             if IFS= read -r -s -n1 -t 1 _key 2> /dev/null; then
                 _pressed=true
                 break

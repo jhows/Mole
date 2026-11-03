@@ -55,18 +55,18 @@ SLIM_FAILED_NAMES=()
 SLIM_FAILED_REASONS=()
 
 show_slim_help() {
-    echo "Usage: mo slim [OPTIONS]"
+    echo "Uso: mo slim [OPÇÕES]"
     echo ""
-    echo "Remove the Intel code from universal apps on Apple Silicon."
-    echo "Each app is slimmed on a copy that must pass code signing and Gatekeeper"
-    echo "checks before it replaces the original, which moves to the Trash."
-    echo "App updates bring the Intel code back."
-    echo "Apps protected by ~/.config/mole/whitelist are skipped."
+    echo "Remove o código Intel de apps universais no Apple Silicon."
+    echo "Cada app é reduzido em uma cópia que precisa passar na assinatura de código e no Gatekeeper"
+    echo "antes de substituir o original, que vai para a Lixeira."
+    echo "Atualizações do app trazem o código Intel de volta."
+    echo "Apps protegidos por ~/.config/mole/whitelist são ignorados."
     echo ""
-    echo "Options:"
-    echo "  --dry-run, -n     List apps and reclaimable space without changes"
-    echo "  --debug           Show why apps were skipped"
-    echo "  -h, --help        Show this help message"
+    echo "Opções:"
+    echo "  --dry-run, -n     Lista apps e o espaço recuperável sem alterar nada"
+    echo "  --debug           Mostra por que apps foram ignorados"
+    echo "  -h, --help        Mostra esta ajuda"
 }
 
 slim_app_roots() {
@@ -137,56 +137,56 @@ slim_app_prefers_rosetta() {
 slim_skip_reason() {
     local app="$1" check_running="${2:-true}"
     if is_path_whitelisted "$app"; then
-        echo "whitelisted"
+        echo "na lista de proteção"
         return
     fi
     [[ -L "$app" ]] && {
-        echo "symlink"
+        echo "link simbólico"
         return
     }
     [[ -d "$app/Contents" ]] || {
-        echo "not an app bundle"
+        echo "não é um pacote de app"
         return
     }
     [[ -d "$app/Contents/_MASReceipt" ]] && {
-        echo "App Store app"
+        echo "app da App Store"
         return
     }
     local owner
     owner=$("$STAT_BSD" -f %u "$app" 2> /dev/null || echo "")
     [[ "$owner" == "$(id -u)" ]] || {
-        echo "not owned by you"
+        echo "não pertence a você"
         return
     }
     [[ -w "$(dirname "$app")" ]] || {
-        echo "folder not writable"
+        echo "pasta sem permissão de gravação"
         return
     }
     if [[ -n "$(find "$app" ! -user "$(id -un)" -print -quit 2> /dev/null)" ]]; then
-        echo "contains files owned by another user"
+        echo "contém arquivos de outro usuário"
         return
     fi
     local bundle_id
     bundle_id=$(slim_plist_value "$app/Contents/Info.plist" CFBundleIdentifier || echo "")
     [[ -n "$bundle_id" ]] || {
-        echo "no bundle identifier"
+        echo "sem bundle identifier"
         return
     }
     [[ "$bundle_id" == com.apple.* ]] && {
-        echo "Apple app"
+        echo "app da Apple"
         return
     }
     if should_protect_from_uninstall "$bundle_id" ||
         official_uninstaller_vendor "$bundle_id" "" "$app" > /dev/null; then
-        echo "protected app"
+        echo "app protegido"
         return
     fi
     slim_app_prefers_rosetta "$bundle_id" && {
-        echo "set to open using Rosetta"
+        echo "configurado para abrir com o Rosetta"
         return
     }
     if [[ "$check_running" == true ]] && slim_app_is_running "$app"; then
-        echo "still running"
+        echo "ainda em execução"
         return
     fi
     return 0
@@ -515,7 +515,7 @@ print_slim_list() {
         printf '  %s\n' "$(slim_display_row "${SLIM_APP_NAMES[i]}" "${SLIM_APP_BYTES[i]}" "$name_width")"
         total=$((total + SLIM_APP_BYTES[i]))
     done
-    printf '\n%s apps, %s of Intel code\n' "${#SLIM_APP_PATHS[@]}" "$(bytes_to_human "$total")"
+    printf '\n%s apps, %s de código Intel\n' "${#SLIM_APP_PATHS[@]}" "$(bytes_to_human "$total")"
 }
 
 record_slim_failure() {
@@ -561,23 +561,23 @@ slim_verify_copy() {
 
     while IFS=$'\t' read -r rel _bytes; do
         slim_is_thin_arm "$copy/$rel" || {
-            echo "Apple Silicon code missing"
+            echo "código Apple Silicon ausente"
             return 1
         }
     done < "$plan_file"
 
     run_with_timeout "$SLIM_VERIFY_TIMEOUT_SEC" codesign --verify --deep --strict "$copy" > /dev/null 2>&1 < /dev/null || {
-        echo "code signature check failed"
+        echo "falha na verificação da assinatura de código"
         return 1
     }
     local copy_team
     copy_team=$(slim_signing_team "$copy") || copy_team=""
     [[ "$copy_team" == "$team" ]] || {
-        echo "signing team changed"
+        echo "equipe de assinatura alterada"
         return 1
     }
     run_with_timeout "$SLIM_VERIFY_TIMEOUT_SEC" spctl --assess --type execute "$copy" > /dev/null 2>&1 < /dev/null || {
-        echo "Gatekeeper check failed"
+        echo "falha na verificação do Gatekeeper"
         return 1
     }
     return 0
@@ -599,7 +599,7 @@ slim_one_app() {
 
     local reason identity
     if ! load_mole_whitelist "$HOME"; then
-        record_slim_failure "$app" "whitelist unavailable"
+        record_slim_failure "$app" "lista de proteção indisponível"
         return 0
     fi
     reason=$(slim_skip_reason "$app")
@@ -609,14 +609,14 @@ slim_one_app() {
     fi
     identity=$(mole_deletion_identity "$app") || identity=""
     if [[ "$identity" != "$planned_identity" ]]; then
-        record_slim_failure "$app" "changed since scan"
+        record_slim_failure "$app" "alterado desde a busca"
         return 0
     fi
     # A signature that is already broken cannot prove the copy is intact.
     local verify_out has_detritus=false
     if ! verify_out=$(run_with_timeout "$SLIM_VERIFY_TIMEOUT_SEC" codesign --verify --deep --strict "$app" 2>&1 < /dev/null); then
         if [[ "$verify_out" != *"detritus not allowed"* ]]; then
-            record_slim_failure "$app" "code signature already invalid"
+            record_slim_failure "$app" "assinatura de código já inválida"
             return 0
         fi
         has_detritus=true
@@ -624,13 +624,13 @@ slim_one_app() {
 
     local stage
     stage=$(mktemp -d "$SLIM_WORK_DIR/app.XXXXXX") || {
-        record_slim_failure "$app" "no staging folder"
+        record_slim_failure "$app" "sem pasta de preparo"
         return 0
     }
     local copy="$stage/${app##*/}"
     if ! ditto --clone "$app" "$copy" 2> /dev/null; then
         slim_discard_stage "$stage"
-        record_slim_failure "$app" "copy failed"
+        record_slim_failure "$app" "falha na cópia"
         return 0
     fi
 
@@ -642,7 +642,7 @@ slim_one_app() {
         /usr/bin/xattr -rsd com.apple.ResourceFork "$copy" 2> /dev/null || true
         if ! run_with_timeout "$SLIM_VERIFY_TIMEOUT_SEC" codesign --verify --deep --strict "$copy" > /dev/null 2>&1 < /dev/null; then
             slim_discard_stage "$stage"
-            record_slim_failure "$app" "code signature already invalid"
+            record_slim_failure "$app" "assinatura de código já inválida"
             return 0
         fi
     fi
@@ -651,7 +651,7 @@ slim_one_app() {
     while IFS=$'\t' read -r rel _bytes; do
         if ! slim_thin_file "$copy/$rel"; then
             slim_discard_stage "$stage"
-            record_slim_failure "$app" "could not remove Intel code from ${rel##*/}"
+            record_slim_failure "$app" "não foi possível remover o código Intel de ${rel##*/}"
             return 0
         fi
     done < "$plan_file"
@@ -666,19 +666,19 @@ slim_one_app() {
     # reload is unknown, never permission to replace the original.
     if ! load_mole_whitelist "$HOME"; then
         slim_discard_stage "$stage"
-        record_slim_failure "$app" "whitelist unavailable"
+        record_slim_failure "$app" "lista de proteção indisponível"
         return 0
     fi
     if is_path_whitelisted "$app"; then
         slim_discard_stage "$stage"
-        record_slim_failure "$app" "whitelisted"
+        record_slim_failure "$app" "na lista de proteção"
         return 0
     fi
 
     # The app may have started while the copy was checked.
     if slim_app_is_running "$app"; then
         slim_discard_stage "$stage"
-        record_slim_failure "$app" "still running"
+        record_slim_failure "$app" "ainda em execução"
         return 0
     fi
 
@@ -692,16 +692,16 @@ slim_one_app() {
     MOLE_DELETE_MODE=trash mole_delete "$app" false "$planned_identity" || delete_rc=$?
     local swap_failed=""
     if [[ $delete_rc -ne 0 || -e "$app" ]]; then
-        swap_failed="could not move the original to Trash"
+        swap_failed="não foi possível mover o original para a Lixeira"
     elif ! mv "$copy" "$app" 2> /dev/null; then
-        swap_failed="original is in the Trash, drag it back to ${app%/*}"
+        swap_failed="o original está na Lixeira; arraste-o de volta para ${app%/*}"
     fi
     trap 'trap - EXIT; cleanup; exit 130' INT TERM
     if [[ -n "$swap_failed" ]]; then
-        [[ "$swap_failed" == "could not move"* ]] && slim_discard_stage "$stage"
+        [[ "$swap_failed" == "não foi possível mover"* ]] && slim_discard_stage "$stage"
         record_slim_failure "$app" "$swap_failed"
         [[ -z "$swap_signal" ]] || kill -s "$swap_signal" $$
-        [[ "$swap_failed" == "could not move"* ]] && mole_rc_timeout_or_signal "$delete_rc" && return "$delete_rc"
+        [[ "$swap_failed" == "não foi possível mover"* ]] && mole_rc_timeout_or_signal "$delete_rc" && return "$delete_rc"
         return 0
     fi
     [[ -z "$swap_signal" ]] || kill -s "$swap_signal" $$
@@ -735,7 +735,7 @@ select_slim_apps() {
 
     MOLE_SELECTION_RESULT=""
     local rc=0
-    paginated_multi_select "Select apps to slim" "${rows[@]}" || rc=$?
+    paginated_multi_select "Selecione os apps para reduzir" "${rows[@]}" || rc=$?
     unset MOLE_MENU_META_SIZEKB MOLE_MENU_FILTER_NAMES
     [[ $rc -eq 0 && -n "$MOLE_SELECTION_RESULT" ]]
 }
@@ -743,11 +743,11 @@ select_slim_apps() {
 confirm_slim_selection() {
     local -a indices=("$@")
     local idx total=0 running=false tag
-    echo -e "\n${PURPLE_BOLD}Apps to slim:${NC}"
+    echo -e "\n${PURPLE_BOLD}Apps a reduzir:${NC}"
     for idx in "${indices[@]}"; do
         tag=""
         if slim_app_is_running "${SLIM_APP_PATHS[idx]}"; then
-            tag=" ${YELLOW}[Running]${NC}"
+            tag=" ${YELLOW}[Em execução]${NC}"
             running=true
         fi
         printf '%b%s%b\n' "${BLUE}${ICON_CONFIRM}${NC} " "$(mole_terminal_safe_text "${SLIM_APP_NAMES[idx]}")" \
@@ -755,11 +755,11 @@ confirm_slim_selection() {
         total=$((total + SLIM_APP_BYTES[idx]))
     done
     echo ""
-    echo -e "${GRAY}Originals move to the Trash. App updates bring the Intel code back.${NC}"
-    [[ "$running" == false ]] || echo -e "${GRAY}Running apps are skipped, quit them before you confirm.${NC}"
+    echo -e "${GRAY}Os originais vão para a Lixeira. Atualizações do app trazem o código Intel de volta.${NC}"
+    [[ "$running" == false ]] || echo -e "${GRAY}Apps em execução são ignorados; feche-os antes de confirmar.${NC}"
     local app_text="apps"
     [[ ${#indices[@]} -gt 1 ]] || app_text="app"
-    echo -ne "${PURPLE}${ICON_ARROW}${NC} Slim ${#indices[@]} ${app_text}, $(bytes_to_human "$total")  ${GREEN}Enter${NC} confirm, ${GRAY}ESC${NC} cancel: "
+    echo -ne "${PURPLE}${ICON_ARROW}${NC} Reduzir ${#indices[@]} ${app_text}, $(bytes_to_human "$total")  ${GREEN}Enter${NC} confirmar, ${GRAY}ESC${NC} cancelar: "
 
     local confirm
     if ! IFS= read -r -s -n1 confirm; then
@@ -783,7 +783,7 @@ show_slim_summary() {
     if [[ $total_slimmed -gt 0 ]]; then
         local app_text="apps"
         [[ $total_slimmed -gt 1 ]] || app_text="app"
-        local line="Slimmed ${total_slimmed} ${app_text}, freed ${GREEN}$(bytes_to_human "$total_freed_bytes")${NC}: "
+        local line="${total_slimmed} ${app_text} reduzido(s), ${GREEN}$(bytes_to_human "$total_freed_bytes")${NC} liberados: "
         for ((i = 0; i < ${#SLIM_DONE_NAMES[@]}; i++)); do
             if ((i > 0 && i % 3 == 0)); then
                 details+=("$line")
@@ -816,24 +816,24 @@ show_slim_summary() {
         label=$(mole_terminal_safe_text "$reason")
         label="$(printf '%s' "${label:0:1}" | /usr/bin/tr '[:lower:]' '[:upper:]')${label:1}"
         details+=("${ICON_LIST} ${label//\\/\\\\}: ${YELLOW}${names//\\/\\\\}${NC}")
-        if [[ "$reason" == "still running" ]]; then
-            local them="them"
-            [[ "$names" == *", "* ]] || them="it"
-            details+=("${GRAY}${ICON_REVIEW} Quit ${them}, then run mo slim again${NC}")
+        if [[ "$reason" == "ainda em execução" ]]; then
+            local them="os"
+            [[ "$names" == *", "* ]] || them="o"
+            details+=("${GRAY}${ICON_REVIEW} Feche-${them} e execute mo slim novamente${NC}")
         fi
     done
 
-    [[ ${#details[@]} -gt 0 ]] || details+=("No apps were slimmed")
+    [[ ${#details[@]} -gt 0 ]] || details+=("Nenhum app foi reduzido")
 
-    local title="Slim complete"
-    [[ $total_failed -eq 0 ]] || title="Slim incomplete"
+    local title="Redução concluída"
+    [[ $total_failed -eq 0 ]] || title="Redução incompleta"
     print_summary_block "$title" "${details[@]}"
     printf '\n'
 }
 
 slim_preflight() {
     if ! slim_host_is_apple_silicon; then
-        printf 'mo slim needs an Apple Silicon Mac; on an Intel Mac the Intel code is the code that runs.\n' >&2
+        printf 'mo slim exige um Mac com Apple Silicon; em um Mac Intel, o código Intel é o que executa.\n' >&2
         return "$SLIM_EXIT_UNSUPPORTED"
     fi
     load_mole_whitelist "$HOME" || return 1
@@ -852,8 +852,8 @@ main() {
             "--debug") export MO_DEBUG=1 ;;
             "--dry-run" | "-n") export MOLE_DRY_RUN=1 ;;
             *)
-                echo "Unknown option: $arg" >&2
-                echo "Use 'mo slim --help' for supported options." >&2
+                echo "Opção desconhecida: $arg" >&2
+                echo "Use 'mo slim --help' para ver as opções suportadas." >&2
                 exit 1
                 ;;
         esac
@@ -864,17 +864,17 @@ main() {
     [[ $rc -eq 0 ]] || return 1
 
     if [[ "${MOLE_DRY_RUN:-0}" == "1" ]]; then
-        echo -e "${YELLOW}${ICON_DRY_RUN} DRY RUN MODE${NC}, No apps will be changed"
+        echo -e "${YELLOW}${ICON_DRY_RUN} MODO SIMULAÇÃO${NC}, nenhum app será alterado"
         printf '\n'
     fi
 
-    [[ -t 1 ]] && start_inline_spinner "Scanning apps..."
+    [[ -t 1 ]] && start_inline_spinner "Analisando apps..."
     local collect_rc=0
     collect_slim_candidates || collect_rc=$?
     [[ -t 1 ]] && stop_inline_spinner
 
     if [[ $collect_rc -ne 0 ]]; then
-        echo -e "${GREEN}${ICON_SUCCESS}${NC} No apps with Intel code to remove"
+        echo -e "${GREEN}${ICON_SUCCESS}${NC} Nenhum app com código Intel para remover"
         return 0
     fi
 
@@ -882,7 +882,7 @@ main() {
     if [[ "${MOLE_DRY_RUN:-0}" == "1" || ! -t 0 || ! -t 1 ]]; then
         print_slim_list
         if [[ "${MOLE_DRY_RUN:-0}" != "1" ]]; then
-            printf 'Run mo slim in a terminal to choose apps.\n'
+            printf 'Execute mo slim em um terminal para escolher os apps.\n'
         fi
         return 0
     fi
@@ -909,7 +909,7 @@ main() {
         [[ ${#indices[@]} -le 1 ]] || prefix="[$current/${#indices[@]}] "
         before=$total_slimmed
         failed_before=${#SLIM_FAILED_REASONS[@]}
-        [[ -t 1 ]] && start_inline_spinner "${prefix}Slimming ${name}..."
+        [[ -t 1 ]] && start_inline_spinner "${prefix}Reduzindo ${name}..."
         slim_one_app "$idx" || slim_rc=$?
         [[ -t 1 ]] && stop_inline_spinner
         if [[ -t 1 && -n "$prefix" ]]; then

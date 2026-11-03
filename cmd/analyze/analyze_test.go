@@ -489,7 +489,7 @@ func TestViewDeleteConfirmShowsUninstallHintForAppBundle(t *testing.T) {
 	if !strings.Contains(view, "mo uninstall Safari") {
 		t.Fatalf("expected app-specific uninstall command, got:\n%s", view)
 	}
-	if !strings.Contains(view, "only the bundle moves to Trash") {
+	if !strings.Contains(view, "só ele vai para a Lixeira") {
 		t.Fatalf("expected bundle-only warning, got:\n%s", view)
 	}
 }
@@ -536,11 +536,11 @@ func TestViewShowsEscBackAndCtrlCQuitHints(t *testing.T) {
 	}
 
 	view := m.View()
-	if !strings.Contains(view, "Esc Back") {
-		t.Fatalf("expected Esc Back hint in view, got:\n%s", view)
+	if !strings.Contains(view, "Esc Voltar") {
+		t.Fatalf("expected Esc Voltar hint in view, got:\n%s", view)
 	}
-	if !strings.Contains(view, "Ctrl+C Quit") {
-		t.Fatalf("expected Ctrl+C Quit hint in view, got:\n%s", view)
+	if !strings.Contains(view, "Ctrl+C Sair") {
+		t.Fatalf("expected Ctrl+C Sair hint in view, got:\n%s", view)
 	}
 }
 
@@ -563,7 +563,7 @@ func TestOverviewPendingSizeUsesScanningSpinner(t *testing.T) {
 	if strings.Contains(view, "pending") {
 		t.Fatalf("pending rows must not render a text placeholder, got:\n%s", view)
 	}
-	if !strings.Contains(view, fmt.Sprintf("%s scanning", spinnerFrames[0])) {
+	if !strings.Contains(view, fmt.Sprintf("%s escaneando", spinnerFrames[0])) {
 		t.Fatalf("expected animated scanning placeholder for pending row, got:\n%s", view)
 	}
 }
@@ -582,7 +582,7 @@ func TestViewKeepsCachedEntriesWhileRefreshing(t *testing.T) {
 	if !strings.Contains(view, "warmed-child") {
 		t.Fatalf("expected cached entry to render during refresh, got:\n%s", view)
 	}
-	if !strings.Contains(view, "Showing cached results while refreshing") {
+	if !strings.Contains(view, "Mostrando resultados em cache enquanto atualiza") {
 		t.Fatalf("expected refreshing hint during cached refresh, got:\n%s", view)
 	}
 }
@@ -604,10 +604,10 @@ func TestViewBlanksToScanOnlyWithoutWarmCache(t *testing.T) {
 	if strings.Contains(view, "stale-parent-row") {
 		t.Fatalf("expected scan-only view to hide stale entries, got:\n%s", view)
 	}
-	if strings.Contains(view, "Showing cached results while refreshing") {
+	if strings.Contains(view, "Mostrando resultados em cache enquanto atualiza") {
 		t.Fatalf("did not expect cached-refresh hint without a warm cache, got:\n%s", view)
 	}
-	if !strings.Contains(view, "Scanning") {
+	if !strings.Contains(view, "Escaneando") {
 		t.Fatalf("expected scan-only view to show scanning progress, got:\n%s", view)
 	}
 }
@@ -621,7 +621,7 @@ func TestOverviewViewShowsFreeSpaceLabel(t *testing.T) {
 	}
 
 	view := m.View()
-	want := fmt.Sprintf("(%s free)", humanizeBytes(m.diskFree))
+	want := fmt.Sprintf("(%s livres)", humanizeBytes(m.diskFree))
 	if !strings.Contains(view, want) {
 		t.Fatalf("expected free-space label %q in overview view, got:\n%s", want, view)
 	}
@@ -2705,7 +2705,7 @@ func TestScanningViewRendersRowsWithSpinner(t *testing.T) {
 	if !strings.Contains(view, "child") || !strings.Contains(view, "file.txt") {
 		t.Fatalf("expected scanning view to render rows, got:\n%s", view)
 	}
-	if !strings.Contains(view, spinnerFrames[m.spinner]+" scanning") {
+	if !strings.Contains(view, spinnerFrames[m.spinner]+" escaneando") {
 		t.Fatalf("expected pending directory spinner in row, got:\n%s", view)
 	}
 }
@@ -3466,13 +3466,13 @@ func TestDeleteViewHidesZeroTally(t *testing.T) {
 	if strings.Contains(view, "0 items") {
 		t.Fatalf("expected no zero tally while nothing has completed, got:\n%s", view)
 	}
-	if !strings.Contains(view, "Moving to Trash") {
+	if !strings.Contains(view, "Movendo para a Lixeira") {
 		t.Fatalf("expected a progress line while deleting, got:\n%s", view)
 	}
 
 	atomic.StoreInt64(&counter, 2)
 	view = m.View()
-	if !strings.Contains(view, "2") || !strings.Contains(view, "items") {
+	if !strings.Contains(view, "2") || !strings.Contains(view, "itens") {
 		t.Fatalf("expected the tally once paths completed, got:\n%s", view)
 	}
 }
@@ -3517,7 +3517,7 @@ func TestDeleteProgressPartialFailureRemovesSucceededPathsAndRefreshes(t *testin
 	if got.totalSize != 20 {
 		t.Fatalf("expected successful removal to update total size, got %d", got.totalSize)
 	}
-	if !strings.Contains(got.status, "Moved 1 items to Trash, some failed") {
+	if !strings.Contains(got.status, "1 item(ns) movido(s) para a Lixeira, alguns falharam") {
 		t.Fatalf("expected partial-failure status, got %q", got.status)
 	}
 	if entry := got.cache[parent]; !entry.NeedsRefresh {
@@ -3845,11 +3845,11 @@ func TestOverviewMeasurementFailureStatus(t *testing.T) {
 		reason string
 		state  scanState
 	}{
-		{"partial permission", 4096, os.ErrPermission, "Partial size", "access denied", scanPartial},
-		{"unavailable permission", 0, os.ErrPermission, "Size unavailable", "access denied", scanUnavailable},
-		{"partial timeout", 4096, context.DeadlineExceeded, "Partial size", "timed out", scanPartial},
-		{"unavailable timeout", 0, context.DeadlineExceeded, "Size unavailable", "timed out", scanUnavailable},
-		{"cancelled", 0, context.Canceled, "Size unavailable", "cancelled", scanUnavailable},
+		{"partial permission", 4096, os.ErrPermission, "Tamanho parcial", "acesso negado", scanPartial},
+		{"unavailable permission", 0, os.ErrPermission, "Tamanho indisponível", "acesso negado", scanUnavailable},
+		{"partial timeout", 4096, context.DeadlineExceeded, "Tamanho parcial", "tempo esgotado", scanPartial},
+		{"unavailable timeout", 0, context.DeadlineExceeded, "Tamanho indisponível", "tempo esgotado", scanUnavailable},
+		{"cancelled", 0, context.Canceled, "Tamanho indisponível", "cancelado", scanUnavailable},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			root := filepath.Join(t.TempDir(), "Library", "Developer", "CoreSimulator", "Devices")
@@ -3903,7 +3903,7 @@ func TestSelectionAndConfirmationPreserveMeasurementCoverage(t *testing.T) {
 			}}
 			updated, _ := m.updateKey(tea.KeyMsg{Type: tea.KeySpace})
 			m = updated.(model)
-			if m.status != "1 selected, "+tc.label {
+			if m.status != "1 selecionado(s), "+tc.label {
 				t.Fatalf("selection lost coverage: %q", m.status)
 			}
 			updated, _ = m.updateKey(tea.KeyMsg{Type: tea.KeyBackspace})
@@ -3920,12 +3920,12 @@ func TestSelectionAndConfirmationPreserveMeasurementCoverage(t *testing.T) {
 			if tc.state != scanComplete {
 				label += "+"
 			}
-			if m.status != "2 selected, "+label {
+			if m.status != "2 selecionado(s), "+label {
 				t.Fatalf("mixed selection lost coverage: %q", m.status)
 			}
 			updated, _ = m.updateKey(tea.KeyMsg{Type: tea.KeyBackspace})
 			m = updated.(model)
-			if !strings.Contains(m.View(), "2 items, "+label) {
+			if !strings.Contains(m.View(), "2 itens, "+label) {
 				t.Fatalf("mixed confirmation disagrees with selection: %s", m.View())
 			}
 		})

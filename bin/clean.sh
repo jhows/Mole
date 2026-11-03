@@ -8,7 +8,7 @@ set -euo pipefail
 # User state and installed tools must never run with inherited root privileges.
 # Individual maintenance operations request administrator access themselves.
 if [[ "$EUID" -eq 0 ]]; then
-    printf '%s\n' 'Run Mole without sudo; it requests administrator access when needed.' >&2
+    printf '%s\n' 'Execute o Mole sem sudo; ele solicita acesso de administrador quando necessário.' >&2
     exit 1
 fi
 
@@ -557,7 +557,7 @@ read_clean_sudo_password_remainder() {
 prompt_for_system_clean() {
     local prompt_attempt=0
     while true; do
-        echo -ne "${PURPLE}${ICON_ARROW}${NC} System caches need sudo. ${GREEN}Enter${NC} continue, ${GRAY}Space${NC} skip: "
+        echo -ne "${PURPLE}${ICON_ARROW}${NC} Os caches do sistema precisam de sudo. ${GREEN}Enter${NC} continua, ${GRAY}Espaço${NC} ignora: "
 
         local choice
         choice=$(read_clean_sudo_choice)
@@ -565,25 +565,25 @@ prompt_for_system_clean() {
         # ESC aborts, Space skips, Enter (or any typed key, e.g. someone who
         # starts typing their password) proceeds to authentication.
         if [[ "$choice" == "QUIT" ]]; then
-            echo -e " ${GRAY}Canceled${NC}"
+            echo -e " ${GRAY}Cancelado${NC}"
             exit 0
         fi
 
         if [[ "$choice" == "SPACE" ]]; then
-            echo -e " ${GRAY}Skipped${NC}"
+            echo -e " ${GRAY}Ignorado${NC}"
             echo ""
             SYSTEM_CLEAN=false
             break
         elif [[ "$choice" == "ENTER" ]]; then
             printf "\r\033[K" # Clear the prompt line
-            if ensure_sudo_session "System cleanup requires admin access"; then
+            if ensure_sudo_session "A limpeza do sistema requer acesso de administrador"; then
                 SYSTEM_CLEAN=true
-                echo -e "${GREEN}${ICON_SUCCESS}${NC} Admin access granted"
+                echo -e "${GREEN}${ICON_SUCCESS}${NC} Acesso de administrador concedido"
                 echo ""
             else
                 SYSTEM_CLEAN=false
                 echo ""
-                echo -e "${YELLOW}Authentication failed${NC}, continuing with user-level cleanup"
+                echo -e "${YELLOW}Falha na autenticação${NC}, continuando com a limpeza em nível de usuário"
             fi
             break
         elif [[ "$choice" == CHAR:* ]]; then
@@ -593,14 +593,14 @@ prompt_for_system_clean() {
             typed_password="${typed_password}${password_remainder}"
 
             printf "\r\033[K" # Clear the prompt line
-            if ensure_sudo_session_with_password "$typed_password" "System cleanup requires admin access"; then
+            if ensure_sudo_session_with_password "$typed_password" "A limpeza do sistema requer acesso de administrador"; then
                 SYSTEM_CLEAN=true
-                echo -e "${GREEN}${ICON_SUCCESS}${NC} Admin access granted"
+                echo -e "${GREEN}${ICON_SUCCESS}${NC} Acesso de administrador concedido"
                 echo ""
             else
                 SYSTEM_CLEAN=false
                 echo ""
-                echo -e "${YELLOW}Authentication failed${NC}, continuing with user-level cleanup"
+                echo -e "${YELLOW}Falha na autenticação${NC}, continuando com a limpeza em nível de usuário"
             fi
             unset typed_password password_remainder
             break
@@ -609,12 +609,12 @@ prompt_for_system_clean() {
             drain_pending_input 0.05
             if [[ $prompt_attempt -ge 2 ]]; then
                 SYSTEM_CLEAN=false
-                echo -e " ${GRAY}Skipped${NC}"
+                echo -e " ${GRAY}Ignorado${NC}"
                 echo ""
                 break
             fi
             printf "\r\033[K"
-            echo -e "${YELLOW}${ICON_WARNING}${NC} Press Enter to continue, or Space to skip"
+            echo -e "${YELLOW}${ICON_WARNING}${NC} Pressione Enter para continuar ou Espaço para ignorar"
         fi
     done
 }
@@ -701,7 +701,7 @@ end_section() {
         if [[ -t 1 && "${MO_DEBUG:-}" != "1" ]] && is_ansi_supported 2> /dev/null; then
             IDLE_SECTION_PENDING=1
         else
-            echo -e "  ${GREEN}${ICON_SUCCESS}${NC} Nothing to clean"
+            echo -e "  ${GREEN}${ICON_SUCCESS}${NC} Nada para limpar"
         fi
     else
         IDLE_SECTION_PENDING=0
@@ -806,6 +806,15 @@ get_cleanup_path_size_kb() {
     _cleanup_path_sizes_kb "$1"
 }
 
+# Item count with Portuguese plural ("1 item", "2 itens").
+clean_count_items() {
+    if [[ "${1:-0}" == "1" ]]; then
+        printf '1 item'
+    else
+        printf '%s itens' "${1:-0}"
+    fi
+}
+
 # Classification helper for cleanup risk levels
 # shellcheck disable=SC2329
 classify_cleanup_risk() {
@@ -813,37 +822,37 @@ classify_cleanup_risk() {
     local path="${2:-}"
 
     # HIGH RISK: System files, preference files, require sudo
-    if [[ "$description" =~ [Ss]ystem || "$description" =~ [Ss]udo || "$path" =~ ^/System || "$path" =~ ^/Library ]]; then
-        echo "HIGH|System files or requires admin access"
+    if [[ "$description" =~ [Ss]ystem || "$description" =~ [Ss]istema || "$description" =~ [Ss]udo || "$path" =~ ^/System || "$path" =~ ^/Library ]]; then
+        echo "HIGH|Arquivos do sistema ou requer acesso de administrador"
         return
     fi
 
     # HIGH RISK: Preference files that might affect app functionality
-    if [[ "$description" =~ [Pp]reference || "$path" =~ /Preferences/ ]]; then
-        echo "HIGH|Preference files may affect app settings"
+    if [[ "$description" =~ [Pp]reference || "$description" =~ [Pp]referência || "$path" =~ /Preferences/ ]]; then
+        echo "HIGH|Arquivos de preferências podem afetar as configurações do app"
         return
     fi
 
     # MEDIUM RISK: Installers, large files, app bundles
-    if [[ "$description" =~ [Ii]nstaller || "$description" =~ [Aa]pp.*[Bb]undle || "$description" =~ [Ll]arge ]]; then
-        echo "MEDIUM|Installer packages or app data"
+    if [[ "$description" =~ [Ii]nstaller || "$description" =~ [Ii]nstalador || "$description" =~ [Aa]pp.*[Bb]undle || "$description" =~ [Ll]arge || "$description" =~ [Gg]rande ]]; then
+        echo "MEDIUM|Pacotes de instaladores ou dados de apps"
         return
     fi
 
     # MEDIUM RISK: Old backups, downloads
-    if [[ "$description" =~ [Bb]ackup || "$description" =~ [Dd]ownload || "$description" =~ [Oo]rphan ]]; then
-        echo "MEDIUM|Backup or downloaded files"
+    if [[ "$description" =~ [Bb]ackup || "$description" =~ [Dd]ownload || "$description" =~ [Oo]rphan || "$description" =~ [Òò]rfã || "$description" =~ [Oo]rfã ]]; then
+        echo "MEDIUM|Arquivos de backup ou baixados"
         return
     fi
 
     # LOW RISK: Caches, logs, temporary files (automatically regenerated)
-    if [[ "$description" =~ [Cc]ache || "$description" =~ [Ll]og || "$description" =~ [Tt]emp || "$description" =~ [Tt]humbnail ]]; then
-        echo "LOW|Cache/log files, automatically regenerated"
+    if [[ "$description" =~ [Cc]ache || "$description" =~ [Ll]og || "$description" =~ [Tt]emp || "$description" =~ [Tt]humbnail || "$description" =~ [Mm]iniatura ]]; then
+        echo "LOW|Arquivos de cache/log, regenerados automaticamente"
         return
     fi
 
     # DEFAULT: MEDIUM
-    echo "MEDIUM|User data files"
+    echo "MEDIUM|Arquivos de dados do usuário"
 }
 
 # Internal implementation shared by the normal and process-guarded cleanup
@@ -927,7 +936,7 @@ _safe_clean_impl() {
     if [[ ${#targets[@]} -gt 20 && -t 1 ]]; then
         show_scan_feedback=true
         # Updates a running section spinner in place instead of restarting it.
-        start_section_spinner "Scanning ${#targets[@]} items..."
+        start_section_spinner "Escaneando ${#targets[@]} itens..."
     fi
 
     local _perf_scan_start
@@ -1025,7 +1034,7 @@ _safe_clean_impl() {
     if [[ ${#existing_paths[@]} -gt 10 ]]; then
         show_spinner=true
         local total_paths=${#existing_paths[@]}
-        if [[ -t 1 ]]; then start_section_spinner "Scanning ${description}..."; fi
+        if [[ -t 1 ]]; then start_section_spinner "Escaneando ${description}..."; fi
     fi
 
     local cleaning_spinner_started=false
@@ -1050,7 +1059,7 @@ _safe_clean_impl() {
         # Mostly files share one measurement process instead of per-file subshells.
         if [[ $dir_count -lt 5 && ${#existing_paths[@]} -gt 20 ]]; then
             if [[ -t 1 && "$show_spinner" == "false" ]]; then
-                start_section_spinner "Scanning ${description}..."
+                start_section_spinner "Escaneando ${description}..."
                 show_spinner=true
             fi
 
@@ -1195,12 +1204,12 @@ _safe_clean_impl() {
         # Read results back in original order.
         # Start spinner for cleaning phase
         if [[ "$DRY_RUN" != "true" && ${#existing_paths[@]} -gt 0 && -t 1 ]]; then
-            start_section_spinner "Cleaning..."
+            start_section_spinner "Limpando..."
             cleaning_spinner_started=true
         elif [[ -n "$delete_guard" && -t 1 ]]; then
             # The preview still asks the owner guard about every item, about
             # 70ms each, which left VS Code logs silent for 0.7s.
-            start_section_spinner "Checking ${description}..."
+            start_section_spinner "Verificando ${description}..."
             cleaning_spinner_started=true
         fi
         idx=0
@@ -1310,7 +1319,7 @@ _safe_clean_impl() {
 
         # Start spinner for cleaning phase (small batch)
         if [[ "$DRY_RUN" != "true" && ${#existing_paths[@]} -gt 0 && -t 1 ]]; then
-            start_section_spinner "Cleaning..."
+            start_section_spinner "Limpando..."
             cleaning_spinner_started=true
         fi
         local idx=0
@@ -1464,13 +1473,13 @@ _safe_clean_impl() {
         # missing, and deduplicated targets have been dropped.
         local count_note=""
         if [[ $total_count -gt 1 ]]; then
-            count_note="$total_count items, "
+            count_note="$total_count itens, "
         fi
 
         if [[ "$DRY_RUN" == "true" ]]; then
             local size_display
             size_display=$(colorize_human_size "$size_human")
-            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} $description${NC} · ${count_note}${size_display} ${YELLOW}dry${NC}"
+            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} $description${NC} · ${count_note}${size_display} ${YELLOW}simulado${NC}"
         else
             local line_color
             line_color=$(cleanup_result_color_kb "$total_size_kb")
@@ -1527,43 +1536,43 @@ start_cleanup() {
     # Both system and external-volume previews publish the same candidate ledger.
     if [[ "$DRY_RUN" == "true" ]]; then
         prepare_clean_preview_file || {
-            echo -e "${YELLOW}${ICON_WARNING}${NC} Unable to create a safe cleanup preview file" >&2
+            echo -e "${YELLOW}${ICON_WARNING}${NC} Não foi possível criar um arquivo seguro de prévia da limpeza" >&2
             return 1
         }
         write_clean_preview_header
     fi
     if [[ -n "$EXTERNAL_VOLUME_TARGET" ]]; then
-        echo -e "${PURPLE_BOLD}Clean External Volume${NC}"
+        echo -e "${PURPLE_BOLD}Limpar volume externo${NC}"
         echo -e "${GRAY}${EXTERNAL_VOLUME_TARGET}${NC}"
         echo ""
 
         if [[ "$DRY_RUN" == "true" ]]; then
-            echo -e "${YELLOW}Dry Run Mode${NC}, Preview only, no deletions"
+            echo -e "${YELLOW}Modo simulação (dry run)${NC}, apenas prévia, nenhuma exclusão"
             echo ""
         fi
         SYSTEM_CLEAN=false
         return 0
     fi
 
-    echo -e "${PURPLE_BOLD}Clean Your Mac${NC}"
+    echo -e "${PURPLE_BOLD}Limpar seu Mac${NC}"
     echo ""
 
     if [[ "$DRY_RUN" != "true" && -t 0 ]]; then
-        echo -e "${GRAY}${ICON_WARNING} Use --dry-run to preview, --whitelist to manage protected paths${NC}"
+        echo -e "${GRAY}${ICON_WARNING} Use --dry-run para simular e --whitelist para gerenciar os caminhos protegidos${NC}"
     fi
 
     if [[ "$DRY_RUN" == "true" ]]; then
-        echo -e "${YELLOW}Dry Run Mode${NC}, Preview only, no deletions"
+        echo -e "${YELLOW}Modo simulação (dry run)${NC}, apenas prévia, nenhuma exclusão"
         echo ""
 
         # Preview system section when sudo is already cached (no password prompt).
         if adopt_sudo_session; then
             SYSTEM_CLEAN=true
-            echo -e "${GREEN}${ICON_SUCCESS}${NC} Admin access available, system preview included"
+            echo -e "${GREEN}${ICON_SUCCESS}${NC} Acesso de administrador disponível, prévia do sistema incluída"
             echo ""
         else
             SYSTEM_CLEAN=false
-            echo -e "${GRAY}${ICON_WARNING} System caches need sudo, run ${NC}sudo -v && mo clean --dry-run${GRAY} for full preview${NC}"
+            echo -e "${GRAY}${ICON_WARNING} Os caches do sistema precisam de sudo, execute ${NC}sudo -v && mo clean --dry-run${GRAY} para a prévia completa${NC}"
             echo ""
         fi
         return
@@ -1572,22 +1581,22 @@ start_cleanup() {
     if [[ -t 0 ]]; then
         if adopt_sudo_session; then
             SYSTEM_CLEAN=true
-            echo -e "${GREEN}${ICON_SUCCESS}${NC} Admin access already available"
+            echo -e "${GREEN}${ICON_SUCCESS}${NC} Acesso de administrador já disponível"
             echo ""
         else
             prompt_for_system_clean
         fi
     else
         echo ""
-        echo "Running in non-interactive mode"
+        echo "Executando em modo não interativo"
         if adopt_sudo_session; then
             SYSTEM_CLEAN=true
-            echo "  ${ICON_LIST} System-level cleanup enabled, sudo session active"
+            echo "  ${ICON_LIST} Limpeza em nível de sistema ativada, sessão sudo ativa"
         else
             SYSTEM_CLEAN=false
-            echo "  ${ICON_LIST} System-level cleanup skipped, requires sudo"
+            echo "  ${ICON_LIST} Limpeza em nível de sistema ignorada, requer sudo"
         fi
-        echo "  ${ICON_LIST} User-level cleanup will proceed automatically"
+        echo "  ${ICON_LIST} A limpeza em nível de usuário prosseguirá automaticamente"
         echo ""
     fi
 }
@@ -1614,10 +1623,10 @@ perform_cleanup() {
     if [[ -z "$EXTERNAL_VOLUME_TARGET" && "${MOLE_TEST_MODE:-0}" == "1" ]]; then
         test_mode_enabled=true
         if [[ "$DRY_RUN" == "true" ]]; then
-            echo -e "${YELLOW}Dry Run Mode${NC}, Preview only, no deletions"
+            echo -e "${YELLOW}Modo simulação (dry run)${NC}, apenas prévia, nenhuma exclusão"
             echo ""
         fi
-        echo -e "${GREEN}${ICON_LIST}${NC} User app cache"
+        echo -e "${GREEN}${ICON_LIST}${NC} Cache de apps do usuário"
         if [[ ${#WHITELIST_PATTERNS[@]} -gt 0 ]]; then
             local -a expanded_defaults
             expanded_defaults=()
@@ -1634,11 +1643,11 @@ perform_cleanup() {
                 done
                 [[ "$is_default" == "false" ]] && has_custom=true && break
             done
-            [[ "$has_custom" == "true" ]] && echo -e "${GREEN}${ICON_SUCCESS}${NC} Protected items found"
+            [[ "$has_custom" == "true" ]] && echo -e "${GREEN}${ICON_SUCCESS}${NC} Itens protegidos encontrados"
         fi
         if [[ "$DRY_RUN" == "true" ]]; then
             echo ""
-            echo -e "Potential space: $(colorize_human_size "0.00GB")"
+            echo -e "Espaço potencial: $(colorize_human_size "0.00GB")"
         fi
         total_items=1
         files_cleaned=0
@@ -1650,14 +1659,14 @@ perform_cleanup() {
             initial_free_space_kb=""
         fi
         initial_free_space_display=$(format_free_space_kb "$initial_free_space_kb")
-        echo -e "${BLUE}${ICON_ADMIN}${NC} $(detect_architecture) | Free space: $initial_free_space_display"
+        echo -e "${BLUE}${ICON_ADMIN}${NC} $(detect_architecture) | Espaço livre: $initial_free_space_display"
     fi
 
     if [[ "$test_mode_enabled" == "true" ]]; then
-        local summary_heading="Test mode complete"
+        local summary_heading="Modo de teste concluído"
         local -a summary_details
         summary_details=()
-        summary_details+=("Test mode - no actual cleanup performed")
+        summary_details+=("Modo de teste - nenhuma limpeza real foi executada")
         print_summary_block "$summary_heading" "${summary_details[@]}"
         printf '\n'
         return 0
@@ -1695,14 +1704,14 @@ perform_cleanup() {
 
         if [[ $custom_count -gt 0 || $predefined_count -gt 0 ]]; then
             local summary=""
-            [[ $predefined_count -gt 0 ]] && summary+="$predefined_count core"
+            [[ $predefined_count -gt 0 ]] && summary+="$predefined_count padrão"
             [[ $custom_count -gt 0 && $predefined_count -gt 0 ]] && summary+=" + "
-            [[ $custom_count -gt 0 ]] && summary+="$custom_count custom"
-            summary+=" patterns active"
+            [[ $custom_count -gt 0 ]] && summary+="$custom_count personalizados"
+            summary+=" padrões ativos"
 
             # One line: listing every pattern on each preview pushed the
             # cleanup rows a screen down. mo clean --whitelist shows them.
-            echo -e "${BLUE}${ICON_ADMIN}${NC} Whitelist: $summary"
+            echo -e "${BLUE}${ICON_ADMIN}${NC} Lista de proteção: $summary"
         fi
     fi
 
@@ -1711,7 +1720,7 @@ perform_cleanup() {
         has_full_disk_access || fda_status=$?
         if [[ $fda_status -eq 1 ]]; then
             echo ""
-            echo -e "${GRAY}${ICON_REVIEW}${NC} ${GRAY}Grant Full Disk Access to your terminal in System Settings for best results${NC}"
+            echo -e "${GRAY}${ICON_REVIEW}${NC} ${GRAY}Conceda Acesso Total ao Disco ao seu terminal em Ajustes do Sistema para melhores resultados${NC}"
         fi
     fi
 
@@ -1765,7 +1774,7 @@ perform_cleanup() {
     # final summary instead of returning from perform_cleanup with no output.
     run_clean_sections() {
         if [[ -n "$EXTERNAL_VOLUME_TARGET" ]]; then
-            start_section "External volume"
+            start_section "Volume externo"
             _run_cleanup_step --required \
                 clean_external_volume_target "$EXTERNAL_VOLUME_TARGET" || return $?
             end_section
@@ -1774,7 +1783,7 @@ perform_cleanup() {
 
             # ===== 1. System =====
             if [[ "$SYSTEM_CLEAN" == "true" ]]; then
-                start_section "System"
+                start_section "Sistema"
                 _run_cleanup_step clean_deep_system || return $?
                 _run_cleanup_step clean_local_snapshots || return $?
                 end_section
@@ -1784,28 +1793,28 @@ perform_cleanup() {
                 flush_idle_section_slot
                 echo ""
                 for warning in "${WHITELIST_WARNINGS[@]}"; do
-                    echo -e "  ${GRAY}${ICON_WARNING}${NC} Whitelist: $warning"
+                    echo -e "  ${GRAY}${ICON_WARNING}${NC} Lista de proteção: $warning"
                 done
             fi
 
             # ===== 2. User essentials =====
-            start_section "User essentials"
+            start_section "Essenciais do usuário"
             _run_cleanup_step clean_user_essentials || return $?
             _run_cleanup_step clean_finder_metadata || return $?
             end_section
 
             # ===== 3. App caches (merged sandboxed and standard app caches) =====
-            start_section "App caches"
+            start_section "Caches de apps"
             _run_cleanup_step clean_app_caches || return $?
             end_section
 
             # ===== 4. Browsers =====
-            start_section "Browsers"
+            start_section "Navegadores"
             _run_cleanup_step clean_browsers || return $?
             end_section
 
             # ===== 5. Cloud & Office =====
-            start_section "Cloud & Office"
+            start_section "Nuvem e Office"
             local _perf_cloud_office_start
             debug_timer_start _perf_cloud_office_start
             local cloud_office_rc=0
@@ -1817,23 +1826,23 @@ perform_cleanup() {
                     _mole_record_clean_cancellation "$cloud_office_rc"
                     return "$cloud_office_rc"
                 else
-                    log_warning "Cloud & Office cleanup failed with exit code $cloud_office_rc"
+                    log_warning "Falha na limpeza de Nuvem e Office com código de saída $cloud_office_rc"
                 fi
             fi
             end_section
 
             # ===== 6. Developer tools (merged CLI and GUI tooling) =====
-            start_section "Developer tools"
+            start_section "Ferramentas de desenvolvimento"
             _run_cleanup_step clean_developer_tools || return $?
             end_section
 
             # ===== 7. Apps & utilities =====
-            start_section "Apps & utilities"
+            start_section "Apps e utilitários"
             _run_cleanup_step clean_user_gui_applications || return $?
             end_section
 
             # ===== 8. Virtualization =====
-            start_section "Virtualization"
+            start_section "Virtualização"
             _run_cleanup_step clean_virtualization_tools || return $?
             end_section
 
@@ -1843,7 +1852,7 @@ perform_cleanup() {
             end_section
 
             # ===== 10. App leftovers =====
-            start_section "App leftovers"
+            start_section "Resíduos de apps"
             _run_cleanup_step clean_orphaned_app_data || return $?
             _run_cleanup_step clean_orphaned_system_services || return $?
             # No stale-LaunchServices step here. An earlier note said
@@ -1862,7 +1871,7 @@ perform_cleanup() {
             # ===== 12. Device backups & firmware =====
             # iOS backups are reported once, in the Large files section; a second
             # row here used a different size formatter and confused users.
-            start_section "Device backups & firmware"
+            start_section "Backups de dispositivos e firmware"
             _run_cleanup_step clean_cached_device_firmware || return $?
             end_section
 
@@ -1872,12 +1881,12 @@ perform_cleanup() {
             end_section
 
             # ===== 14. Large files =====
-            start_section "Large files"
+            start_section "Arquivos grandes"
             _run_cleanup_step check_large_file_candidates || return $?
             end_section
 
             # ===== 15. Project artifacts =====
-            start_section "Project artifacts"
+            start_section "Artefatos de projetos"
             _run_cleanup_step show_project_artifact_hint_notice || return $?
             end_section
         fi
@@ -1891,7 +1900,7 @@ perform_cleanup() {
 
     if [[ "$DRY_RUN" == "true" ]]; then
         # Writing the detailed list took 0.8s for 267 items with nothing on screen.
-        if [[ -t 1 ]]; then start_section_spinner "Preparing summary..."; fi
+        if [[ -t 1 ]]; then start_section_spinner "Preparando resumo..."; fi
         render_clean_preview_from_ledger
         stop_section_spinner
     fi
@@ -1900,29 +1909,29 @@ perform_cleanup() {
     local summary_status="success"
     if mole_rc_timeout "$cleanup_cancel_rc"; then
         if [[ "$DRY_RUN" == "true" ]]; then
-            summary_heading="Dry run cancelled"
+            summary_heading="Simulação cancelada"
         else
-            summary_heading="Cleanup cancelled"
+            summary_heading="Limpeza cancelada"
         fi
         summary_status="warning"
     elif [[ $cleanup_cancel_rc -ge 128 ]]; then
         if [[ "$DRY_RUN" == "true" ]]; then
-            summary_heading="Dry run interrupted"
+            summary_heading="Simulação interrompida"
         else
-            summary_heading="Cleanup interrupted"
+            summary_heading="Limpeza interrompida"
         fi
         summary_status="warning"
     elif [[ $cleanup_cancel_rc -ne 0 ]]; then
         if [[ "$DRY_RUN" == "true" ]]; then
-            summary_heading="Dry run incomplete"
+            summary_heading="Simulação incompleta"
         else
-            summary_heading="Cleanup incomplete"
+            summary_heading="Limpeza incompleta"
         fi
         summary_status="warning"
     elif [[ "$DRY_RUN" == "true" ]]; then
-        summary_heading="Dry run complete - no changes made"
+        summary_heading="Simulação concluída - nenhuma alteração feita"
     else
-        summary_heading="Cleanup complete"
+        summary_heading="Limpeza concluída"
     fi
 
     local -a summary_details=()
@@ -1932,21 +1941,21 @@ perform_cleanup() {
         local cancel_reason=""
         if mole_rc_timeout "$cleanup_cancel_rc"; then
             if [[ -n "$cancel_source" ]]; then
-                cancel_reason="Cancelled: $cancel_source timed out (exit $cleanup_cancel_rc)."
+                cancel_reason="Cancelado: $cancel_source excedeu o tempo limite (saída $cleanup_cancel_rc)."
             else
-                cancel_reason="Cancelled: a scan or size check timed out (exit $cleanup_cancel_rc)."
+                cancel_reason="Cancelado: uma varredura ou verificação de tamanho excedeu o tempo limite (saída $cleanup_cancel_rc)."
             fi
         elif [[ $cleanup_cancel_rc -ge 128 ]]; then
             if [[ -n "$cancel_source" ]]; then
-                cancel_reason="Cancelled: $cancel_source was interrupted (exit $cleanup_cancel_rc)."
+                cancel_reason="Cancelado: $cancel_source foi interrompido (saída $cleanup_cancel_rc)."
             else
-                cancel_reason="Cancelled: a cleanup step was interrupted (exit $cleanup_cancel_rc)."
+                cancel_reason="Cancelado: uma etapa da limpeza foi interrompida (saída $cleanup_cancel_rc)."
             fi
         else
-            cancel_reason="A required cleanup step failed (exit $cleanup_cancel_rc)."
+            cancel_reason="Uma etapa obrigatória da limpeza falhou (saída $cleanup_cancel_rc)."
         fi
-        summary_details+=("${GRAY}${ICON_WARNING}${NC} $cancel_reason Remaining cleanup was skipped.")
-        log_warning_to_file "$cancel_reason Section: ${CURRENT_SECTION:-unknown}."
+        summary_details+=("${GRAY}${ICON_WARNING}${NC} $cancel_reason O restante da limpeza foi ignorado.")
+        log_warning_to_file "$cancel_reason Seção: ${CURRENT_SECTION:-desconhecida}."
     fi
 
     # Emit one "Free space" line, with the measured delta in parentheses when
@@ -1959,7 +1968,7 @@ perform_cleanup() {
         # Refuse it (or a replacement volume) instead of reporting that disk.
         if [[ -n "$target" ]] && ! _mole_path_matches_identity \
             "$target" "$free_space_parent" "$free_space_parent_id" "$free_space_volume_id"; then
-            printf 'Free space: Unknown\n'
+            printf 'Espaço livre: desconhecido\n'
             return 0
         fi
 
@@ -1975,7 +1984,7 @@ perform_cleanup() {
         if [[ "$DRY_RUN" != "true" && "$initial_kb" =~ ^[0-9]+$ && "$final_kb" =~ ^[0-9]+$ && "$initial_kb" -ne "$final_kb" ]]; then
             delta_note=" ($(format_free_space_delta_kb "$((final_kb - initial_kb))"))"
         fi
-        printf 'Free space: %s%s\n' "$(format_free_space_kb "$final_kb")" "$delta_note"
+        printf 'Espaço livre: %s%s\n' "$(format_free_space_kb "$final_kb")" "$delta_note"
     }
 
     if [[ $total_size_cleaned -gt 0 || $files_cleaned -gt 0 ||
@@ -1990,18 +1999,18 @@ perform_cleanup() {
             else
                 potential_label="$freed_size_human"
             fi
-            local stats="Potential space: $(colorize_human_size "$potential_label")"
-            [[ $files_cleaned -gt 0 ]] && stats+=" · $(mole_count_label "$files_cleaned" item)"
+            local stats="Espaço potencial: $(colorize_human_size "$potential_label")"
+            [[ $files_cleaned -gt 0 ]] && stats+=" · $(clean_count_items "$files_cleaned")"
             summary_details+=("$stats")
 
             {
                 echo ""
                 echo "# ============================================"
-                echo "# Summary"
+                echo "# Resumo"
                 echo "# ============================================"
-                echo "# Potential cleanup: ${potential_label}"
-                echo "# Items: $files_cleaned"
-                echo "# Categories: $total_items"
+                echo "# Limpeza potencial: ${potential_label}"
+                echo "# Itens: $files_cleaned"
+                echo "# Categorias: $total_items"
             } >> "$EXPORT_LIST_FILE"
 
         else
@@ -2009,15 +2018,15 @@ perform_cleanup() {
                 if [[ $total_size_cleaned -gt 0 ]]; then
                     freed_size_human="${freed_size_human}+"
                 else
-                    freed_size_human="Partially measured"
+                    freed_size_human="Parcialmente medido"
                 fi
             fi
             # The free-space line below carries the measured disk change, so
             # this line stays the bytes Mole itself removed (#1023).
-            local summary_line="Removed: $(colorize_human_size "$freed_size_human")"
+            local summary_line="Removido: $(colorize_human_size "$freed_size_human")"
 
             if [[ $files_cleaned -gt 0 ]]; then
-                summary_line+=" · $(mole_count_label "$files_cleaned" item)"
+                summary_line+=" · $(clean_count_items "$files_cleaned")"
             fi
 
             summary_details+=("$summary_line")
@@ -2032,14 +2041,14 @@ perform_cleanup() {
             summary_status="info"
             if [[ ${#DEFERRED_CLEANUP_FAMILIES[@]} -gt 0 || ${MOLE_CLEAN_REMOVAL_TIMEOUTS:-0} -gt 0 ]]; then
                 if [[ "$DRY_RUN" == "true" ]]; then
-                    summary_details+=("No additional reclaimable space detected.")
+                    summary_details+=("Nenhum espaço adicional recuperável detectado.")
                 else
-                    summary_details+=("No additional space freed.")
+                    summary_details+=("Nenhum espaço adicional liberado.")
                 fi
             elif [[ "$DRY_RUN" == "true" ]]; then
-                summary_details+=("No significant reclaimable space detected, system already clean.")
+                summary_details+=("Nenhum espaço recuperável significativo detectado, o sistema já está limpo.")
             else
-                summary_details+=("System was already clean; no additional space freed.")
+                summary_details+=("O sistema já estava limpo; nenhum espaço adicional liberado.")
             fi
         fi
         local free_space_line
@@ -2059,9 +2068,9 @@ perform_cleanup() {
     if [[ "$DRY_RUN" == "true" &&
         ($total_size_cleaned -gt 0 || "$DRY_RUN_TOTAL_PARTIAL" == "true" || $files_cleaned -gt 0) ]]; then
         if publish_clean_preview_file; then
-            summary_details+=("Detailed file list: ${GRAY}$CLEAN_PREVIEW_FINAL_FILE${NC}")
+            summary_details+=("Lista detalhada de arquivos: ${GRAY}$CLEAN_PREVIEW_FINAL_FILE${NC}")
         else
-            summary_details+=("Cleanup preview file could not be written safely")
+            summary_details+=("Não foi possível gravar com segurança o arquivo de prévia da limpeza")
         fi
     elif [[ "$DRY_RUN" == "true" ]]; then
         publish_clean_preview_file || true
@@ -2144,7 +2153,7 @@ run_cloud_and_office_cleanup() {
     fi
 
     if _mole_clean_section_budget_spent; then
-        echo -e "  ${YELLOW}${ICON_WARNING}${NC} Cloud & Office · ${GRAY}time limit reached, skipped remaining items${NC}"
+        echo -e "  ${YELLOW}${ICON_WARNING}${NC} Nuvem e Office · ${GRAY}limite de tempo atingido, itens restantes ignorados${NC}"
         note_activity
     fi
 
@@ -2169,7 +2178,7 @@ main() {
             "--external")
                 shift
                 if [[ $# -eq 0 ]]; then
-                    echo "Missing path for --external" >&2
+                    echo "Caminho ausente para --external" >&2
                     exit 1
                 fi
                 EXTERNAL_VOLUME_TARGET=$(validate_external_volume_target "$1") || exit 1
@@ -2180,18 +2189,18 @@ main() {
                 exit 0
                 ;;
             "--select" | "--categories" | "--exclude")
-                echo "mo clean $1 was removed in this release." >&2
-                echo "Use 'mo clean --dry-run' to preview cleanup and 'mo clean --whitelist' to protect paths." >&2
+                echo "mo clean $1 foi removido nesta versão." >&2
+                echo "Use 'mo clean --dry-run' para simular a limpeza e 'mo clean --whitelist' para proteger caminhos." >&2
                 exit 1
                 ;;
             -*)
-                echo "Unknown option for mo clean: $1" >&2
-                echo "Run 'mo clean --help' for usage." >&2
+                echo "Opção desconhecida para mo clean: $1" >&2
+                echo "Execute 'mo clean --help' para ver o uso." >&2
                 exit 1
                 ;;
             *)
-                echo "Unexpected argument for mo clean: $1" >&2
-                echo "Run 'mo clean --help' for usage." >&2
+                echo "Argumento inesperado para mo clean: $1" >&2
+                echo "Execute 'mo clean --help' para ver o uso." >&2
                 exit 1
                 ;;
         esac

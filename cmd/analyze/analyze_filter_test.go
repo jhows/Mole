@@ -409,14 +409,14 @@ func TestRemovePathPreservesBackingLists(t *testing.T) {
 
 func TestEntryFilterViewShowsHintAndQuery(t *testing.T) {
 	m := treeFixture()
-	if hint := m.View(); !strings.Contains(hint, "/ Filter") {
+	if hint := m.View(); !strings.Contains(hint, "/ Filtro") {
 		t.Fatalf("expected '/ Filter' footer hint, got:\n%s", hint)
 	}
 
 	m, _ = filterRune(t, m, '/')
 	m = filterType(t, m, "node")
 	view := m.View()
-	if !strings.Contains(view, "Filter:") {
+	if !strings.Contains(view, "Filtro:") {
 		t.Fatalf("expected active 'Filter:' line, got:\n%s", view)
 	}
 	if !strings.Contains(view, "No matches") && !strings.Contains(view, "node_modules") {
@@ -426,17 +426,17 @@ func TestEntryFilterViewShowsHintAndQuery(t *testing.T) {
 
 func TestLargeFilterViewShowsHintAndQuery(t *testing.T) {
 	m := topFilesFixture()
-	if hint := m.View(); !strings.Contains(hint, "/ Filter") {
+	if hint := m.View(); !strings.Contains(hint, "/ Filtro") {
 		t.Fatalf("expected '/ Filter' footer hint, got:\n%s", hint)
 	}
 
 	m, _ = filterRune(t, m, '/')
 	m = filterType(t, m, "mp4")
 	view := m.View()
-	if !strings.Contains(view, "Filter:") {
+	if !strings.Contains(view, "Filtro:") {
 		t.Fatalf("expected active 'Filter:' line, got:\n%s", view)
 	}
-	if !strings.Contains(view, "matches") {
+	if !strings.Contains(view, "resultados") {
 		t.Fatalf("expected match count in filter line, got:\n%s", view)
 	}
 }

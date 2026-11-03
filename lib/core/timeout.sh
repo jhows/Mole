@@ -36,7 +36,7 @@ if [[ -z "${MO_TIMEOUT_INITIALIZED:-}" ]]; then
         if command -v "$candidate" > /dev/null 2>&1; then
             MO_TIMEOUT_BIN="$(command -v "$candidate")"
             if [[ "${MO_DEBUG:-0}" == "1" ]]; then
-                echo "[TIMEOUT] Using command: $MO_TIMEOUT_BIN" >&2
+                echo "[TIMEOUT] Usando o comando: $MO_TIMEOUT_BIN" >&2
             fi
             break
         fi
@@ -45,14 +45,14 @@ if [[ -z "${MO_TIMEOUT_INITIALIZED:-}" ]]; then
     if command -v perl > /dev/null 2>&1; then
         MO_TIMEOUT_PERL_BIN="$(command -v perl)"
         if [[ -z "$MO_TIMEOUT_BIN" ]] && [[ "${MO_DEBUG:-0}" == "1" ]]; then
-            echo "[TIMEOUT] Using perl fallback: $MO_TIMEOUT_PERL_BIN" >&2
+            echo "[TIMEOUT] Usando o fallback em perl: $MO_TIMEOUT_PERL_BIN" >&2
         fi
     fi
 
     # Log warning if no timeout command available
     if [[ -z "$MO_TIMEOUT_BIN" && -z "$MO_TIMEOUT_PERL_BIN" ]] && [[ "${MO_DEBUG:-0}" == "1" ]]; then
-        echo "[TIMEOUT] No timeout command found, using shell fallback" >&2
-        echo "[TIMEOUT] Install coreutils for better reliability: brew install coreutils" >&2
+        echo "[TIMEOUT] Nenhum comando timeout encontrado, usando o fallback do shell" >&2
+        echo "[TIMEOUT] Instale o coreutils para mais confiabilidade: brew install coreutils" >&2
     fi
 
     # Export so child processes inherit detected values and skip re-detection.

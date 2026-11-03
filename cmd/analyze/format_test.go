@@ -339,7 +339,7 @@ func TestViewHeaderKeepsSiblingOfHomeUnabbreviated(t *testing.T) {
 
 	m := newModel(sibling, false)
 	for line := range strings.SplitSeq(m.View(), "\n") {
-		if strings.Contains(line, "Analyze Disk") {
+		if strings.Contains(line, "Analisar Disco") {
 			if !strings.Contains(line, sibling) {
 				t.Fatalf("header should show %s, got %q", sibling, line)
 			}

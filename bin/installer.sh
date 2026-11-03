@@ -323,7 +323,7 @@ collect_installers() {
 
     # Start scanning with spinner
     if [[ -t 1 ]]; then
-        start_inline_spinner "Scanning for installers..."
+        start_inline_spinner "Procurando instaladores..."
     fi
 
     # Start debug session
@@ -357,14 +357,14 @@ collect_installers() {
 
     if [[ ${#all_files[@]} -eq 0 ]]; then
         if [[ "${IN_ALT_SCREEN:-0}" != "1" ]]; then
-            echo -e "${GREEN}${ICON_SUCCESS}${NC} No installer files to clean"
+            echo -e "${GREEN}${ICON_SUCCESS}${NC} Nenhum instalador para limpar"
         fi
         return 1
     fi
 
     # Calculate sizes with spinner
     if [[ -t 1 ]]; then
-        start_inline_spinner "Calculating sizes..."
+        start_inline_spinner "Calculando tamanhos..."
     fi
 
     # Process each installer
@@ -534,7 +534,7 @@ select_installers() {
             scroll_indicator=" ${GRAY}[${current_pos}/${total_items}]${NC}"
         fi
 
-        printf "${PURPLE_BOLD}Select Installers to Remove${NC}%s ${GRAY}, ${selected_human}, ${selected_count} selected${NC}\n" "$scroll_indicator"
+        printf "${PURPLE_BOLD}Selecione os instaladores a remover${NC}%s ${GRAY}, ${selected_human}, ${selected_count} selecionado(s)${NC}\n" "$scroll_indicator"
         printf "%s\n" "$clear_line"
 
         # Calculate visible range
@@ -559,7 +559,7 @@ select_installers() {
         done
 
         printf "%s\n" "$clear_line"
-        printf "%s${GRAY}${ICON_NAV_UP}${ICON_NAV_DOWN}  |  Space Select  |  Enter Confirm  |  A All  |  I Invert  |  Q Quit${NC}\n" "$clear_line"
+        printf "%s${GRAY}${ICON_NAV_UP}${ICON_NAV_DOWN}  |  Espaço Selecionar  |  Enter Confirmar  |  A Todos  |  I Inverter  |  Q Sair${NC}\n" "$clear_line"
     }
 
     trap restore_terminal EXIT
@@ -706,7 +706,7 @@ build_installer_delete_plan() {
     local idx
     for idx in "$@"; do
         if [[ ! "$idx" =~ ^[0-9]+$ ]] || [[ $idx -ge ${#INSTALLER_PATHS[@]} ]]; then
-            record_installer_delete_failure "$idx" "stale selection"
+            record_installer_delete_failure "$idx" "seleção obsoleta"
             continue
         fi
 
@@ -719,7 +719,7 @@ build_installer_delete_plan() {
         local identity identity_rc=0
         identity=$(mole_deletion_identity "$file_path" "$deadline") || identity_rc=$?
         if [[ $identity_rc -ne 0 ]]; then
-            record_installer_delete_failure "$file_path" "identity unavailable"
+            record_installer_delete_failure "$file_path" "identidade indisponível"
             if mole_rc_timeout_or_signal "$identity_rc"; then
                 reset_installer_delete_plan
                 return "$identity_rc"
@@ -742,33 +742,33 @@ execute_installer_delete_plan() {
         local planned_identity="${INSTALLER_DELETE_IDENTITIES[$plan_index]}"
 
         if [[ ! -e "$file_path" && ! -L "$file_path" ]]; then
-            record_installer_delete_failure "$file_path" "missing"
+            record_installer_delete_failure "$file_path" "ausente"
             continue
         fi
 
         local current_identity identity_rc=0
         current_identity=$(mole_deletion_identity "$file_path") || identity_rc=$?
         if [[ $identity_rc -ne 0 ]]; then
-            record_installer_delete_failure "$file_path" "identity unavailable"
+            record_installer_delete_failure "$file_path" "identidade indisponível"
             mole_rc_timeout_or_signal "$identity_rc" && return "$identity_rc"
             continue
         fi
         if [[ "$current_identity" != "$planned_identity" ]]; then
-            record_installer_delete_failure "$file_path" "changed since scan"
+            record_installer_delete_failure "$file_path" "alterado desde a busca"
             continue
         fi
 
         local current_size size_rc=0
         current_size=$(installer_file_size_bytes "$file_path") || size_rc=$?
         if [[ $size_rc -ne 0 ]]; then
-            record_installer_delete_failure "$file_path" "size unavailable"
+            record_installer_delete_failure "$file_path" "tamanho indisponível"
             if mole_rc_timeout_or_signal "$size_rc" && ! mole_rc_timeout "$size_rc"; then
                 return "$size_rc"
             fi
             continue
         fi
         if [[ "$current_size" != "$planned_size" ]]; then
-            record_installer_delete_failure "$file_path" "changed since scan"
+            record_installer_delete_failure "$file_path" "alterado desde a busca"
             continue
         fi
 
@@ -777,11 +777,11 @@ execute_installer_delete_plan() {
                 total_size_freed_kb=$((total_size_freed_kb + ((current_size + 1023) / 1024)))
                 total_deleted=$((total_deleted + 1))
             else
-                record_installer_delete_failure "$file_path" "still exists"
+                record_installer_delete_failure "$file_path" "ainda existe"
             fi
         else
             local delete_rc=$?
-            record_installer_delete_failure "$file_path" "delete failed"
+            record_installer_delete_failure "$file_path" "falha ao excluir"
             if mole_rc_timeout_or_signal "$delete_rc"; then
                 return "$delete_rc"
             fi
@@ -828,7 +828,7 @@ delete_selected_installers() {
     confirm_human=$(bytes_to_human "$confirm_size")
 
     # Show files to be deleted
-    echo -e "${PURPLE_BOLD}Files to be removed:${NC}"
+    echo -e "${PURPLE_BOLD}Arquivos a remover:${NC}"
     for ((plan_index = 0; plan_index < ${#INSTALLER_DELETE_PATHS[@]}; plan_index++)); do
         local file_path="${INSTALLER_DELETE_PATHS[$plan_index]}"
         local file_size="${INSTALLER_DELETE_SIZES[$plan_index]}"
@@ -840,7 +840,7 @@ delete_selected_installers() {
 
     # Confirm deletion
     echo ""
-    echo -ne "${PURPLE}${ICON_ARROW}${NC} Delete ${#INSTALLER_DELETE_PATHS[@]} installers, ${confirm_human}  ${GREEN}Enter${NC} confirm, ${GRAY}ESC${NC} cancel: "
+    echo -ne "${PURPLE}${ICON_ARROW}${NC} Excluir ${#INSTALLER_DELETE_PATHS[@]} instalador(es), ${confirm_human}  ${GREEN}Enter${NC} confirmar, ${GRAY}ESC${NC} cancelar: "
 
     if ! IFS= read -r -s -n1 confirm; then
         printf '\n'
@@ -861,7 +861,7 @@ delete_selected_installers() {
 
     # Delete each selected installer with spinner
     if [[ -t 1 ]]; then
-        start_inline_spinner "Removing installers..."
+        start_inline_spinner "Removendo instaladores..."
     fi
 
     local delete_status=0
@@ -893,20 +893,20 @@ perform_installers() {
         fi
         printf '\n'
         if [[ $collect_status -ne 1 ]]; then
-            local scan_reason="incomplete"
+            local scan_reason="incompleta"
             if mole_rc_timeout "$collect_status"; then
-                scan_reason="timed out"
+                scan_reason="excedeu o tempo limite"
             elif mole_rc_timeout_or_signal "$collect_status"; then
-                scan_reason="interrupted"
+                scan_reason="interrompida"
             fi
-            printf '%sInstaller scan %s%s; no files selected' "$YELLOW" "$scan_reason" "$NC" >&2
+            printf '%sBusca de instaladores %s%s; nenhum arquivo selecionado' "$YELLOW" "$scan_reason" "$NC" >&2
             if [[ -n "$INSTALLER_SCAN_FAILURE_PATH" ]]; then
                 printf ' (%s)' "$(installer_display_text "$INSTALLER_SCAN_FAILURE_PATH")" >&2
             fi
-            printf '\nCheck that the scan locations are readable and responsive, then retry mo installer.\n' >&2
+            printf '\nVerifique se os locais da busca estão legíveis e respondendo e execute mo installer novamente.\n' >&2
             return "$collect_status"
         fi
-        echo -e "${GREEN}${ICON_SUCCESS}${NC} No installer files to clean"
+        echo -e "${GREEN}${ICON_SUCCESS}${NC} Nenhum instalador para limpar"
         printf '\n'
         return 2 # Nothing to clean
     fi
@@ -937,14 +937,14 @@ perform_installers() {
 }
 
 show_summary() {
-    local summary_heading="Installers cleaned"
+    local summary_heading="Instaladores limpos"
     local -a summary_details=()
     local dry_run_mode="${MOLE_DRY_RUN:-0}"
 
     if [[ "$dry_run_mode" == "1" ]]; then
-        summary_heading="Dry run complete - no changes made"
+        summary_heading="Simulação concluída - nenhuma alteração feita"
     elif [[ $total_delete_failed -gt 0 ]]; then
-        summary_heading="Installer cleanup incomplete"
+        summary_heading="Limpeza de instaladores incompleta"
     fi
 
     if [[ $total_deleted -gt 0 ]]; then
@@ -952,21 +952,21 @@ show_summary() {
         freed_mb=$(echo "$total_size_freed_kb" | awk '{printf "%.2f", $1/1024}')
 
         if [[ "$dry_run_mode" == "1" ]]; then
-            summary_details+=("Would remove ${GREEN}$total_deleted${NC} installers, free ${GREEN}${freed_mb}MB${NC}")
+            summary_details+=("Removeria ${GREEN}$total_deleted${NC} instalador(es), liberaria ${GREEN}${freed_mb}MB${NC}")
         else
-            summary_details+=("Removed ${GREEN}$total_deleted${NC} installers, freed ${GREEN}${freed_mb}MB${NC}")
+            summary_details+=("${GREEN}$total_deleted${NC} instalador(es) removido(s), ${GREEN}${freed_mb}MB${NC} liberados")
             if [[ $total_delete_failed -eq 0 ]]; then
-                summary_details+=("Your Mac is cleaner now!")
+                summary_details+=("Seu Mac está mais limpo agora!")
             fi
         fi
     else
-        summary_details+=("No installers were removed")
+        summary_details+=("Nenhum instalador foi removido")
     fi
 
     if [[ $total_delete_failed -gt 0 ]]; then
-        local failure_label="installers"
-        [[ $total_delete_failed -eq 1 ]] && failure_label="installer"
-        summary_details+=("Failed to remove ${YELLOW}$total_delete_failed${NC} $failure_label")
+        local failure_label="instaladores"
+        [[ $total_delete_failed -eq 1 ]] && failure_label="instalador"
+        summary_details+=("Falha ao remover ${YELLOW}$total_delete_failed${NC} $failure_label")
 
         local failure_count=${#INSTALLER_DELETE_FAILURES[@]}
         local failure_limit=5
@@ -984,7 +984,7 @@ show_summary() {
         done
 
         if [[ $failure_count -gt $failure_limit ]]; then
-            summary_details+=("${ICON_WARNING} $((failure_count - failure_limit)) more failed")
+            summary_details+=("${ICON_WARNING} $((failure_count - failure_limit)) a mais falharam")
         fi
     fi
 
@@ -1006,14 +1006,14 @@ main() {
                 export MOLE_DRY_RUN=1
                 ;;
             *)
-                echo "Unknown option: $arg" >&2
+                echo "Opção desconhecida: $arg" >&2
                 exit 1
                 ;;
         esac
     done
 
     if [[ "${MOLE_DRY_RUN:-0}" == "1" ]]; then
-        echo -e "${YELLOW}${ICON_DRY_RUN} DRY RUN MODE${NC}, No installer files will be removed"
+        echo -e "${YELLOW}${ICON_DRY_RUN} MODO SIMULAÇÃO${NC}, nenhum instalador será removido"
         printf '\n'
     fi
 
@@ -1049,7 +1049,7 @@ main() {
             if [[ $total_delete_failed -gt 0 ]]; then
                 show_summary
                 if mole_rc_timeout "$exit_code"; then
-                    echo -e "${YELLOW}${ICON_WARNING}${NC} A file check timed out, so later selections were left in place. Retry mo installer."
+                    echo -e "${YELLOW}${ICON_WARNING}${NC} Uma verificação de arquivo excedeu o tempo limite; as seleções seguintes foram mantidas. Execute mo installer novamente."
                 fi
             fi
             return "$exit_code"

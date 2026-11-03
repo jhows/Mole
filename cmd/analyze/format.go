@@ -279,11 +279,11 @@ func formatUnusedTime(lastAccess time.Time) string {
 func measurementErrorReason(err error) string {
 	switch {
 	case errors.Is(err, context.DeadlineExceeded):
-		return "timed out"
+		return "tempo esgotado"
 	case errors.Is(err, context.Canceled):
-		return "cancelled"
+		return "cancelado"
 	case isPermissionFailure(err):
-		return "access denied"
+		return "acesso negado"
 	}
 	var duFailure *duError
 	if errors.As(err, &duFailure) && duFailure.reason != "" {
@@ -292,7 +292,7 @@ func measurementErrorReason(err error) string {
 	if pathFailure, ok := errors.AsType[*os.PathError](err); ok {
 		return pathFailure.Err.Error()
 	}
-	return "read error"
+	return "erro de leitura"
 }
 
 // Partial sizes are measured bytes, so '+' marks that additional bytes may be
@@ -319,7 +319,7 @@ func sizeColumn(label string) string {
 
 func scanSummary(size int64, state scanState) string {
 	if state != scanComplete {
-		return "Partial scan · " + measuredSizeLabel(size, state)
+		return "Escaneamento parcial · " + measuredSizeLabel(size, state)
 	}
-	return "Scanned " + humanizeBytes(size)
+	return "Escaneado: " + humanizeBytes(size)
 }

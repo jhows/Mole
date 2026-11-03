@@ -383,23 +383,23 @@ mole_file_openable() {
 
 # One factual cause and one next action for an exclusion list that cannot be read.
 mole_report_unreadable_whitelist() {
-    local file="$1" label="${2:-whitelist}" reason="${3:-file}"
+    local file="$1" label="${2:-lista de proteção}" reason="${3:-file}"
     case "$reason" in
         directory)
-            printf 'Cannot access your %s directory: %s\n' "$label" "${file//[[:cntrl:]]/?}" >&2
-            printf '  Mole stops so nothing you protected is cleaned by mistake. Run: chmod u+rx %q\n' "$file" >&2
+            printf 'Não foi possível acessar o diretório da sua %s: %s\n' "$label" "${file//[[:cntrl:]]/?}" >&2
+            printf '  O Mole para para que nada que você protegeu seja limpo por engano. Execute: chmod u+rx %q\n' "$file" >&2
             ;;
         invalid)
-            printf 'Cannot read your %s: invalid path or broken link: %s\n' "$label" "${file//[[:cntrl:]]/?}" >&2
-            printf '  Mole stops so nothing you protected is cleaned by mistake. Restore this path or its link target before retrying.\n' >&2
+            printf 'Não foi possível ler a sua %s: caminho inválido ou link quebrado: %s\n' "$label" "${file//[[:cntrl:]]/?}" >&2
+            printf '  O Mole para para que nada que você protegeu seja limpo por engano. Restaure este caminho ou o destino do link antes de tentar de novo.\n' >&2
             ;;
         unknown)
-            printf 'Cannot inspect your %s path: %s\n' "$label" "${file//[[:cntrl:]]/?}" >&2
-            printf '  Mole stops because absence could not be verified. Check access to this path before retrying.\n' >&2
+            printf 'Não foi possível verificar o caminho da sua %s: %s\n' "$label" "${file//[[:cntrl:]]/?}" >&2
+            printf '  O Mole para porque não foi possível confirmar a ausência do arquivo. Verifique o acesso a este caminho antes de tentar de novo.\n' >&2
             ;;
         *)
-            printf 'Cannot read your %s: %s\n' "$label" "${file//[[:cntrl:]]/?}" >&2
-            printf '  Mole stops so nothing you protected is cleaned by mistake. Run: chmod u+r %q\n' "$file" >&2
+            printf 'Não foi possível ler a sua %s: %s\n' "$label" "${file//[[:cntrl:]]/?}" >&2
+            printf '  O Mole para para que nada que você protegeu seja limpo por engano. Execute: chmod u+r %q\n' "$file" >&2
             ;;
     esac
 }
@@ -410,10 +410,10 @@ mole_report_unreadable_whitelist() {
 # Inspect parents first so an inaccessible directory names the right repair,
 # and a broken symlink never authorizes defaults or a legacy-list fallback.
 mole_whitelist_file_state() {
-    local file="$1" label="${2:-whitelist}" problem="" probe_rc=0
+    local file="$1" label="${2:-lista de proteção}" problem="" probe_rc=0
     if [[ ! -x /usr/bin/perl ]]; then
-        printf 'Cannot inspect your %s: the system Perl runtime is unavailable.\n' "$label" >&2
-        printf '  Mole stops so nothing you protected is cleaned by mistake. Restore /usr/bin/perl before retrying.\n' >&2
+        printf 'Não foi possível verificar a sua %s: o runtime Perl do sistema está indisponível.\n' "$label" >&2
+        printf '  O Mole para para que nada que você protegeu seja limpo por engano. Restaure o /usr/bin/perl antes de tentar de novo.\n' >&2
         return 2
     fi
     problem=$(/usr/bin/perl -e '
@@ -492,30 +492,30 @@ load_mole_whitelist() {
             line="${line//\$HOME/$MOLE_USER_HOME}"
             line="${line//\$\{HOME\}/$MOLE_USER_HOME}"
             if [[ "$line" =~ \.\. ]]; then
-                WHITELIST_WARNINGS+=("Path traversal not allowed: $line")
+                WHITELIST_WARNINGS+=("Travessia de caminho não permitida: $line")
                 continue
             fi
 
             if [[ "$line" != "$FINDER_METADATA_SENTINEL" ]]; then
                 if [[ "$line" =~ [[:cntrl:]] ]]; then
-                    WHITELIST_WARNINGS+=("Invalid path format: $line")
+                    WHITELIST_WARNINGS+=("Formato de caminho inválido: $line")
                     continue
                 fi
 
                 if [[ "$line" != /* ]]; then
-                    WHITELIST_WARNINGS+=("Must be absolute path: $line")
+                    WHITELIST_WARNINGS+=("Precisa ser um caminho absoluto: $line")
                     continue
                 fi
             fi
 
             if [[ "$line" =~ // ]]; then
-                WHITELIST_WARNINGS+=("Consecutive slashes: $line")
+                WHITELIST_WARNINGS+=("Barras consecutivas: $line")
                 continue
             fi
 
             case "$line" in
                 / | /System | /System/* | /bin | /bin/* | /sbin | /sbin/* | /usr/bin | /usr/bin/* | /usr/sbin | /usr/sbin/* | /etc | /etc/* | /var/db | /var/db/*)
-                    WHITELIST_WARNINGS+=("Protected system path: $line")
+                    WHITELIST_WARNINGS+=("Caminho de sistema protegido: $line")
                     continue
                     ;;
             esac
@@ -1607,7 +1607,7 @@ mktemp_file() {
     local error_msg
     # Add .XXXXXX suffix to work with both BSD and GNU mktemp
     if ! error_msg=$(mktemp "$(mole_temp_path_template "$prefix")" 2>&1); then
-        echo "Error: Failed to create temporary file: $error_msg" >&2
+        echo "Erro: falha ao criar arquivo temporário: $error_msg" >&2
         return 1
     fi
     temp="$error_msg"
@@ -1670,7 +1670,7 @@ SECTION_ACTIVITY=0
 # fallback wording, dry-run export behavior). Before changing any of them,
 # read the cross references first:
 #
-#   - lib/core/base.sh   (this file): purple arrow header, "Nothing to tidy"
+#   - lib/core/base.sh   (this file): purple arrow header, "Nada para limpar"
 #                                     fallback, no dry-run export.
 #   - bin/clean.sh:      purple arrow header, erases the header of idle
 #                        sections on ANSI TTYs ("Nothing to clean" fallback
@@ -1694,10 +1694,10 @@ start_section() {
 }
 
 # End a section
-# Shows "Nothing to tidy" if no activity was recorded
+# Shows "Nada para limpar" if no activity was recorded
 end_section() {
     if [[ "${TRACK_SECTION:-0}" == "1" && "${SECTION_ACTIVITY:-0}" == "0" ]]; then
-        echo -e "  ${GREEN}${ICON_SUCCESS}${NC} Nothing to tidy"
+        echo -e "  ${GREEN}${ICON_SUCCESS}${NC} Nada para limpar"
     fi
     TRACK_SECTION=0
 }
@@ -1804,9 +1804,9 @@ update_progress_if_needed() {
         # Update the spinner text in place; restarting it here blinked the
         # line on every progress tick.
         if [[ -n "$label" ]]; then
-            start_section_spinner "Scanning ${label}, $completed/$total..."
+            start_section_spinner "Analisando ${label}, $completed/$total..."
         else
-            start_section_spinner "Scanning items... $completed/$total"
+            start_section_spinner "Analisando itens... $completed/$total"
         fi
 
         # Update the last_update_time variable

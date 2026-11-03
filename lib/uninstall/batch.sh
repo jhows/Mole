@@ -61,7 +61,7 @@ decode_file_list() {
     local decoded_file decoded
 
     if ! decoded_file=$(create_temp_file 2> /dev/null); then
-        log_error "Failed to create temporary file for file list $app_name" >&2
+        log_error "Falha ao criar arquivo temporário para a lista de arquivos de $app_name" >&2
         echo ""
         return 0
     fi
@@ -69,7 +69,7 @@ decode_file_list() {
     # macOS uses -D, GNU uses -d. Always return 0 for set -e safety.
     if ! printf '%s' "$encoded" | base64 -D > "$decoded_file" 2> /dev/null; then
         if ! printf '%s' "$encoded" | base64 -d > "$decoded_file" 2> /dev/null; then
-            log_error "Failed to decode file list for $app_name" >&2
+            log_error "Falha ao decodificar a lista de arquivos de $app_name" >&2
             rm -f "$decoded_file" 2> /dev/null || true # SAFE: exact scratch file created above
             echo ""
             return 0 # Return success with empty string
@@ -80,14 +80,14 @@ decode_file_list() {
     # $'\0' to an empty regex. Compare the decoded bytes before reading them.
     # shellcheck disable=SC2094 # cmp only reads the exact scratch file.
     if ! LC_ALL=C tr -d '\000' < "$decoded_file" | cmp -s - "$decoded_file"; then
-        log_warning "File list for $app_name contains null bytes, rejecting" >&2
+        log_warning "A lista de arquivos de $app_name contém bytes nulos; rejeitada" >&2
         rm -f "$decoded_file" 2> /dev/null || true # SAFE: exact scratch file created above
         echo ""
         return 0 # Return success with empty string
     fi
 
     if ! decoded=$(cat "$decoded_file"); then
-        log_error "Failed to read decoded file list for $app_name" >&2
+        log_error "Falha ao ler a lista de arquivos decodificada de $app_name" >&2
         rm -f "$decoded_file" 2> /dev/null || true # SAFE: exact scratch file created above
         echo ""
         return 0
@@ -96,7 +96,7 @@ decode_file_list() {
 
     while IFS= read -r line; do
         if [[ -n "$line" && ! "$line" =~ ^/ ]]; then
-            log_warning "Invalid path in file list for $app_name: $line" >&2
+            log_warning "Caminho inválido na lista de arquivos de $app_name: $line" >&2
             echo ""
             return 0 # Return success with empty string
         fi
@@ -118,7 +118,7 @@ decode_bundle_id_list() {
     local decoded_file decoded
 
     if ! decoded_file=$(create_temp_file 2> /dev/null); then
-        log_error "Failed to create temporary file for helper id list $app_name" >&2
+        log_error "Falha ao criar arquivo temporário para a lista de IDs de helpers de $app_name" >&2
         echo ""
         return 0
     fi
@@ -126,7 +126,7 @@ decode_bundle_id_list() {
     # macOS uses -D, GNU uses -d. Always return 0 for set -e safety.
     if ! printf '%s' "$encoded" | base64 -D > "$decoded_file" 2> /dev/null; then
         if ! printf '%s' "$encoded" | base64 -d > "$decoded_file" 2> /dev/null; then
-            log_error "Failed to decode helper id list for $app_name" >&2
+            log_error "Falha ao decodificar a lista de IDs de helpers de $app_name" >&2
             rm -f "$decoded_file" 2> /dev/null || true # SAFE: exact scratch file created above
             echo ""
             return 0
@@ -137,14 +137,14 @@ decode_bundle_id_list() {
     # represented in a shell variable and $'\0' becomes an empty regex there.
     # shellcheck disable=SC2094 # cmp only reads the exact scratch file.
     if ! LC_ALL=C tr -d '\000' < "$decoded_file" | cmp -s - "$decoded_file"; then
-        log_warning "Helper id list for $app_name contains null bytes, rejecting" >&2
+        log_warning "A lista de IDs de helpers de $app_name contém bytes nulos; rejeitada" >&2
         rm -f "$decoded_file" 2> /dev/null || true # SAFE: exact scratch file created above
         echo ""
         return 0
     fi
 
     if ! decoded=$(cat "$decoded_file"); then
-        log_error "Failed to read decoded helper id list for $app_name" >&2
+        log_error "Falha ao ler a lista de IDs de helpers decodificada de $app_name" >&2
         rm -f "$decoded_file" 2> /dev/null || true # SAFE: exact scratch file created above
         echo ""
         return 0
@@ -1941,13 +1941,13 @@ _batch_scan_app_details_impl() {
     # Cache current user outside loop
     local current_user=$(whoami)
 
-    if [[ -t 1 ]]; then start_inline_spinner "Scanning files..."; fi
+    if [[ -t 1 ]]; then start_inline_spinner "Analisando arquivos..."; fi
     # shellcheck disable=SC2154 # selected_apps is provided by batch_uninstall_applications via dynamic scope.
     for selected_app in "${selected_apps[@]}"; do
         [[ -z "$selected_app" ]] && continue
         IFS='|' read -r _ app_path app_name bundle_id _ _ <<< "$selected_app"
 
-        _batch_scan_stage="application identity check"
+        _batch_scan_stage="verificação de identidade do aplicativo"
         local current_bundle_id=""
         local refresh_rc=0
         current_bundle_id=$(_batch_refresh_selected_app_bundle_id \
@@ -2002,7 +2002,7 @@ _batch_scan_app_details_impl() {
         # Narrow the plan to the selected app bundle only: no bundle-id/name
         # leftovers, login item, process, helper, or Homebrew zap teardown.
         # Execution compares the exact snapshot before its first side effect.
-        _batch_scan_stage="other installation check"
+        _batch_scan_stage="verificação de outras instalações"
         local live_sibling_rc=0
         local live_sibling_present=false
         uninstall_live_bundle_has_other_install \
@@ -2023,10 +2023,10 @@ _batch_scan_app_details_impl() {
             local unreadable_what="some paths unreadable"
             if [[ -n "${_MOLE_UNINSTALL_SCAN_UNREADABLE:-}" ]]; then
                 # The note is printed with echo -e, so a backslash in the path stays literal.
-                unreadable_what="cannot read $(mole_terminal_safe_text "$_MOLE_UNINSTALL_SCAN_UNREADABLE")"
+                unreadable_what="não foi possível ler $(mole_terminal_safe_text "$_MOLE_UNINSTALL_SCAN_UNREADABLE")"
                 unreadable_what="${unreadable_what//\\/\\\\}"
             fi
-            leftover_notes+=("$app_path|Shared leftovers kept ($unreadable_what)")
+            leftover_notes+=("$app_path|Resíduos compartilhados mantidos ($unreadable_what)")
             debug_log "Same-bundle scan for $app_name could not read every path; shared leftovers kept"
         elif [[ $live_sibling_rc -ge 128 ]]; then
             return "$live_sibling_rc"
@@ -2038,7 +2038,7 @@ _batch_scan_app_details_impl() {
             # identity-bound bundle. Refusing here blocked every uninstall
             # on managed Macs (#1624).
             live_sibling_present=true
-            leftover_notes+=("$app_path|Shared leftovers kept (other copies unchecked)")
+            leftover_notes+=("$app_path|Resíduos compartilhados mantidos (outras cópias não verificadas)")
             debug_log "Could not complete the live same-bundle scan for $app_name (exit $live_sibling_rc)"
         fi
         local preview_live_sibling_fingerprint="$_MOLE_UNINSTALL_LIVE_SIBLING_FINGERPRINT"
@@ -2128,7 +2128,7 @@ _batch_scan_app_details_impl() {
             running_apps+=("$app_name")
         fi
 
-        _batch_scan_stage="Homebrew ownership check"
+        _batch_scan_stage="verificação de propriedade do Homebrew"
         local cask_name="" is_brew_cask="false"
         if command -v get_brew_cask_name > /dev/null 2>&1; then
             local detected_cask=""
@@ -2179,7 +2179,7 @@ _batch_scan_app_details_impl() {
             continue
         fi
 
-        _batch_scan_stage="application size check"
+        _batch_scan_stage="verificação de tamanho do aplicativo"
         local app_size_kb="0"
         local app_size_rc=0
         app_size_kb=$(get_path_size_kb "$app_path") || app_size_rc=$?
@@ -2208,7 +2208,7 @@ _batch_scan_app_details_impl() {
             # caches the surviving install uses.
             local sibling_survives=0
             [[ "$sibling_guard" != "none" ]] && sibling_survives=1
-            _batch_scan_stage="leftover scan"
+            _batch_scan_stage="busca de resíduos"
             local discovery_rc=0
             related_files=$(MOLE_UNINSTALL_SIBLING_SURVIVES="$sibling_survives" \
                 _MOLE_UNINSTALL_SELECTOR_APP="$app_path" \
@@ -2220,7 +2220,7 @@ _batch_scan_app_details_impl() {
                 # the selected app removable and leave leftovers alone rather
                 # than aborting the whole batch with "nothing was removed".
                 related_files=""
-                leftover_notes+=("$app_path|Leftovers kept (scan timed out)")
+                leftover_notes+=("$app_path|Resíduos mantidos (a busca excedeu o tempo limite)")
                 debug_log "Leftover scan for $app_name timed out; only the app bundle will be removed"
             elif [[ $discovery_rc -ne 0 ]]; then
                 return "$discovery_rc"
@@ -2233,7 +2233,7 @@ _batch_scan_app_details_impl() {
             # fail-safe direction. Skip follow-on probes when leftover
             # discovery already timed out so we do not burn the floor budget.
             if [[ "$sibling_guard" == "none" ]] && ! mole_rc_timeout "$discovery_rc"; then
-                _batch_scan_stage="diagnostic report scan"
+                _batch_scan_stage="busca de relatórios de diagnóstico"
                 local diag_rc=0
                 diag_user=$(get_diagnostic_report_paths_for_app "$app_path" \
                     "$discovery_app_name" \
@@ -2259,7 +2259,7 @@ _batch_scan_app_details_impl() {
                 fi
             fi
             if ! mole_rc_timeout "$discovery_rc"; then
-                _batch_scan_stage="system leftover scan"
+                _batch_scan_stage="busca de resíduos do sistema"
                 local system_rc=0
                 system_files=$(find_app_system_files \
                     "$bundle_id" "$discovery_app_name" "$app_path") || system_rc=$?
@@ -2342,15 +2342,15 @@ _batch_scan_app_details_impl() {
         local blocked_detail blocked_name blocked_vendor
         for blocked_detail in "${blocked_apps[@]}"; do
             IFS='|' read -r blocked_name blocked_vendor <<< "$blocked_detail"
-            log_warning "$(_uninstall_display_text "$blocked_name") requires the official $blocked_vendor uninstaller"
+            log_warning "$(_uninstall_display_text "$blocked_name") exige o desinstalador oficial de $blocked_vendor"
         done
     fi
 
     if [[ ${#manual_removal_apps[@]} -gt 0 ]]; then
         local manual_name
         for manual_name in "${manual_removal_apps[@]}"; do
-            log_warning "$(_uninstall_display_text "$manual_name") cannot be removed safely by Mole from this location"
-            log_info "Move it to Trash in Finder; Mole left protected containers and app data untouched"
+            log_warning "$(_uninstall_display_text "$manual_name") não pode ser removido com segurança pelo Mole neste local"
+            log_info "Mova-o para a Lixeira pelo Finder; o Mole não tocou nos contêineres protegidos nem nos dados do app"
         done
     fi
 }
@@ -2371,7 +2371,7 @@ _batch_preview_and_confirm() {
     while true; do
         local size_display=$(bytes_to_human "$((total_estimated_size * 1024))")
 
-        echo -e "\n${PURPLE_BOLD}Files to be removed:${NC}"
+        echo -e "\n${PURPLE_BOLD}Arquivos a remover:${NC}"
 
         local review_index=0
         for detail in "${app_details[@]}"; do
@@ -2401,7 +2401,7 @@ _batch_preview_and_confirm() {
             )
 
             if [[ "$steam_managed" == "true" ]]; then
-                echo -e "  ${YELLOW}${ICON_WARNING}${NC} Steam launcher only; game files managed by Steam are not included"
+                echo -e "  ${YELLOW}${ICON_WARNING}${NC} Somente o atalho da Steam; os arquivos do jogo gerenciados pela Steam não estão incluídos"
             fi
             local leftover_note
             for leftover_note in ${leftover_notes[@]+"${leftover_notes[@]}"}; do
@@ -2417,8 +2417,8 @@ _batch_preview_and_confirm() {
             # so only the automatic leftovers sit beside the app.
             _uninstall_print_preview_paths "${_review_auto_files[review_index]}" "  ${GREEN}${ICON_SUCCESS}${NC} " || return $?
             review_index=$((review_index + 1))
-            _uninstall_print_preview_paths "$system_files" "  ${BLUE}${ICON_WARNING}${NC} System: " || return $?
-            _uninstall_print_preview_paths "$review_system_display" "  ${YELLOW}${ICON_WARNING}${NC} Review only: " || return $?
+            _uninstall_print_preview_paths "$system_files" "  ${BLUE}${ICON_WARNING}${NC} Sistema: " || return $?
+            _uninstall_print_preview_paths "$review_system_display" "  ${YELLOW}${ICON_WARNING}${NC} Somente revisão: " || return $?
         done
 
         if [[ ${#_review_personal_paths[@]} -gt 0 ]]; then
@@ -2431,11 +2431,11 @@ _batch_preview_and_confirm() {
                 fi
             done
             if [[ -n "$removed_data" ]]; then
-                echo -e "\n${PURPLE_BOLD}Personal data to remove:${NC}"
+                echo -e "\n${PURPLE_BOLD}Dados pessoais a remover:${NC}"
                 _uninstall_print_preview_paths "$removed_data" "  ${GREEN}${ICON_SUCCESS}${NC} " || return $?
             fi
             if [[ -n "$kept_data" ]]; then
-                echo -e "\n${GRAY}Personal data kept:${NC}"
+                echo -e "\n${GRAY}Dados pessoais mantidos:${NC}"
                 while IFS= read -r personal_path; do
                     local kept_display="$personal_path" tilde='~'
                     kept_display="${kept_display/#$HOME/$tilde}"
@@ -2450,13 +2450,13 @@ _batch_preview_and_confirm() {
         [[ $app_total -gt 1 ]] && app_text="apps"
 
         echo ""
-        local removal_note="Remove ${app_total} ${app_text}"
+        local removal_note="Remover ${app_total} ${app_text}"
         [[ -n "$size_display" ]] && removal_note+=", ${size_display}"
-        [[ ${#_review_selected_paths[@]} -eq 0 ]] || removal_note+=", including personal data"
+        [[ ${#_review_selected_paths[@]} -eq 0 ]] || removal_note+=", incluindo dados pessoais"
         if [[ ${#running_apps[@]} -gt 0 ]]; then
-            removal_note+=" ${YELLOW}[Running]${NC}"
+            removal_note+=" ${YELLOW}[Em execução]${NC}"
         fi
-        [[ ${#_review_personal_paths[@]} -eq 0 ]] || echo -e "${GRAY}D${NC} choose personal data"
+        [[ ${#_review_personal_paths[@]} -eq 0 ]] || echo -e "${GRAY}D${NC} escolher dados pessoais"
 
         # A read from a non-terminal fails and used to become an empty key,
         # which the case below treats as Enter: a script or agent could confirm
@@ -2467,15 +2467,15 @@ _batch_preview_and_confirm() {
             # A dry run has nothing to confirm: the list above is the whole
             # answer, so a script or agent reading it gets a clean exit.
             if is_uninstall_dry_run; then
-                log_info "Dry run complete; the list above is the plan and no apps were removed."
+                log_info "Simulação concluída; a lista acima é o plano e nenhum app foi removido."
                 return 4
             fi
-            log_error "Uninstall confirmation needs an interactive terminal; no apps were removed."
-            log_info "Run mo uninstall from an interactive terminal, or use mo uninstall --list to inspect apps"
+            log_error "A confirmação da desinstalação exige um terminal interativo; nenhum app foi removido."
+            log_info "Execute mo uninstall em um terminal interativo ou use mo uninstall --list para inspecionar os apps"
             return 3
         fi
 
-        echo -ne "${PURPLE}${ICON_ARROW}${NC} ${removal_note}  ${GREEN}Enter${NC} confirm, ${GRAY}ESC${NC} cancel: "
+        echo -ne "${PURPLE}${ICON_ARROW}${NC} ${removal_note}  ${GREEN}Enter${NC} confirmar, ${GRAY}ESC${NC} cancelar: "
 
         drain_pending_input # Clean up any pending input before confirmation
         local key="" key_rc=0
@@ -2488,8 +2488,8 @@ _batch_preview_and_confirm() {
                 key=""
             else
                 echo ""
-                log_error "Could not read the uninstall confirmation; no apps were removed."
-                log_info "Run mo uninstall from an interactive terminal; nothing was changed"
+                log_error "Não foi possível ler a confirmação da desinstalação; nenhum app foi removido."
+                log_info "Execute mo uninstall em um terminal interativo; nada foi alterado"
                 return 3
             fi
         fi
@@ -2527,16 +2527,16 @@ _batch_preview_and_confirm() {
     # does not work reliably under Mole's timed non-interactive execution path.
     if [[ "${MOLE_DRY_RUN:-0}" != "1" ]] &&
         { [[ ${#sudo_apps[@]} -gt 0 ]] || [[ ${#brew_cask_apps[@]} -gt 0 ]]; }; then
-        local admin_prompt="Admin required to uninstall selected apps"
+        local admin_prompt="Acesso de administrador necessário para desinstalar os apps selecionados"
         if [[ ${#sudo_apps[@]} -gt 0 && ${#brew_cask_apps[@]} -eq 0 ]]; then
-            admin_prompt="Admin required for system apps: ${sudo_apps[*]}"
+            admin_prompt="Acesso de administrador necessário para apps do sistema: ${sudo_apps[*]}"
         elif [[ ${#brew_cask_apps[@]} -gt 0 && ${#sudo_apps[@]} -eq 0 ]]; then
-            admin_prompt="Admin required for Homebrew casks: ${brew_cask_apps[*]}"
+            admin_prompt="Acesso de administrador necessário para casks do Homebrew: ${brew_cask_apps[*]}"
         fi
 
         if ! ensure_sudo_session "$admin_prompt"; then
             echo ""
-            log_error "Admin access denied"
+            log_error "Acesso de administrador negado"
             return 1
         fi
     fi
@@ -2573,7 +2573,7 @@ _batch_execute_removals() {
         local _MOLE_UNINSTALL_REFUSALS_ACTIVE=1
         local -a _MOLE_UNINSTALL_REFUSAL_PATHS=() _MOLE_UNINSTALL_REFUSAL_REASONS=()
         _batch_exec_app_name="$app_name"
-        _batch_exec_stage="app verification"
+        _batch_exec_stage="verificação do aplicativo"
 
         # Show progress before the pre-teardown verification, not after: the
         # same-bundle re-scan below can take tens of seconds on a large
@@ -2584,9 +2584,9 @@ _batch_execute_removals() {
         [[ "$is_brew_cask" == "true" ]] && brew_tag=" ${CYAN}[Brew]${NC}"
         if [[ -t 1 ]]; then
             if [[ ${#app_details[@]} -gt 1 ]]; then
-                start_inline_spinner "[$current_index/${#app_details[@]}] Uninstalling $(_uninstall_display_text "$app_name")${brew_tag}..."
+                start_inline_spinner "[$current_index/${#app_details[@]}] Desinstalando $(_uninstall_display_text "$app_name")${brew_tag}..."
             else
-                start_inline_spinner "Uninstalling $(_uninstall_display_text "$app_name")${brew_tag}..."
+                start_inline_spinner "Desinstalando $(_uninstall_display_text "$app_name")${brew_tag}..."
             fi
         fi
 
@@ -2596,8 +2596,8 @@ _batch_execute_removals() {
         if mole_rc_timeout_or_signal "$app_plan_rc"; then
             return "$app_plan_rc"
         elif [[ $app_plan_rc -ne 0 ]]; then
-            reason="selected app changed after preview"
-            suggestion="Select the app again and review the new removal plan"
+            reason="o app selecionado mudou após a prévia"
+            suggestion="Selecione o app novamente e revise o novo plano de remoção"
         fi
 
         # Rebuild the exact same-bundle installation snapshot immediately
@@ -2617,8 +2617,8 @@ _batch_execute_removals() {
             mole_rc_signal "$selector_rc" && return "$selector_rc"
             if [[ -n "$expected_selector" &&
                 ($selector_rc -ne 0 || "$_MOLE_UNINSTALL_SELECTED_SELECTOR" != "$expected_selector") ]]; then
-                reason="selected app metadata changed after preview"
-                suggestion="Select the app again and review the new removal plan"
+                reason="os metadados do app selecionado mudaram após a prévia"
+                suggestion="Selecione o app novamente e revise o novo plano de remoção"
             fi
         fi
         if [[ -z "$reason" ]] && mole_is_reverse_dns_bundle_id "$original_bundle_id"; then
@@ -2627,14 +2627,14 @@ _batch_execute_removals() {
                 _uninstall_decode_live_sibling_fingerprint \
                     "${encoded_live_sibling_fingerprint:-}"
             ); then
-                reason="unable to verify the reviewed app installation set"
-                suggestion="Select the app again and review the new removal plan"
+                reason="não foi possível verificar o conjunto de instalações do app revisado"
+                suggestion="Selecione o app novamente e revise o novo plano de remoção"
             elif ! preview_live_sibling_fingerprint=$(
                 _uninstall_live_fingerprint_without_successful_paths \
                     "$preview_live_sibling_fingerprint"
             ); then
-                reason="unable to verify the reviewed app installation set"
-                suggestion="Select the app again and review the new removal plan"
+                reason="não foi possível verificar o conjunto de instalações do app revisado"
+                suggestion="Selecione o app novamente e revise o novo plano de remoção"
             fi
 
             local live_sibling_rc=0
@@ -2642,8 +2642,8 @@ _batch_execute_removals() {
                 "$original_bundle_id" "$app_path" || live_sibling_rc=$?
             if [[ $live_sibling_rc -eq 0 || $live_sibling_rc -eq 1 ]]; then
                 if [[ "$preview_live_sibling_fingerprint" != "$_MOLE_UNINSTALL_LIVE_SIBLING_FINGERPRINT" ]]; then
-                    reason="the app installation set changed after preview"
-                    suggestion="Select the app again and review the new removal plan"
+                    reason="o conjunto de instalações do app mudou após a prévia"
+                    suggestion="Selecione o app novamente e revise o novo plano de remoção"
                 fi
             elif [[ $live_sibling_rc -lt 128 &&
                 "$sibling_guard" == "guard_login" &&
@@ -2663,8 +2663,8 @@ _batch_execute_removals() {
             elif [[ $live_sibling_rc -ge 128 ]]; then
                 return "$live_sibling_rc"
             else
-                reason="unable to verify other apps with the same bundle id"
-                suggestion="Check mounted volumes and application folders, then try again"
+                reason="não foi possível verificar outros apps com o mesmo bundle id"
+                suggestion="Verifique os volumes montados e as pastas de aplicativos e tente novamente"
             fi
         fi
 
@@ -2679,8 +2679,8 @@ _batch_execute_removals() {
             if mole_rc_timeout_or_signal "$app_plan_rc"; then
                 return "$app_plan_rc"
             elif [[ $app_plan_rc -ne 0 ]]; then
-                reason="selected app changed after preview"
-                suggestion="Select the app again and review the new removal plan"
+                reason="o app selecionado mudou após a prévia"
+                suggestion="Selecione o app novamente e revise o novo plano de remoção"
             fi
         fi
 
@@ -2740,7 +2740,7 @@ _batch_execute_removals() {
             debug_log "Skipping process termination for $app_name: identifiers are shared with a surviving install"
         fi
 
-        _batch_exec_stage="app removal"
+        _batch_exec_stage="remoção do aplicativo"
         # Keep the spinner alive through the heavy work. For large apps the
         # main bundle delete alone can take many seconds; for apps with
         # 50-200 leftover files the per-file Trash moves add even more. The
@@ -2753,7 +2753,7 @@ _batch_execute_removals() {
             if [[ ${#app_details[@]} -gt 1 ]]; then
                 _phase_prefix="[$current_index/${#app_details[@]}] "
             fi
-            start_inline_spinner "${_phase_prefix}Removing ${app_name} (${_phase_size})..."
+            start_inline_spinner "${_phase_prefix}Removendo ${app_name} (${_phase_size})..."
         fi
 
         local used_brew_successfully=false
@@ -2764,8 +2764,8 @@ _batch_execute_removals() {
             if mole_rc_timeout_or_signal "$app_plan_rc"; then
                 return "$app_plan_rc"
             elif [[ $app_plan_rc -ne 0 ]]; then
-                reason="selected app changed after preview"
-                suggestion="Select the app again and review the new removal plan"
+                reason="o app selecionado mudou após a prévia"
+                suggestion="Selecione o app novamente e revise o novo plano de remoção"
             fi
         fi
         if [[ -z "$reason" ]]; then
@@ -2775,7 +2775,7 @@ _batch_execute_removals() {
                 if [[ -t 1 ]]; then
                     stop_inline_spinner
                     [[ -t 2 ]] && printf '\r\033[2K' >&2
-                    printf '%s\n' "${_phase_prefix}Removing $(_uninstall_display_text "$app_name") (${_phase_size})..." >&2
+                    printf '%s\n' "${_phase_prefix}Removendo $(_uninstall_display_text "$app_name") (${_phase_size})..." >&2
                 fi
                 # Mole removes only the reviewed paths below. A cask zap can
                 # reach data that was not selected or even discovered.
@@ -2809,8 +2809,8 @@ _batch_execute_removals() {
                         if mole_rc_timeout_or_signal "$app_plan_rc"; then
                             return "$app_plan_rc"
                         elif [[ $app_plan_rc -ne 0 ]]; then
-                            reason="selected app changed after preview"
-                            suggestion="Select the app again and review the new removal plan"
+                            reason="o app selecionado mudou após a prévia"
+                            suggestion="Selecione o app novamente e revise o novo plano de remoção"
                         else
                             local removal_rc=0
                             mole_delete "$app_path" "$needs_sudo" \
@@ -2822,16 +2822,16 @@ _batch_execute_removals() {
                                     diagnosis=$(diagnose_removal_failure "$removal_rc" "$app_name")
                                     IFS='|' read -r reason suggestion <<< "$diagnosis"
                                 else
-                                    reason="brew cleanup incomplete, manual removal failed"
+                                    reason="limpeza do brew incompleta e a remoção manual falhou"
                                 fi
                             fi
                         fi
                     elif [[ $cask_state -eq 0 ]]; then
-                        reason="brew uninstall failed, package still installed"
-                        suggestion="Run brew uninstall --cask $cask_name"
+                        reason="falha na desinstalação pelo brew; o pacote continua instalado"
+                        suggestion="Execute brew uninstall --cask $cask_name"
                     else
-                        reason="brew uninstall failed, package state unknown"
-                        suggestion="Run brew uninstall --cask $cask_name"
+                        reason="falha na desinstalação pelo brew; estado do pacote desconhecido"
+                        suggestion="Execute brew uninstall --cask $cask_name"
                     fi
                 fi
             elif [[ "$needs_sudo" == true ]]; then
@@ -2847,7 +2847,7 @@ _batch_execute_removals() {
                         fi
                         case "$resolved_target" in
                             /System/* | /usr/bin/* | /usr/lib/* | /bin/* | /sbin/* | /private/etc/*)
-                                reason="protected system symlink, cannot remove"
+                                reason="link simbólico de sistema protegido; não pode ser removido"
                                 ;;
                             *)
                                 local removal_rc=0
@@ -2855,7 +2855,7 @@ _batch_execute_removals() {
                                     "$expected_app_identity" || removal_rc=$?
                                 mole_rc_timeout_or_signal "$removal_rc" && return "$removal_rc"
                                 if [[ $removal_rc -ne 0 ]]; then
-                                    reason="failed to remove symlink"
+                                    reason="falha ao remover o link simbólico"
                                 fi
                                 ;;
                         esac
@@ -2865,7 +2865,7 @@ _batch_execute_removals() {
                             "$expected_app_identity" || removal_rc=$?
                         mole_rc_timeout_or_signal "$removal_rc" && return "$removal_rc"
                         if [[ $removal_rc -ne 0 ]]; then
-                            reason="failed to remove symlink"
+                            reason="falha ao remover o link simbólico"
                         fi
                     fi
                 else
@@ -2875,7 +2875,7 @@ _batch_execute_removals() {
                             "$expected_app_identity" || removal_rc=$?
                         mole_rc_timeout_or_signal "$removal_rc" && return "$removal_rc"
                         if [[ $removal_rc -ne 0 ]]; then
-                            reason="dry-run path validation failed"
+                            reason="falha na validação do caminho na simulação"
                         fi
                     else
                         local ret=0
@@ -2900,23 +2900,23 @@ _batch_execute_removals() {
                         diagnosis=$(diagnose_removal_failure "$removal_rc" "$app_name")
                         IFS='|' read -r reason suggestion <<< "$diagnosis"
                     elif [[ ! -w "$(dirname "$app_path")" ]]; then
-                        reason="parent directory not writable"
+                        reason="o diretório pai não permite gravação"
                     else
-                        reason="remove failed, check permissions"
+                        reason="falha na remoção; verifique as permissões"
                     fi
                 fi
             fi
         fi
 
         # Remove related files if app removal succeeded.
-        _batch_exec_stage="leftover removal"
+        _batch_exec_stage="remoção de resíduos"
         if [[ -z "$reason" ]]; then
             if [[ -t 1 ]]; then
                 local _phase_prefix=""
                 if [[ ${#app_details[@]} -gt 1 ]]; then
                     _phase_prefix="[$current_index/${#app_details[@]}] "
                 fi
-                start_inline_spinner "${_phase_prefix}Cleaning files for ${app_name}..."
+                start_inline_spinner "${_phase_prefix}Limpando arquivos de ${app_name}..."
             fi
             local related_remove_rc=0
             remove_file_list "$related_files" "false" \
@@ -2971,9 +2971,9 @@ _batch_execute_removals() {
                 fi
             fi
 
-            _batch_exec_stage="system file removal"
+            _batch_exec_stage="remoção de arquivos do sistema"
             if [[ -t 1 ]]; then
-                start_inline_spinner "${_phase_prefix}Cleaning system files for ${app_name}..."
+                start_inline_spinner "${_phase_prefix}Limpando arquivos do sistema de ${app_name}..."
             fi
             if [[ "$used_brew_successfully" == "true" ]]; then
                 local system_remove_rc=0
@@ -3061,15 +3061,15 @@ _batch_execute_removals() {
                             kept_reason="${_MOLE_UNINSTALL_REFUSAL_REASONS[$refusal_index]}"
                         fi
                     done
-                    local kept_label="Could not remove"
+                    local kept_label="Não foi possível remover"
                     case "$kept_reason" in
-                        protected) kept_label="Kept (protected by Mole)" ;;
-                        live-cache) kept_label="Kept (app may be active)" ;;
-                        access-denied) kept_label="macOS denied access" ;;
-                        ownership-unverified) kept_label="Kept (agent ownership unverified; review the plist)" ;;
-                        app-reappeared) kept_label="Kept (selected app path exists again; select the app again)" ;;
-                        shared-owner) kept_label="Kept (shared with another installed app)" ;;
-                        owner-unknown) kept_label="Kept (other copies of the app could not be checked)" ;;
+                        protected) kept_label="Mantido (protegido pelo Mole)" ;;
+                        live-cache) kept_label="Mantido (o app pode estar ativo)" ;;
+                        access-denied) kept_label="O macOS negou o acesso" ;;
+                        ownership-unverified) kept_label="Mantido (propriedade do agente não verificada; revise o plist)" ;;
+                        app-reappeared) kept_label="Mantido (o caminho do app selecionado existe de novo; selecione o app novamente)" ;;
+                        shared-owner) kept_label="Mantido (compartilhado com outro app instalado)" ;;
+                        owner-unknown) kept_label="Mantido (não foi possível verificar outras cópias do app)" ;;
                     esac
                     case "$kept_reason" in
                         app-reappeared | shared-owner | owner-unknown)
@@ -3086,7 +3086,7 @@ _batch_execute_removals() {
                 if [[ $family_kept_count -eq 1 ]]; then
                     echo -e "  ${YELLOW}${ICON_WARNING}${NC} $family_kept_label: ${family_kept_first/#$HOME/$tilde_display}"
                 elif [[ $family_kept_count -gt 1 ]]; then
-                    echo -e "  ${YELLOW}${ICON_WARNING}${NC} $family_kept_label: $family_kept_count paths"
+                    echo -e "  ${YELLOW}${ICON_WARNING}${NC} $family_kept_label: $family_kept_count caminhos"
                 fi
                 total_kb=$((total_kb - leftover_kb))
                 ((total_kb < 0)) && total_kb=0
@@ -3138,7 +3138,7 @@ _batch_execute_removals() {
                 if [[ ${#app_details[@]} -gt 1 ]]; then
                     echo -e "${ICON_ERROR} [$current_index/${#app_details[@]}] ${app_name} ${GRAY}, $reason${NC}"
                 else
-                    echo -e "${ICON_ERROR} ${app_name} failed: $reason"
+                    echo -e "${ICON_ERROR} ${app_name} falhou: $reason"
                 fi
                 if [[ -n "${suggestion:-}" ]]; then
                     echo -e "${GRAY}   ${ICON_REVIEW} ${suggestion}${NC}"
@@ -3167,11 +3167,11 @@ _batch_render_summary() {
     local -a summary_details=()
 
     if [[ $success_count -gt 0 ]]; then
-        local success_text="app"
-        [[ $success_count -gt 1 ]] && success_text="apps"
-        local success_line="Removed ${success_count} ${success_text}"
+        local success_text="app" success_sfx=""
+        [[ $success_count -gt 1 ]] && success_text="apps" success_sfx="s"
+        local success_line="${success_count} ${success_text} removido${success_sfx}"
         if is_uninstall_dry_run; then
-            success_line="Would remove ${success_count} ${success_text}"
+            success_line="Removeria ${success_count} ${success_text}"
         fi
         if [[ -n "$freed_display" ]]; then
             if [[ "${MOLE_DELETE_MODE:-permanent}" == "trash" ]]; then
@@ -3180,9 +3180,9 @@ _batch_render_summary() {
                 # Mole Mac made the same correction (uninstall.summary.freed).
                 success_line+=" · ${GREEN}${freed_display}${NC}"
             elif is_uninstall_dry_run; then
-                success_line+=", would free ${GREEN}${freed_display}${NC}"
+                success_line+=", liberaria ${GREEN}${freed_display}${NC}"
             else
-                success_line+=", freed ${GREEN}${freed_display}${NC}"
+                success_line+=", ${GREEN}${freed_display}${NC}"
             fi
         fi
 
@@ -3235,7 +3235,7 @@ _batch_render_summary() {
         done
         local failed_list="${failed_names[*]}"
 
-        local reason_summary="could not be removed"
+        local reason_summary="não pôde ser removido"
         local suggestion_text=""
         if [[ $failed_count -eq 1 ]]; then
             # Extract reason and suggestion from format: app:reason:suggestion
@@ -3251,14 +3251,14 @@ _batch_render_summary() {
             fi
 
             case "$first_reason" in
-                still*running*) reason_summary="is still running" ;;
-                remove*failed*) reason_summary="could not be removed" ;;
-                permission*denied*) reason_summary="permission denied" ;;
-                owned*by*) reason_summary="$first_reason, try with sudo" ;;
+                still*running* | em*execução*) reason_summary="ainda está em execução" ;;
+                remove*failed*) reason_summary="não pôde ser removido" ;;
+                permission*denied* | permissão*negada*) reason_summary="permissão negada" ;;
+                owned*by*) reason_summary="$first_reason; tente com sudo" ;;
                 *) reason_summary="$first_reason" ;;
             esac
         fi
-        summary_details+=("${ICON_LIST} Failed: ${RED}${failed_list}${NC} ${reason_summary}")
+        summary_details+=("${ICON_LIST} Falhou: ${RED}${failed_list}${NC} ${reason_summary}")
         if [[ -n "$suggestion_text" ]]; then
             summary_details+=("$suggestion_text")
         fi
@@ -3266,7 +3266,7 @@ _batch_render_summary() {
 
     if [[ $success_count -eq 0 && $failed_count -eq 0 ]]; then
         summary_status="info"
-        summary_details+=("No applications were uninstalled.")
+        summary_details+=("Nenhum aplicativo foi desinstalado.")
     fi
 
     if [[ ${#review_only_system_leftovers[@]} -gt 0 ]]; then
@@ -3278,9 +3278,9 @@ _batch_render_summary() {
         # repeating them plus a generic "review these" line only added noise to
         # the block the user reads last, with no action attached to it.
         local kept_count=${#review_only_system_leftovers[@]}
-        local kept_label="paths"
-        [[ $kept_count -eq 1 ]] && kept_label="path"
-        summary_details+=("${ICON_REVIEW} Kept ${kept_count} system-level ${kept_label}, which Mole never removes")
+        local kept_label="caminhos" kept_sfx="s"
+        [[ $kept_count -eq 1 ]] && kept_label="caminho" kept_sfx=""
+        summary_details+=("${ICON_REVIEW} ${kept_count} ${kept_label} de nível de sistema mantido${kept_sfx}; o Mole nunca os remove")
     fi
 
     if [[ ${#system_extension_warning_apps[@]} -gt 0 ]]; then
@@ -3291,8 +3291,8 @@ _batch_render_summary() {
             ext_list+="${system_extension_warning_apps[idx]}"
         done
 
-        summary_details+=("${ICON_REVIEW} System extensions may remain after removal: ${YELLOW}${ext_list}${NC}")
-        summary_details+=("${GRAY}${ICON_REVIEW}${NC} Check ${GRAY}System Settings > General > Login Items & Extensions${NC} to remove leftover extensions")
+        summary_details+=("${ICON_REVIEW} Extensões de sistema podem permanecer após a remoção: ${YELLOW}${ext_list}${NC}")
+        summary_details+=("${GRAY}${ICON_REVIEW}${NC} Verifique ${GRAY}Ajustes do Sistema > Geral > Itens de Login e Extensões${NC} para remover extensões remanescentes")
     fi
 
     if [[ ${#background_items_warning_apps[@]} -gt 0 ]]; then
@@ -3303,7 +3303,7 @@ _batch_render_summary() {
             bg_list+="$(_uninstall_display_text "${background_items_warning_apps[idx]}")"
         done
 
-        summary_details+=("${ICON_REVIEW} Background item still running for ${YELLOW}${bg_list}${NC}, turn it off in ${GRAY}System Settings > Login Items & Extensions${NC}")
+        summary_details+=("${ICON_REVIEW} Item em segundo plano ainda em execução para ${YELLOW}${bg_list}${NC}; desative-o em ${GRAY}Ajustes do Sistema > Itens de Login e Extensões${NC}")
     fi
 
     if [[ ${#running_at_uninstall_apps[@]} -gt 0 ]]; then
@@ -3314,16 +3314,16 @@ _batch_render_summary() {
             running_list+="$(_uninstall_display_text "${running_at_uninstall_apps[idx]}")"
         done
 
-        summary_details+=("${ICON_REVIEW} Still running during uninstall, files removed but process kept alive: ${YELLOW}${running_list}${NC}")
-        summary_details+=("${GRAY}${ICON_REVIEW}${NC} Quit the app to free its in-memory copy; reinstalling before quitting may behave oddly")
+        summary_details+=("${ICON_REVIEW} Ainda em execução durante a desinstalação; arquivos removidos, mas o processo continua ativo: ${YELLOW}${running_list}${NC}")
+        summary_details+=("${GRAY}${ICON_REVIEW}${NC} Feche o app para liberar a cópia em memória; reinstalar antes de fechar pode causar comportamento estranho")
     fi
 
-    local title="Uninstall complete"
+    local title="Desinstalação concluída"
     if [[ "$summary_status" == "warn" ]]; then
-        title="Uninstall incomplete"
+        title="Desinstalação incompleta"
     fi
     if is_uninstall_dry_run; then
-        title="Uninstall dry run complete"
+        title="Simulação de desinstalação concluída"
     fi
 
     # No blank line here: print_summary_block already opens with one.
@@ -3354,7 +3354,7 @@ batch_uninstall_applications() {
 
     # shellcheck disable=SC2154
     if [[ ${#selected_apps[@]} -eq 0 ]]; then
-        log_warning "No applications selected for uninstallation"
+        log_warning "Nenhum aplicativo selecionado para desinstalação"
         return 0
     fi
 
@@ -3412,7 +3412,7 @@ batch_uninstall_applications() {
     local total_estimated_size=0
     local -a app_details=()
 
-    local _batch_scan_stage="application inspection"
+    local _batch_scan_stage="inspeção do aplicativo"
     local _batch_scan_app_name=""
     local _scan_rc=0
     _batch_scan_app_details || _scan_rc=$?
@@ -3425,20 +3425,20 @@ batch_uninstall_applications() {
         # A signal already echoed through the INT/TERM trap; a timeout has
         # said nothing yet, and a silent exit is unreportable (#1340).
         if mole_rc_timeout "$_scan_rc"; then
-            log_error "The uninstall scan timed out before finishing; nothing was removed"
+            log_error "A análise da desinstalação excedeu o tempo limite antes de terminar; nada foi removido"
         fi
         return "$_scan_rc"
     elif [[ $_scan_rc -ne 0 ]]; then
         _abort_uninstall_batch
-        log_error "Could not finish the uninstall scan ($_batch_scan_stage, exit $_scan_rc); nothing was removed"
+        log_error "Não foi possível concluir a análise da desinstalação ($_batch_scan_stage, código $_scan_rc); nada foi removido"
         local brew_failure=""
-        if [[ "$_batch_scan_stage" == "Homebrew ownership check" ]] &&
+        if [[ "$_batch_scan_stage" == "verificação de propriedade do Homebrew" ]] &&
             brew_failure=$(_mole_brew_failure_line 2> /dev/null); then
-            log_info "Homebrew itself failed: $brew_failure; fix Homebrew, then retry mo uninstall"
-        elif [[ "$_batch_scan_stage" == "Homebrew ownership check" ]]; then
-            log_info "'$_batch_scan_app_name' matches a Homebrew cask brew cannot read; run brew info --cask <cask>, fix or untap it, then retry mo uninstall --debug"
+            log_info "O próprio Homebrew falhou: $brew_failure; corrija o Homebrew e execute mo uninstall novamente"
+        elif [[ "$_batch_scan_stage" == "verificação de propriedade do Homebrew" ]]; then
+            log_info "'$_batch_scan_app_name' corresponde a um cask do Homebrew que o brew não consegue ler; execute brew info --cask <cask>, corrija-o ou remova o tap e tente novamente com mo uninstall --debug"
         else
-            log_info "Run mo uninstall --debug to see which scan failed"
+            log_info "Execute mo uninstall --debug para ver qual análise falhou"
         fi
         return 1
     fi
@@ -3510,11 +3510,11 @@ batch_uninstall_applications() {
     elif [[ $_execute_rc -ne 0 ]]; then
         _abort_uninstall_batch
         if mole_rc_timeout "$_execute_rc"; then
-            log_error "Uninstall stopped at ${_batch_exec_app_name}: ${_batch_exec_stage} timed out; apps after it were not touched"
+            log_error "Desinstalação interrompida em ${_batch_exec_app_name}: ${_batch_exec_stage} excedeu o tempo limite; os apps seguintes não foram tocados"
         else
-            log_error "Uninstall stopped at ${_batch_exec_app_name} during ${_batch_exec_stage} (exit ${_execute_rc}); apps after it were not touched"
+            log_error "Desinstalação interrompida em ${_batch_exec_app_name} durante ${_batch_exec_stage} (código ${_execute_rc}); os apps seguintes não foram tocados"
         fi
-        log_info "Run mo uninstall --debug to see which step failed"
+        log_info "Execute mo uninstall --debug para ver qual etapa falhou"
         return 1
     fi
 
@@ -3556,7 +3556,7 @@ batch_uninstall_applications() {
     # Clean up Dock entries for uninstalled apps.
     if [[ $success_count -gt 0 && ${#success_dock_targets[@]} -gt 0 ]]; then
         if is_uninstall_dry_run; then
-            log_info "[DRY RUN] Would refresh LaunchServices and update Dock entries"
+            log_info "[SIMULAÇÃO] Atualizaria o LaunchServices e as entradas do Dock"
         else
             # LaunchServices refresh uses run_with_timeout. It is best-effort
             # background work, so it must never own the tty.

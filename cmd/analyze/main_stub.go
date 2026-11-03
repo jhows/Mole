@@ -8,6 +8,6 @@ import (
 )
 
 func main() {
-	fmt.Fprintln(os.Stderr, "analyze is only supported on macOS")
+	fmt.Fprintln(os.Stderr, "analyze só é suportado no macOS")
 	os.Exit(1)
 }

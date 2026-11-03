@@ -451,11 +451,11 @@ _update_print_verified_success() {
     log_operation "update" "REBUILT" "${mole_path:-mole}" \
         "updated to ${_MOLE_UPDATE_VERIFIED_VERSION:-${_MOLE_UPDATE_VERIFIED_COMMIT:-$update_ref}}"
     if [[ "$update_ref" == "main" && -n "$_MOLE_UPDATE_VERIFIED_COMMIT" ]]; then
-        printf '\n%s\n\n' "${GREEN}${ICON_SUCCESS}${NC} Updated to ${success_label}, ${_MOLE_UPDATE_VERIFIED_COMMIT}"
+        printf '\n%s\n\n' "${GREEN}${ICON_SUCCESS}${NC} Atualizado para ${success_label}, ${_MOLE_UPDATE_VERIFIED_COMMIT}"
     elif [[ "$update_ref" == "main" ]]; then
-        printf '\n%s\n\n' "${GREEN}${ICON_SUCCESS}${NC} Updated to ${success_label}"
+        printf '\n%s\n\n' "${GREEN}${ICON_SUCCESS}${NC} Atualizado para ${success_label}"
     else
-        printf '\n%s\n\n' "${GREEN}${ICON_SUCCESS}${NC} Updated to ${success_label}, ${_MOLE_UPDATE_VERIFIED_VERSION}"
+        printf '\n%s\n\n' "${GREEN}${ICON_SUCCESS}${NC} Atualizado para ${success_label}, ${_MOLE_UPDATE_VERIFIED_VERSION}"
         mole_print_release_highlights "${_MOLE_UPDATE_VERIFIED_VERSION:-}"
     fi
 }
@@ -483,7 +483,7 @@ _update_self_heal_reinstall() {
         install_commit="$expected_commit"
     fi
 
-    echo "Retrying with a direct reinstall from GitHub..."
+    echo "Tentando de novo com uma reinstalação direta a partir do GitHub..."
 
     local heal_output=""
     if command -v curl > /dev/null 2>&1; then
@@ -528,7 +528,7 @@ _update_print_manual_reinstall() {
     printf -v quoted_ref '%q' "$update_ref"
     printf -v quoted_install_dir '%q' "$install_dir"
     printf -v quoted_config_dir '%q' "$config_dir"
-    printf '%s Reinstall manually: curl -fsSL https://raw.githubusercontent.com/tw93/mole/main/install.sh | MOLE_VERSION=%s bash -s -- --prefix %s --config %s\n' \
+    printf '%s Reinstale manualmente: curl -fsSL https://raw.githubusercontent.com/tw93/mole/main/install.sh | MOLE_VERSION=%s bash -s -- --prefix %s --config %s\n' \
         "${ICON_REVIEW}" "$quoted_ref" "$quoted_install_dir" "$quoted_config_dir"
 }
 
@@ -730,13 +730,13 @@ manual_install_repair_reason() {
     local helper
 
     if [[ -f "$config_root/.helper_install_incomplete" ]]; then
-        reason="incomplete helper install"
+        reason="instalação incompleta dos helpers"
     fi
 
     for helper in analyze status; do
         if [[ ! -x "$config_root/bin/${helper}-go" ]]; then
             [[ -n "$reason" ]] && reason+=", "
-            reason+="missing ${helper}-go"
+            reason+="${helper}-go ausente"
         fi
     done
 
@@ -935,9 +935,9 @@ mole_update_message_cache_is_current() {
 # left behind by the previous release passes the mtime check above and would
 # otherwise tell the user to update to the version they are running.
 mole_update_message_is_stale() {
-    local message="$1" pattern='Update ([0-9]+\.[0-9]+\.[0-9]+) available' offered
+    local message="$1" pattern='(Update|Atualização) ([0-9]+\.[0-9]+\.[0-9]+) (available|disponível)' offered
     [[ -n "${VERSION:-}" && "$message" =~ $pattern ]] || return 1
-    offered="${BASH_REMATCH[1]}"
+    offered="${BASH_REMATCH[2]}"
     [[ "$offered" == "$VERSION" ]] && return 0
     [[ "$(printf '%s\n' "$VERSION" "$offered" | sort -V | head -1)" != "$VERSION" ]]
 }
@@ -1003,7 +1003,7 @@ check_for_updates() {
                 latest=$(get_latest_commit_from_github api-only)
                 [[ -n "$installed" && -n "$latest" ]] || exit 0
                 if [[ "${installed:0:7}" != "${latest:0:7}" ]]; then
-                    message="New nightly commit ${latest:0:7} available, run mo update --nightly"
+                    message="Novo commit nightly ${latest:0:7} disponível, execute mo update --nightly"
                 fi
             else
                 if is_homebrew_install; then
@@ -1014,7 +1014,7 @@ check_for_updates() {
                 fi
                 [[ "$latest" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || exit 0
                 if [[ "$installed" != "$latest" && "$(printf '%s\n' "$installed" "$latest" | sort -V | head -1)" == "$installed" ]]; then
-                    message="Update $latest available, run mo update"
+                    message="Atualização $latest disponível, execute mo update"
                 fi
             fi
             _mole_write_update_cache "$cache_dir/update_message" "$message" || exit 0
@@ -1197,8 +1197,8 @@ show_version() {
 show_help() {
     show_brand_banner
     echo
-    printf "%s%s%s\n" "$BLUE" "COMMANDS" "$NC"
-    printf "  %s%-28s%s %s\n" "$GREEN" "mo" "$NC" "Main menu"
+    printf "%s%s%s\n" "$BLUE" "COMANDOS" "$NC"
+    printf "  %s%-28s%s %s\n" "$GREEN" "mo" "$NC" "Menu principal"
     for entry in "${MOLE_COMMANDS[@]}"; do
         local name="${entry%%:*}"
         local desc="${entry#*:}"
@@ -1208,26 +1208,26 @@ show_help() {
         printf "  %s%-28s%s %s\n" "$GREEN" "$display" "$NC" "$desc"
     done
     echo
-    printf "  %s%-28s%s %s\n" "$GREEN" "mo clean --dry-run" "$NC" "Preview cleanup"
-    printf "  %s%-28s%s %s\n" "$GREEN" "mo clean --whitelist" "$NC" "Manage protected caches"
+    printf "  %s%-28s%s %s\n" "$GREEN" "mo clean --dry-run" "$NC" "Simular a limpeza"
+    printf "  %s%-28s%s %s\n" "$GREEN" "mo clean --whitelist" "$NC" "Gerenciar caches protegidos"
 
-    printf "  %s%-28s%s %s\n" "$GREEN" "mo optimize --dry-run" "$NC" "Preview optimization"
-    printf "  %s%-28s%s %s\n" "$GREEN" "mo optimize --whitelist" "$NC" "Manage protected items"
-    printf "  %s%-28s%s %s\n" "$GREEN" "mo uninstall --dry-run" "$NC" "Preview app uninstall"
-    printf "  %s%-28s%s %s\n" "$GREEN" "mo history --json" "$NC" "Export cleanup history"
-    printf "  %s%-28s%s %s\n" "$GREEN" "mo purge --dry-run" "$NC" "Preview project purge"
-    printf "  %s%-28s%s %s\n" "$GREEN" "mo installer --dry-run" "$NC" "Preview installer cleanup"
-    printf "  %s%-28s%s %s\n" "$GREEN" "mo slim --dry-run" "$NC" "Preview Intel code removal"
-    printf "  %s%-28s%s %s\n" "$GREEN" "mo touchid enable --dry-run" "$NC" "Preview Touch ID setup"
-    printf "  %s%-28s%s %s\n" "$GREEN" "mo completion --dry-run" "$NC" "Preview shell completion edits"
-    printf "  %s%-28s%s %s\n" "$GREEN" "mo purge --paths" "$NC" "Configure scan directories"
-    printf "  %s%-28s%s %s\n" "$GREEN" "mo analyze /Volumes" "$NC" "Analyze external drives only"
-    printf "  %s%-28s%s %s\n" "$GREEN" "mo update --force" "$NC" "Force reinstall latest stable version"
-    printf "  %s%-28s%s %s\n" "$GREEN" "mo update --nightly" "$NC" "Install latest unreleased main branch build"
-    printf "  %s%-28s%s %s\n" "$GREEN" "mo remove --dry-run" "$NC" "Preview Mole removal"
+    printf "  %s%-28s%s %s\n" "$GREEN" "mo optimize --dry-run" "$NC" "Simular a otimização"
+    printf "  %s%-28s%s %s\n" "$GREEN" "mo optimize --whitelist" "$NC" "Gerenciar itens protegidos"
+    printf "  %s%-28s%s %s\n" "$GREEN" "mo uninstall --dry-run" "$NC" "Simular a desinstalação de app"
+    printf "  %s%-28s%s %s\n" "$GREEN" "mo history --json" "$NC" "Exportar o histórico de limpeza"
+    printf "  %s%-28s%s %s\n" "$GREEN" "mo purge --dry-run" "$NC" "Simular a purga de projetos"
+    printf "  %s%-28s%s %s\n" "$GREEN" "mo installer --dry-run" "$NC" "Simular a limpeza de instaladores"
+    printf "  %s%-28s%s %s\n" "$GREEN" "mo slim --dry-run" "$NC" "Simular a remoção de código Intel"
+    printf "  %s%-28s%s %s\n" "$GREEN" "mo touchid enable --dry-run" "$NC" "Simular a configuração do Touch ID"
+    printf "  %s%-28s%s %s\n" "$GREEN" "mo completion --dry-run" "$NC" "Simular as edições do autocompletar do shell"
+    printf "  %s%-28s%s %s\n" "$GREEN" "mo purge --paths" "$NC" "Configurar os diretórios analisados"
+    printf "  %s%-28s%s %s\n" "$GREEN" "mo analyze /Volumes" "$NC" "Analisar apenas discos externos"
+    printf "  %s%-28s%s %s\n" "$GREEN" "mo update --force" "$NC" "Forçar a reinstalação da última versão estável"
+    printf "  %s%-28s%s %s\n" "$GREEN" "mo update --nightly" "$NC" "Instalar a build mais recente da branch main, ainda não lançada"
+    printf "  %s%-28s%s %s\n" "$GREEN" "mo remove --dry-run" "$NC" "Simular a remoção do Mole"
     echo
-    printf "%s%s%s\n" "$BLUE" "OPTIONS" "$NC"
-    printf "  %s%-28s%s %s\n" "$GREEN" "--debug" "$NC" "Show detailed operation logs"
+    printf "%s%s%s\n" "$BLUE" "OPÇÕES" "$NC"
+    printf "  %s%-28s%s %s\n" "$GREEN" "--debug" "$NC" "Mostrar logs detalhados das operações"
     echo
 }
 
@@ -1253,18 +1253,18 @@ update_mole() (
 
     if is_nix_install; then
         local review_icon="${ICON_REVIEW:-⊙}"
-        log_error "Mole was installed via Nix. Self-update is disabled."
-        printf '%s To update Mole: nix profile upgrade mole, or update the Mole input in your Nix configuration\n' "$review_icon"
+        log_error "O Mole foi instalado via Nix. A autoatualização está desativada."
+        printf '%s Para atualizar o Mole: nix profile upgrade mole, ou atualize a entrada do Mole na sua configuração do Nix\n' "$review_icon"
         exit 1
     fi
 
     if is_homebrew_install; then
         if [[ "$nightly_update" == "true" ]]; then
             local review_icon="${ICON_REVIEW:-⊙}"
-            log_error "Nightly update is only available for script installations. Homebrew installs follow stable releases."
+            log_error "A atualização nightly só está disponível para instalações por script. Instalações pelo Homebrew seguem as versões estáveis."
             # install.sh exits while Homebrew owns mole; the formula's head
             # builds main, so stay on Homebrew to try it.
-            printf '%s To try main: brew uninstall mole && brew install --HEAD mole\n' "$review_icon"
+            printf '%s Para testar a main: brew uninstall mole && brew install --HEAD mole\n' "$review_icon"
             exit 1
         fi
         update_via_homebrew "$VERSION"
@@ -1275,35 +1275,35 @@ update_mole() (
     # install, not another mole earlier in PATH. Fail before any download.
     local mole_path
     if ! mole_path=$(resolve_mole_source_path); then
-        log_error "Unable to resolve current Mole path"
+        log_error "Não foi possível resolver o caminho atual do Mole"
         exit 1
     fi
     local install_dir
     if ! install_dir="$(cd "$(dirname "$mole_path")" && pwd)"; then
-        log_error "Unable to resolve current Mole install directory"
+        log_error "Não foi possível resolver o diretório de instalação atual do Mole"
         exit 1
     fi
     local latest=""
     local latest_commit=""
-    local download_label="Downloading latest version..."
-    local install_label="Installing update..."
-    local final_success_label="latest version"
+    local download_label="Baixando a versão mais recente..."
+    local install_label="Instalando a atualização..."
+    local final_success_label="a versão mais recente"
     local switch_to_stable_channel=false
     local repair_install=false
     local repair_reason=""
 
     if [[ "$nightly_update" == "true" ]]; then
         latest="main"
-        download_label="Downloading nightly installer..."
-        install_label="Installing nightly update..."
-        final_success_label="nightly build"
+        download_label="Baixando o instalador nightly..."
+        install_label="Instalando a atualização nightly..."
+        final_success_label="a build nightly"
 
         latest_commit=$(get_latest_commit_from_github)
         if [[ "$force_update" != "true" ]]; then
             if [[ ! "$latest_commit" =~ ^[0-9a-f]{40}$ ]]; then
-                log_error "Unable to resolve latest nightly commit. No update was installed."
-                echo -e "${ICON_REVIEW} Check GitHub access and try again."
-                echo -e "${ICON_REVIEW} To explicitly reinstall anyway: ${GRAY}mo update --nightly --force${NC}"
+                log_error "Não foi possível resolver o commit nightly mais recente. Nenhuma atualização foi instalada."
+                echo -e "${ICON_REVIEW} Verifique o acesso ao GitHub e tente de novo."
+                echo -e "${ICON_REVIEW} Para reinstalar mesmo assim: ${GRAY}mo update --nightly --force${NC}"
                 exit 1
             fi
 
@@ -1317,7 +1317,7 @@ update_mole() (
                     repair_install=true
                 else
                     echo ""
-                    echo -e "${GREEN}${ICON_SUCCESS}${NC} Already on latest nightly, ${latest_commit:0:7}"
+                    echo -e "${GREEN}${ICON_SUCCESS}${NC} Já está na nightly mais recente, ${latest_commit:0:7}"
                     echo ""
                     exit 0
                 fi
@@ -1327,7 +1327,7 @@ update_mole() (
         # Announce before resolving, never after. The bounded retry can spend
         # ~20s across three rounds on a flaky proxy, and an unannounced wait that
         # long reads as a hang, which is the report this retry was added for.
-        local check_label="Checking for updates..."
+        local check_label="Verificando atualizações..."
         if [[ -t 1 ]]; then
             start_inline_spinner "$check_label"
         else
@@ -1337,14 +1337,14 @@ update_mole() (
         if [[ -t 1 ]]; then stop_inline_spinner; fi
 
         if [[ -z "$latest" ]]; then
-            log_error "Unable to check for updates. Check network connection."
-            echo -e "${ICON_REVIEW} Check if you can access GitHub, https://github.com"
-            echo -e "${ICON_REVIEW} Try again with: ${GRAY}mo update${NC}"
+            log_error "Não foi possível verificar atualizações. Verifique a conexão de rede."
+            echo -e "${ICON_REVIEW} Confira se você consegue acessar o GitHub, https://github.com"
+            echo -e "${ICON_REVIEW} Tente de novo com: ${GRAY}mo update${NC}"
             exit 1
         fi
         if [[ ! "$latest" =~ ^[Vv]?[0-9]+(\.[0-9]+)*$ ]]; then
-            log_error "Invalid version response: $latest"
-            echo -e "${ICON_REVIEW} Try again later or use: ${GRAY}mo update --nightly${NC}"
+            log_error "Resposta de versão inválida: $latest"
+            echo -e "${ICON_REVIEW} Tente de novo mais tarde ou use: ${GRAY}mo update --nightly${NC}"
             exit 1
         fi
 
@@ -1355,14 +1355,14 @@ update_mole() (
         fi
 
         if [[ "$switch_to_stable_channel" == "true" ]]; then
-            install_label="Switching to stable channel..."
+            install_label="Mudando para o canal estável..."
         elif [[ "$VERSION" == "$latest" && "$force_update" != "true" ]]; then
             repair_reason=$(manual_install_repair_reason || true)
             if [[ -n "$repair_reason" ]]; then
                 repair_install=true
             else
                 echo ""
-                echo -e "${GREEN}${ICON_SUCCESS}${NC} Already on latest version, ${VERSION}"
+                echo -e "${GREEN}${ICON_SUCCESS}${NC} Já está na versão mais recente, ${VERSION}"
                 echo ""
                 exit 0
             fi
@@ -1370,9 +1370,9 @@ update_mole() (
     fi
 
     if [[ "$repair_install" == "true" ]]; then
-        download_label="Downloading repair installer..."
-        install_label="Repairing Mole installation..."
-        log_warning "Mole installation needs repair: $repair_reason"
+        download_label="Baixando o instalador de reparo..."
+        install_label="Reparando a instalação do Mole..."
+        log_warning "A instalação do Mole precisa de reparo: $repair_reason"
     fi
 
     if [[ -t 1 ]]; then
@@ -1388,7 +1388,7 @@ update_mole() (
     local installer_url="https://raw.githubusercontent.com/tw93/mole/${installer_ref}/install.sh"
     local tmp_installer
     tmp_installer="$(mktemp_file)" || {
-        log_error "Update failed"
+        log_error "Falha na atualização"
         exit 1
     }
 
@@ -1398,15 +1398,15 @@ update_mole() (
             local curl_exit=$?
             if [[ -t 1 ]]; then stop_inline_spinner; fi
             rm -f "$tmp_installer"
-            log_error "Update failed, curl error: $curl_exit"
+            log_error "Falha na atualização, erro do curl: $curl_exit"
 
             case $curl_exit in
-                6) echo -e "${ICON_REVIEW} Could not resolve host. Check DNS or network connection." ;;
-                7) echo -e "${ICON_REVIEW} Failed to connect. Check network or proxy settings." ;;
-                22) echo -e "${ICON_REVIEW} HTTP 404 Not Found. The installer may have moved." ;;
-                28) echo -e "${ICON_REVIEW} Connection timed out. Try again or check firewall." ;;
-                35 | 56) echo -e "${ICON_REVIEW} TLS connection reset. A local proxy or VPN is likely blocking GitHub." ;;
-                *) echo -e "${ICON_REVIEW} Check network connection and try again." ;;
+                6) echo -e "${ICON_REVIEW} Não foi possível resolver o host. Verifique o DNS ou a conexão de rede." ;;
+                7) echo -e "${ICON_REVIEW} Falha ao conectar. Verifique a rede ou as configurações de proxy." ;;
+                22) echo -e "${ICON_REVIEW} HTTP 404 Não encontrado. O instalador pode ter sido movido." ;;
+                28) echo -e "${ICON_REVIEW} Tempo de conexão esgotado. Tente de novo ou verifique o firewall." ;;
+                35 | 56) echo -e "${ICON_REVIEW} Conexão TLS reiniciada. Provavelmente um proxy local ou VPN está bloqueando o GitHub." ;;
+                *) echo -e "${ICON_REVIEW} Verifique a conexão de rede e tente de novo." ;;
             esac
             echo -e "${ICON_REVIEW} URL: $installer_url"
             exit 1
@@ -1415,16 +1415,16 @@ update_mole() (
         download_error=$(wget --timeout=10 --tries=3 -qO "$tmp_installer" "$installer_url" 2>&1) || {
             if [[ -t 1 ]]; then stop_inline_spinner; fi
             rm -f "$tmp_installer"
-            log_error "Update failed, wget error"
-            echo -e "${ICON_REVIEW} Check network connection and try again."
+            log_error "Falha na atualização, erro do wget"
+            echo -e "${ICON_REVIEW} Verifique a conexão de rede e tente de novo."
             echo -e "${ICON_REVIEW} URL: $installer_url"
             exit 1
         }
     else
         if [[ -t 1 ]]; then stop_inline_spinner; fi
         rm -f "$tmp_installer"
-        log_error "curl or wget required"
-        echo -e "${ICON_REVIEW} Install curl with: ${GRAY}brew install curl${NC}"
+        log_error "curl ou wget necessário"
+        echo -e "${ICON_REVIEW} Instale o curl com: ${GRAY}brew install curl${NC}"
         exit 1
     fi
 
@@ -1438,7 +1438,7 @@ update_mole() (
 
     if [[ "$requires_sudo" == "true" ]]; then
         if ! request_sudo_access "Mole update requires admin access"; then
-            log_error "Update aborted, admin access denied"
+            log_error "Atualização cancelada, acesso de administrador negado"
             rm -f "$tmp_installer"
             exit 1
         fi
@@ -1455,8 +1455,8 @@ update_mole() (
         if ! _update_sudo_reaches_subprocess; then
             _update_cleanup
             rm -f "$tmp_installer"
-            log_error "Admin access cannot be handed to the installer in this environment"
-            echo -e "${ICON_REVIEW} Run ${GRAY}mo update${NC} from a terminal, or cache credentials first: ${GRAY}sudo -v && mo update${NC}"
+            log_error "O acesso de administrador não pode ser repassado ao instalador neste ambiente"
+            echo -e "${ICON_REVIEW} Execute ${GRAY}mo update${NC} em um terminal, ou guarde as credenciais antes: ${GRAY}sudo -v && mo update${NC}"
             exit 1
         fi
     fi
@@ -1488,7 +1488,7 @@ update_mole() (
             printf '%s\n' "$filtered_output"
         fi
 
-        if ! printf '%s\n' "$output" | grep -Eq "Updated to latest version|Already on latest version"; then
+        if ! printf '%s\n' "$output" | grep -Eq "Updated to latest version|Already on latest version|Atualizado para a versão mais recente|Já está na versão mais recente"; then
             local new_version
             new_version=$(printf '%s\n' "$output" | sed -n 's/.*-> \([^[:space:]]\{1,\}\).*/\1/p' | head -1)
             if [[ -z "$new_version" ]]; then
@@ -1501,12 +1501,12 @@ update_mole() (
             if [[ -z "$new_version" ]]; then
                 new_version="$fallback_version"
             fi
-            printf '%s\n\n' "${GREEN}${ICON_SUCCESS}${NC} Updated to ${success_label}, ${new_version:-unknown}"
+            printf '%s\n\n' "${GREEN}${ICON_SUCCESS}${NC} Atualizado para ${success_label}, ${new_version:-desconhecida}"
             log_operation "update" "REBUILT" "${mole_path:-mole}" "updated to ${new_version:-unknown}"
             [[ "$nightly_update" == "true" ]] || mole_print_release_highlights "${new_version:-}"
         else
             printf '\n'
-            if printf '%s\n' "$output" | grep -q "Updated to latest version"; then
+            if printf '%s\n' "$output" | grep -Eq "Updated to latest version|Atualizado para a versão mais recente"; then
                 log_operation "update" "REBUILT" "${mole_path:-mole}" "updated to ${fallback_version:-unknown}"
                 [[ "$nightly_update" == "true" ]] || mole_print_release_highlights "${fallback_version:-}"
             fi
@@ -1553,7 +1553,7 @@ update_mole() (
             if ! _update_self_heal_reinstall "$installer_assume_sudo_auth" "main" "$install_dir" "$config_dir" "$mole_path" "$final_success_label" "$latest_commit"; then
                 rm -f "$tmp_installer"
                 _update_cleanup
-                log_error "Nightly update failed"
+                log_error "Falha na atualização nightly"
                 _print_failed_installer_output
                 _update_print_manual_reinstall "main" "$install_dir" "$config_dir"
                 exit 1
@@ -1567,7 +1567,7 @@ update_mole() (
             if ! _update_self_heal_reinstall "$installer_assume_sudo_auth" "$update_tag" "$install_dir" "$config_dir" "$mole_path" "$final_success_label"; then
                 rm -f "$tmp_installer"
                 _update_cleanup
-                log_error "Update failed"
+                log_error "Falha na atualização"
                 _print_failed_installer_output
                 _update_print_manual_reinstall "$update_tag" "$install_dir" "$config_dir"
                 exit 1
@@ -1584,7 +1584,7 @@ update_mole() (
                 if ! _update_self_heal_reinstall "$installer_assume_sudo_auth" "$update_tag" "$install_dir" "$config_dir" "$mole_path" "$final_success_label"; then
                     rm -f "$tmp_installer"
                     _update_cleanup
-                    log_error "Update failed"
+                    log_error "Falha na atualização"
                     _print_failed_installer_output
                     _update_print_manual_reinstall "$update_tag" "$install_dir" "$config_dir"
                     exit 1

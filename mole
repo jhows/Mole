@@ -8,7 +8,7 @@ set -euo pipefail
 # User state and installed tools must never run with inherited root privileges.
 # Individual maintenance operations request administrator access themselves.
 if [[ "$EUID" -eq 0 ]]; then
-    printf '%s\n' 'Run Mole without sudo; it requests administrator access when needed.' >&2
+    printf '%s\n' 'Execute o Mole sem sudo; ele pede acesso de administrador quando necessário.' >&2
     exit 1
 fi
 
@@ -25,7 +25,7 @@ if ! /bin/pwd -P > /dev/null 2>&1; then
             ;;
     esac
     if ! /bin/pwd -P > /dev/null 2>&1; then
-        printf '%s\n' 'Cannot access the current directory. Run cd ~, then retry Mole.' >&2
+        printf '%s\n' 'Não foi possível acessar o diretório atual. Execute cd ~ e tente o Mole novamente.' >&2
         exit 1
     fi
 fi
@@ -52,7 +52,7 @@ else
     while [ -L "$SOURCE" ]; do
         _mole_link_hops=$((_mole_link_hops + 1))
         if [ "$_mole_link_hops" -gt 32 ]; then
-            printf '%s\n' 'mole: too many symlink hops resolving the entrypoint' >&2
+            printf '%s\n' 'mole: links simbólicos demais ao resolver o ponto de entrada' >&2
             exit 1
         fi
         DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
@@ -379,20 +379,20 @@ main() {
                     --nightly) nightly_update=true ;;
                     --help | -h)
                         cat << 'EOF'
-Usage: mo update [--force] [--nightly]
+Uso: mo update [--force] [--nightly]
 
-Update Mole to the latest release.
+Atualiza o Mole para a versão mais recente.
 
-Options:
-  -f, --force       Force reinstall latest stable version
-  --nightly         Install latest unreleased main branch build
-  -h, --help        Show this help message
+Opções:
+  -f, --force       Força a reinstalação da última versão estável
+  --nightly         Instala a build mais recente da branch main, ainda não lançada
+  -h, --help        Mostra esta ajuda
 EOF
                         exit 0
                         ;;
                     *)
-                        echo "Unknown update option: $arg" >&2
-                        echo "Use 'mole update [--force] [--nightly]' for supported options." >&2
+                        echo "Opção de update desconhecida: $arg" >&2
+                        echo "Use 'mole update [--force] [--nightly]' para ver as opções aceitas." >&2
                         exit 1
                         ;;
                 esac
@@ -407,19 +407,19 @@ EOF
                     "--dry-run" | "-n") dry_run_remove=true ;;
                     "--help" | "-h")
                         cat << 'EOF'
-Usage: mo remove [--dry-run]
+Uso: mo remove [--dry-run]
 
-Remove Mole from this Mac. Operation logs in ~/Library/Logs/mole are kept.
+Remove o Mole deste Mac. Os logs de operação em ~/Library/Logs/mole são mantidos.
 
-Options:
-  -n, --dry-run     Preview Mole removal
-  -h, --help        Show this help message
+Opções:
+  -n, --dry-run     Simula a remoção do Mole
+  -h, --help        Mostra esta ajuda
 EOF
                         exit 0
                         ;;
                     *)
-                        echo "Unknown remove option: $arg" >&2
-                        echo "Use 'mole remove [--dry-run]' for supported options." >&2
+                        echo "Opção de remove desconhecida: $arg" >&2
+                        echo "Use 'mole remove [--dry-run]' para ver as opções aceitas." >&2
                         exit 1
                         ;;
                 esac
@@ -441,8 +441,8 @@ EOF
         *)
             # Errors belong on stderr so `mo $cmd > out` leaves the diagnostic
             # visible instead of burying it in the redirected file.
-            echo "Unknown command: ${args[0]}" >&2
-            echo "Use 'mole --help' for usage information." >&2
+            echo "Comando desconhecido: ${args[0]}" >&2
+            echo "Use 'mole --help' para ver como usar." >&2
             exit 1
             ;;
     esac

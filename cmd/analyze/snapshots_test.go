@@ -250,7 +250,7 @@ func TestOverviewViewExplainsLocalSnapshotOnlySpace(t *testing.T) {
 	}
 
 	view := m.View()
-	for _, want := range []string{"2 Time Machine local snapshots", "snapshot-only space is not listed below"} {
+	for _, want := range []string{"2 Time Machine local snapshots", "o espaço usado só por snapshots não aparece abaixo"} {
 		if !strings.Contains(view, want) {
 			t.Fatalf("expected overview snapshot notice %q, got:\n%s", want, view)
 		}
@@ -281,7 +281,7 @@ func TestOverviewViewMarksSnapshotCountStaleAfterProbeFailure(t *testing.T) {
 		entries:            []dirEntry{{Name: "Home", Path: "/tmp/home", Size: 1, IsDir: true}},
 	}
 
-	if view := m.View(); !strings.Contains(view, "last successful check") {
+	if view := m.View(); !strings.Contains(view, "última verificação bem-sucedida") {
 		t.Fatalf("expected stale snapshot notice, got:\n%s", view)
 	}
 }

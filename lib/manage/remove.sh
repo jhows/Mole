@@ -77,20 +77,20 @@ _remove_completion_integration() {
     while IFS= read -r rc_file; do
         [[ -n "$rc_file" ]] || continue
         if ! target=$(mole_resolve_link_chain "$rc_file"); then
-            log_warning "Could not resolve shell completion file: $rc_file"
+            log_warning "Não foi possível resolver o arquivo de autocompletar do shell: $rc_file"
             helper_rc=1
             continue
         fi
         original_mode=$("$STAT_BSD" -f '%Mp%Lp' "$target" 2> /dev/null || true)
         temp_file=$(mktemp "${TMPDIR:-/tmp}/mole-completion-clean.XXXXXX") || {
-            log_warning "Could not prepare a temporary file to clean shell completion in $rc_file"
+            log_warning "Não foi possível preparar um arquivo temporário para limpar o autocompletar do shell em $rc_file"
             helper_rc=1
             continue
         }
         grep_rc=0
         grep -Ev "$MOLE_COMPLETION_LINE_PATTERN" "$target" > "$temp_file" || grep_rc=$?
         if [[ "$grep_rc" -gt 1 ]]; then
-            log_warning "Could not read shell completion entries from $target"
+            log_warning "Não foi possível ler as entradas de autocompletar do shell de $target"
             rm -f "$temp_file" || true # SAFE: exact mktemp-created scratch file
             helper_rc=1
             continue
@@ -99,7 +99,7 @@ _remove_completion_integration() {
         # symlink in the chain pointing at the same file. Resolving only one
         # link used to replace an intermediate link with a plain file.
         if ! mv -f "$temp_file" "$target"; then
-            log_warning "Could not remove shell completion from $rc_file"
+            log_warning "Não foi possível remover o autocompletar do shell de $rc_file"
             rm -f "$temp_file" || true # SAFE: exact mktemp-created scratch file
             helper_rc=1
             continue
@@ -108,7 +108,7 @@ _remove_completion_integration() {
             chmod "$original_mode" "$target" 2> /dev/null || true
         fi
         _remove_log_removed "$rc_file" "shell completion"
-        log_success "Removed shell completion from $rc_file"
+        log_success "Autocompletar do shell removido de $rc_file"
     done < <(_remove_completion_rc_files)
 
     local fish_file
@@ -116,9 +116,9 @@ _remove_completion_integration() {
         [[ -n "$fish_file" ]] || continue
         if rm -f "$fish_file"; then # SAFE: exact Fish completion files written by mo completion
             _remove_log_removed "$fish_file" "fish completion"
-            log_success "Removed Fish completions: $fish_file"
+            log_success "Autocompletar do Fish removido: $fish_file"
         else
-            log_warning "Could not remove Fish completions: $fish_file"
+            log_warning "Não foi possível remover o autocompletar do Fish: $fish_file"
             helper_rc=1
         fi
     done < <(_remove_completion_fish_files)
@@ -151,8 +151,8 @@ remove_mole() {
     # The router loads update.sh before remove.sh; isolated helper tests may not.
     if declare -f is_nix_install > /dev/null 2>&1 && is_nix_install; then
         local review_icon="${ICON_REVIEW:-⊙}"
-        log_error "Mole was installed via Nix. Self-removal is disabled."
-        printf '%s To remove Mole: nix profile remove mole or remove from your Nix configuration\n' "$review_icon"
+        log_error "O Mole foi instalado via Nix. A autoremoção está desativada."
+        printf '%s Para remover o Mole: nix profile remove mole ou remova da sua configuração do Nix\n' "$review_icon"
         exit 1
     fi
 
@@ -163,9 +163,9 @@ remove_mole() {
     fi
 
     if [[ -t 1 ]]; then
-        start_inline_spinner "Detecting Mole installations..."
+        start_inline_spinner "Detectando instalações do Mole..."
     else
-        echo "Detecting installations..."
+        echo "Detectando instalações..."
     fi
 
     local is_homebrew=false
@@ -265,53 +265,53 @@ remove_mole() {
     local manual_count=${#manual_installs[@]}
     local alias_count=${#alias_installs[@]}
     if [[ "$is_homebrew" == "false" && ${manual_count:-0} -eq 0 && ${alias_count:-0} -eq 0 ]]; then
-        printf '%s\n\n' "${YELLOW}No Mole installation detected${NC}"
+        printf '%s\n\n' "${YELLOW}Nenhuma instalação do Mole detectada${NC}"
         exit 0
     fi
 
     # Dry-run mode: show preview and exit without confirmation
     if [[ "$dry_run_mode" == "true" ]]; then
-        echo -e "${YELLOW}${ICON_DRY_RUN} DRY RUN MODE${NC}, no files will be removed"
+        echo -e "${YELLOW}${ICON_DRY_RUN} MODO SIMULAÇÃO${NC}, nenhum arquivo será removido"
         echo ""
-        echo -e "${YELLOW}Remove Mole${NC}, would delete the following:"
+        echo -e "${YELLOW}Remover o Mole${NC}, apagaria o seguinte:"
         if [[ "$is_homebrew" == "true" ]]; then
-            echo -e "  ${GRAY}${ICON_LIST} Would run: brew uninstall --force mole${NC}"
+            echo -e "  ${GRAY}${ICON_LIST} Executaria: brew uninstall --force mole${NC}"
         fi
         if [[ ${manual_count:-0} -gt 0 ]]; then
             for install in "${manual_installs[@]}"; do
-                [[ -f "$install" ]] && echo -e "  ${GRAY}${ICON_LIST} Would remove: ${install}${NC}"
+                [[ -f "$install" ]] && echo -e "  ${GRAY}${ICON_LIST} Removeria: ${install}${NC}"
             done
         fi
         if [[ ${alias_count:-0} -gt 0 ]]; then
             for alias in "${alias_installs[@]}"; do
-                [[ -f "$alias" ]] && echo -e "  ${GRAY}${ICON_LIST} Would remove: ${alias}${NC}"
+                [[ -f "$alias" ]] && echo -e "  ${GRAY}${ICON_LIST} Removeria: ${alias}${NC}"
             done
         fi
         local completion_rc
         while IFS= read -r completion_rc; do
             [[ -n "$completion_rc" ]] || continue
-            echo -e "  ${GRAY}${ICON_LIST} Would remove: Mole shell completion from $completion_rc${NC}"
+            echo -e "  ${GRAY}${ICON_LIST} Removeria: autocompletar do Mole no shell em $completion_rc${NC}"
         done < <(_remove_completion_rc_files)
         local completion_fish
         while IFS= read -r completion_fish; do
             [[ -n "$completion_fish" ]] || continue
-            echo -e "  ${GRAY}${ICON_LIST} Would remove: $completion_fish${NC}"
+            echo -e "  ${GRAY}${ICON_LIST} Removeria: $completion_fish${NC}"
         done < <(_remove_completion_fish_files)
-        [[ -d "$HOME/.cache/mole" ]] && echo -e "  ${GRAY}${ICON_LIST} Would remove: $HOME/.cache/mole${NC}"
+        [[ -d "$HOME/.cache/mole" ]] && echo -e "  ${GRAY}${ICON_LIST} Removeria: $HOME/.cache/mole${NC}"
         if [[ -d "$remove_config_dir" ]]; then
             if [[ "$remove_config_dir" == "${HOME%/}/.config/mole" ]]; then
-                echo -e "  ${GRAY}${ICON_LIST} Would move to Trash: $remove_config_dir${NC}"
+                echo -e "  ${GRAY}${ICON_LIST} Moveria para a Lixeira: $remove_config_dir${NC}"
             else
-                echo "  ${ICON_LIST} $remove_config_dir (kept for manual review)"
+                echo "  ${ICON_LIST} $remove_config_dir (mantido para revisão manual)"
             fi
         fi
-        [[ -d "$HOME/Library/Logs/mole" ]] && echo "  ${ICON_LIST} $HOME/Library/Logs/mole (kept, operation history)"
+        [[ -d "$HOME/Library/Logs/mole" ]] && echo "  ${ICON_LIST} $HOME/Library/Logs/mole (mantido, histórico de operações)"
 
-        printf '\n%s\n\n' "${GREEN}${ICON_SUCCESS}${NC} Dry run complete, no changes made"
+        printf '\n%s\n\n' "${GREEN}${ICON_SUCCESS}${NC} Simulação concluída, nenhuma alteração feita"
         exit 0
     fi
 
-    echo -e "${YELLOW}Remove Mole${NC}, will delete the following:"
+    echo -e "${YELLOW}Remover o Mole${NC}, vai apagar o seguinte:"
     if [[ "$is_homebrew" == "true" ]]; then
         echo "  ${ICON_LIST} Mole via Homebrew"
     fi
@@ -321,7 +321,7 @@ remove_mole() {
     local completion_rc
     while IFS= read -r completion_rc; do
         [[ -n "$completion_rc" ]] || continue
-        echo "  ${ICON_LIST} Mole shell completion in $completion_rc"
+        echo "  ${ICON_LIST} Autocompletar do Mole no shell em $completion_rc"
     done < <(_remove_completion_rc_files)
     local completion_fish
     while IFS= read -r completion_fish; do
@@ -329,24 +329,24 @@ remove_mole() {
         echo "  ${ICON_LIST} $completion_fish"
     done < <(_remove_completion_fish_files)
     if [[ "$remove_config_dir" == "${HOME%/}/.config/mole" ]]; then
-        echo "  ${ICON_LIST} ~/.config/mole (to Trash)"
+        echo "  ${ICON_LIST} ~/.config/mole (para a Lixeira)"
     elif [[ -d "$remove_config_dir" ]]; then
-        echo "  ${ICON_LIST} $remove_config_dir (kept for manual review)"
+        echo "  ${ICON_LIST} $remove_config_dir (mantido para revisão manual)"
     fi
     echo "  ${ICON_LIST} ~/.cache/mole"
-    [[ -d "$HOME/Library/Logs/mole" ]] && echo "  ${ICON_LIST} ~/Library/Logs/mole (kept, operation history)"
+    [[ -d "$HOME/Library/Logs/mole" ]] && echo "  ${ICON_LIST} ~/Library/Logs/mole (mantido, histórico de operações)"
     # A read from a non-terminal fails and becomes an empty key, which the
     # case below treats as Enter: a script or background runner could confirm
     # removal without user consent. Only a real terminal may answer; tests
     # opt in through MOLE_TEST_MODE and drive the prompt explicitly.
     if [[ ! -t 0 && "${MOLE_TEST_MODE:-0}" != "1" ]]; then
         echo ""
-        log_error "Removal confirmation needs an interactive terminal; Mole was not removed."
-        log_info "Run mo remove from an interactive terminal, or use mo remove --dry-run to preview"
+        log_error "A confirmação da remoção precisa de um terminal interativo; o Mole não foi removido."
+        log_info "Execute mo remove em um terminal interativo, ou use mo remove --dry-run para simular"
         exit 1
     fi
 
-    echo -ne "${PURPLE}${ICON_ARROW}${NC} Press ${GREEN}Enter${NC} to confirm, ${GRAY}ESC${NC} to cancel: "
+    echo -ne "${PURPLE}${ICON_ARROW}${NC} Pressione ${GREEN}Enter${NC} para confirmar, ${GRAY}ESC${NC} para cancelar: "
 
     drain_pending_input # Clean up any pending input before confirmation
     local key="" key_rc=0
@@ -359,8 +359,8 @@ remove_mole() {
             key=""
         else
             echo ""
-            log_error "Could not read the removal confirmation; Mole was not removed."
-            log_info "Run mo remove from an interactive terminal; nothing was changed"
+            log_error "Não foi possível ler a confirmação da remoção; o Mole não foi removido."
+            log_info "Execute mo remove em um terminal interativo; nada foi alterado"
             exit 1
         fi
     fi
@@ -380,21 +380,21 @@ remove_mole() {
     local has_error=false
     if [[ "$is_homebrew" == "true" ]]; then
         if [[ -z "$brew_cmd" ]]; then
-            log_error "Homebrew command not found. Please ensure Homebrew is installed and in your PATH."
-            log_warning "Manual step: brew uninstall --force mole"
+            log_error "Comando do Homebrew não encontrado. Confirme que o Homebrew está instalado e no seu PATH."
+            log_warning "Passo manual: brew uninstall --force mole"
             exit 1
         fi
 
-        log_info "Attempting to uninstall Mole via Homebrew..."
+        log_info "Tentando desinstalar o Mole via Homebrew..."
         local brew_uninstall_output
         if ! brew_uninstall_output=$("$brew_cmd" uninstall --force mole 2>&1); then
             has_error=true
-            log_error "Homebrew uninstallation failed:"
+            log_error "Falha na desinstalação pelo Homebrew:"
             printf "%s\n" "$brew_uninstall_output" | sed "s/^/${RED}  | ${NC}/" >&2
-            log_warning "Manual step: ${YELLOW}brew uninstall --force mole${NC}"
+            log_warning "Passo manual: ${YELLOW}brew uninstall --force mole${NC}"
             echo "" # Add a blank line for readability
         else
-            log_success "Mole uninstalled via Homebrew."
+            log_success "Mole desinstalado via Homebrew."
         fi
     fi
     # Aliases can be links to mole, so remove them while their target can
@@ -406,16 +406,16 @@ remove_mole() {
         fi
         if [[ ! -w "$(dirname "$install")" ]]; then
             if [[ "${MOLE_TEST_MODE:-0}" == "1" || "${MOLE_TEST_NO_AUTH:-0}" == "1" ]]; then
-                log_warning "Could not remove $install: admin access is unavailable in test mode"
+                log_warning "Não foi possível remover $install: acesso de administrador indisponível no modo de teste"
                 has_error=true
             elif ! sudo rm -f "$install"; then
-                log_warning "Could not remove $install"
+                log_warning "Não foi possível remover $install"
                 has_error=true
             else
                 _remove_log_removed "$install" "launcher"
             fi
         elif ! rm -f "$install"; then
-            log_warning "Could not remove $install"
+            log_warning "Não foi possível remover $install"
             has_error=true
         else
             _remove_log_removed "$install" "launcher"
@@ -428,7 +428,7 @@ remove_mole() {
     fi
     if [[ -d "$HOME/.cache/mole" ]]; then
         if ! rm -rf "$HOME/.cache/mole"; then # SAFE: hardcoded Mole-owned dir, -d guarded
-            log_warning "Could not remove $HOME/.cache/mole"
+            log_warning "Não foi possível remover $HOME/.cache/mole"
             has_error=true
         else
             _remove_log_removed "$HOME/.cache/mole" "cache"
@@ -452,7 +452,7 @@ remove_mole() {
         if ! mkdir -p "$HOME/.Trash" 2> /dev/null ||
             ! mv -f "$remove_config_dir" "$config_trash" 2> /dev/null; then
             has_error=true
-            log_warning "Could not move $remove_config_dir to Trash; left in place"
+            log_warning "Não foi possível mover $remove_config_dir para a Lixeira; mantido no lugar"
         fi
     fi
     # ~/Library/Logs/mole stays. operations.log and deletions.log are the
@@ -461,9 +461,9 @@ remove_mole() {
 
     local final_message
     if [[ "$has_error" == "true" ]]; then
-        final_message="${YELLOW}${ICON_ERROR} Mole uninstalled with some errors, thank you for using Mole!${NC}"
+        final_message="${YELLOW}${ICON_ERROR} Mole desinstalado com alguns erros, obrigado por usar o Mole!${NC}"
     else
-        final_message="${GREEN}${ICON_SUCCESS} Mole uninstalled successfully, thank you for using Mole!${NC}"
+        final_message="${GREEN}${ICON_SUCCESS} Mole desinstalado com sucesso, obrigado por usar o Mole!${NC}"
     fi
     printf '\n%s\n\n' "$final_message"
 

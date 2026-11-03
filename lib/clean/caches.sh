@@ -50,13 +50,13 @@ check_tcc_permissions() {
     fi
     if [[ "$needs_permission_check" == "true" ]]; then
         echo ""
-        echo -e "${BLUE}First-time setup${NC}"
-        echo -e "${GRAY}macOS will request permissions to access Library folders.${NC}"
-        echo -e "${GRAY}You may see ${GREEN}${#tcc_dirs[@]} permission dialogs${NC}${GRAY}, allow each one so these caches can be cleaned.${NC}"
+        echo -e "${BLUE}Configuração inicial${NC}"
+        echo -e "${GRAY}O macOS vai pedir permissão para acessar as pastas da Biblioteca (Library).${NC}"
+        echo -e "${GRAY}Você pode ver ${GREEN}${#tcc_dirs[@]} caixas de permissão${NC}${GRAY}; permita todas para que esses caches possam ser limpos.${NC}"
         echo ""
-        echo -ne "${PURPLE}${ICON_ARROW}${NC} Press ${GREEN}Enter${NC} to continue: "
+        echo -ne "${PURPLE}${ICON_ARROW}${NC} Pressione ${GREEN}Enter${NC} para continuar: "
         read -r
-        MOLE_SPINNER_PREFIX="" start_inline_spinner "Requesting permissions..."
+        MOLE_SPINNER_PREFIX="" start_inline_spinner "Solicitando permissões..."
         # Touch each directory to trigger prompts without deep scanning.
         for dir in "${tcc_dirs[@]}"; do
             [[ -d "$dir" ]] && command find "$dir" -maxdepth 1 -type d > /dev/null 2>&1
@@ -212,16 +212,16 @@ clean_service_worker_cache() {
         line_color=$(cleanup_result_color_kb "$cleaned_size")
         if [[ "$DRY_RUN" != "true" ]]; then
             if [[ $protected_count -gt 0 ]]; then
-                echo -e "  ${line_color}${ICON_SUCCESS}${NC} $browser_name Service Worker${NC} · $(colorize_human_size "${cleaned_human}"), ${protected_count} protected"
+                echo -e "  ${line_color}${ICON_SUCCESS}${NC} $browser_name Service Worker${NC} · $(colorize_human_size "${cleaned_human}"), ${protected_count} protegidos"
             else
                 echo -e "  ${line_color}${ICON_SUCCESS}${NC} $browser_name Service Worker${NC} · $(colorize_human_size "${cleaned_human}")"
             fi
         else
-            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} $browser_name Service Worker, would clean $(colorize_human_size "$cleaned_human"), ${protected_count} protected"
+            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} $browser_name Service Worker, limparia $(colorize_human_size "$cleaned_human"), ${protected_count} protegidos"
         fi
         note_activity
         if [[ "$spinner_was_running" == "true" ]]; then
-            MOLE_SPINNER_PREFIX="  " start_inline_spinner "Scanning browser Service Worker caches..."
+            MOLE_SPINNER_PREFIX="  " start_inline_spinner "Analisando caches de Service Worker do navegador..."
         fi
     fi
     [[ "$guard_stopped" == "true" ]] && return 75
@@ -861,7 +861,7 @@ _process_project_cache_matches_indexed() {
                 current_python_root=""
                 current_python_dirs=()
                 if [[ -d "$cache_dir/cache" ]]; then
-                    clean_project_cache_target "$cache_dir/cache"/* "Next.js build cache" || return $?
+                    clean_project_cache_target "$cache_dir/cache"/* "Cache de build do Next.js" || return $?
                 fi
                 ;;
             "__pycache__")
@@ -886,14 +886,14 @@ _process_project_cache_matches_indexed() {
                     project_cache_has_tracked_files "$cache_dir" || tracked_rc=$?
                     [[ $tracked_rc -le 128 ]] || return "$tracked_rc"
                     [[ $tracked_rc -ne 0 ]] || continue
-                    clean_project_cache_target "$cache_dir" "Flutter build cache (.dart_tool)" || return $?
+                    clean_project_cache_target "$cache_dir" "Cache de build do Flutter (.dart_tool)" || return $?
                     local build_dir="$(dirname "$cache_dir")/build"
                     if [[ -d "$build_dir" ]]; then
                         local nested_rc=0
                         _project_cache_holds_nested_repo "$build_dir" || nested_rc=$?
                         [[ $nested_rc -gt 128 ]] && return "$nested_rc"
                         if [[ $nested_rc -eq 1 ]]; then
-                            clean_project_cache_target "$build_dir" "Flutter build cache (build/)" || return $?
+                            clean_project_cache_target "$build_dir" "Cache de build do Flutter (build/)" || return $?
                         fi
                     fi
                 fi
@@ -998,17 +998,17 @@ clean_python_bytecode_cache_group() {
         fi
 
         if [[ $skipped_count -gt 0 ]]; then
-            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Python bytecode cache · ${display_root}${NC} · ${YELLOW}$(mole_count_label "${removed_count}" dir), $(colorize_human_size "$size_human") ${YELLOW}dry, ${skipped_count} skipped${NC}"
+            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Cache de bytecode do Python · ${display_root}${NC} · ${YELLOW}$(mole_count_label "${removed_count}" dir), $(colorize_human_size "$size_human") ${YELLOW}simulado, ${skipped_count} ignorados${NC}"
         else
-            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Python bytecode cache · ${display_root}${NC} · ${YELLOW}$(mole_count_label "${removed_count}" dir), $(colorize_human_size "$size_human") ${YELLOW}dry${NC}"
+            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Cache de bytecode do Python · ${display_root}${NC} · ${YELLOW}$(mole_count_label "${removed_count}" dir), $(colorize_human_size "$size_human") ${YELLOW}simulado${NC}"
         fi
     else
         local line_color
         line_color=$(cleanup_result_color_kb "$total_size_kb")
         if [[ $skipped_count -gt 0 ]]; then
-            echo -e "  ${line_color}${ICON_SUCCESS}${NC} Python bytecode cache · ${display_root}${NC} · ${line_color}$(mole_count_label "${removed_count}" dir), $(colorize_human_size "${size_human}"), ${skipped_count} skipped"
+            echo -e "  ${line_color}${ICON_SUCCESS}${NC} Cache de bytecode do Python · ${display_root}${NC} · ${line_color}$(mole_count_label "${removed_count}" dir), $(colorize_human_size "${size_human}"), ${skipped_count} ignorados"
         else
-            echo -e "  ${line_color}${ICON_SUCCESS}${NC} Python bytecode cache · ${display_root}${NC} · ${line_color}$(mole_count_label "${removed_count}" dir), $(colorize_human_size "${size_human}")"
+            echo -e "  ${line_color}${ICON_SUCCESS}${NC} Cache de bytecode do Python · ${display_root}${NC} · ${line_color}$(mole_count_label "${removed_count}" dir), $(colorize_human_size "${size_human}")"
         fi
     fi
 
@@ -1024,7 +1024,7 @@ clean_project_caches() {
 
     if [[ -t 1 ]]; then
         MOLE_SPINNER_PREFIX="  "
-        start_inline_spinner "Searching project caches..."
+        start_inline_spinner "Buscando caches de projetos..."
     fi
 
     local scan_manifest="" scan_rc=0
@@ -1057,7 +1057,7 @@ clean_project_caches() {
     elif [[ -s "$scan_manifest" ]]; then
         # Checking the matches took 1.1s before the first row; the spinner
         # stays up until a row prints (rows stop it themselves).
-        if [[ -t 1 ]]; then start_section_spinner "Checking project caches..."; fi
+        if [[ -t 1 ]]; then start_section_spinner "Verificando caches de projetos..."; fi
         collect_project_cache_scans "$scan_manifest" || collect_rc=$?
     fi
     if [[ -t 1 ]]; then
@@ -1358,11 +1358,11 @@ collect_project_cache_scans() {
 
     if [[ $failed_scan_count -gt 0 ]]; then
         stop_section_spinner
-        local scan_noun="root scans"
+        local scan_noun="varreduras de raiz"
         if [[ $failed_scan_count -eq 1 ]]; then
-            scan_noun="root scan"
+            scan_noun="varredura de raiz"
         fi
-        echo -e "  ${GRAY}${ICON_WARNING}${NC} Project caches · skipped ${failed_scan_count} slow/incomplete ${scan_noun}"
+        echo -e "  ${GRAY}${ICON_WARNING}${NC} Caches de projetos · ${failed_scan_count} ${scan_noun} lentas/incompletas ignoradas"
         if declare -f note_activity > /dev/null 2>&1; then
             note_activity
         fi

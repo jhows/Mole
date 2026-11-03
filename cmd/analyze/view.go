@@ -26,9 +26,9 @@ func (m model) View() string {
 	if m.inOverviewMode() {
 		freeLabel := ""
 		if m.diskFree > 0 {
-			freeLabel = fmt.Sprintf("  %s(%s free)%s", colorGray, humanizeBytes(m.diskFree), colorReset)
+			freeLabel = fmt.Sprintf("  %s(%s livres)%s", colorGray, humanizeBytes(m.diskFree), colorReset)
 		}
-		fmt.Fprintf(&b, "%sAnalyze Disk%s%s\n", colorPurpleBold, colorReset, freeLabel)
+		fmt.Fprintf(&b, "%sAnalisar Disco%s%s\n", colorPurpleBold, colorReset, freeLabel)
 		if m.localSnapshotCount > 0 {
 			snapshotLabel := "snapshot"
 			if m.localSnapshotCount != 1 {
@@ -36,15 +36,15 @@ func (m model) View() string {
 			}
 			freshnessLabel := ""
 			if !m.localSnapshotFresh {
-				freshnessLabel = " · last successful check"
+				freshnessLabel = " · última verificação bem-sucedida"
 			}
-			fmt.Fprintf(&b, "%s%d Time Machine local %s · snapshot-only space is not listed below%s%s\n",
+			fmt.Fprintf(&b, "%s%d Time Machine local %s · o espaço usado só por snapshots não aparece abaixo%s%s\n",
 				colorGray, m.localSnapshotCount, snapshotLabel, freshnessLabel, colorReset)
 		}
 		if m.overviewScanning {
 			if allOverviewEntriesPending(m.entries) {
-				fmt.Fprintf(&b, "%sSelect a location to explore:%s  ", colorGray, colorReset)
-				fmt.Fprintf(&b, "%s%s%s%s Analyzing disk usage...\n\n",
+				fmt.Fprintf(&b, "%sSelecione um local para explorar:%s  ", colorGray, colorReset)
+				fmt.Fprintf(&b, "%s%s%s%s Analisando o uso do disco...\n\n",
 					colorCyan, colorBold, spinnerFrames[m.spinner], colorReset)
 			} else {
 				m.writeOverviewStatus(&b)
@@ -53,11 +53,11 @@ func (m model) View() string {
 			if hasPendingOverviewEntries(m.entries) {
 				m.writeOverviewStatus(&b)
 			} else {
-				fmt.Fprintf(&b, "%sSelect a location to explore:%s\n\n", colorGray, colorReset)
+				fmt.Fprintf(&b, "%sSelecione um local para explorar:%s\n\n", colorGray, colorReset)
 			}
 		}
 	} else {
-		fmt.Fprintf(&b, "%sAnalyze Disk%s  %s%s%s", colorPurpleBold, colorReset, colorGray, displayPath(m.path), colorReset)
+		fmt.Fprintf(&b, "%sAnalisar Disco%s  %s%s%s", colorPurpleBold, colorReset, colorGray, displayPath(m.path), colorReset)
 		if !m.scanning || m.totalSize > 0 {
 			fmt.Fprintf(&b, "  |  Total: %s", measuredSizeLabel(m.totalSize, m.scanState))
 		}
@@ -75,13 +75,13 @@ func (m model) View() string {
 		// "0 items removed" there reads as a stalled delete; say what is happening
 		// instead, and show the tally only once it means something.
 		if count > 0 {
-			fmt.Fprintf(&b, "%s%s%s%s Moving to Trash: %s%s items%s moved, please wait...\n",
+			fmt.Fprintf(&b, "%s%s%s%s Movendo para a Lixeira: %s%s itens%s movidos, aguarde...\n",
 				colorCyan, colorBold,
 				spinnerFrames[m.spinner],
 				colorReset,
 				colorYellow, formatNumber(count), colorReset)
 		} else {
-			fmt.Fprintf(&b, "%s%s%s%s Moving to Trash, please wait...\n",
+			fmt.Fprintf(&b, "%s%s%s%s Movendo para a Lixeira, aguarde...\n",
 				colorCyan, colorBold,
 				spinnerFrames[m.spinner],
 				colorReset)
@@ -107,7 +107,7 @@ func (m model) View() string {
 			progressPrefix = fmt.Sprintf(" %s%.0f%%%s", colorCyan, percent, colorReset)
 		}
 
-		statusLine := fmt.Sprintf("%s%s%s%s Scanning%s: %s%s files%s, %s%s dirs%s, %s%s%s",
+		statusLine := fmt.Sprintf("%s%s%s%s Escaneando%s: %s%s arquivos%s, %s%s pastas%s, %s%s%s",
 			colorCyan, colorBold,
 			spinnerFrames[m.spinner],
 			colorReset,
@@ -146,7 +146,7 @@ func (m model) View() string {
 			return b.String()
 		}
 		if showingCachedView {
-			fmt.Fprintf(&b, "%sShowing cached results while refreshing...%s\n\n", colorGray, colorReset)
+			fmt.Fprintf(&b, "%sMostrando resultados em cache enquanto atualiza...%s\n\n", colorGray, colorReset)
 		} else {
 			fmt.Fprintln(&b)
 		}
@@ -158,15 +158,15 @@ func (m model) View() string {
 			if m.largeFiltering {
 				cursor = "▌"
 			}
-			fmt.Fprintf(&b, "  %sFilter:%s %s%s  %s(%d matches)%s\n\n",
+			fmt.Fprintf(&b, "  %sFiltro:%s %s%s  %s(%d resultados)%s\n\n",
 				colorCyan, colorReset, m.largeFilter, cursor,
 				colorGray, len(m.largeFiles), colorReset)
 		}
 		if len(m.largeFiles) == 0 {
 			if m.largeFilter != "" {
-				fmt.Fprintf(&b, "  No matches for %q\n", m.largeFilter)
+				fmt.Fprintf(&b, "  Nenhum resultado para %q\n", m.largeFilter)
 			} else {
-				fmt.Fprintln(&b, "  No large files found")
+				fmt.Fprintln(&b, "  Nenhum arquivo grande encontrado")
 			}
 		} else {
 			viewport := calculateViewport(m.height, true)
@@ -211,15 +211,15 @@ func (m model) View() string {
 			if m.entryFiltering {
 				cursor = "▌"
 			}
-			fmt.Fprintf(&b, "  %sFilter:%s %s%s  %s(%d matches)%s\n\n",
+			fmt.Fprintf(&b, "  %sFiltro:%s %s%s  %s(%d resultados)%s\n\n",
 				colorCyan, colorReset, m.entryFilter, cursor,
 				colorGray, len(m.entries), colorReset)
 		}
 		if len(m.entries) == 0 {
 			if !m.inOverviewMode() && m.entryFilter != "" {
-				fmt.Fprintf(&b, "  No matches for %q\n", m.entryFilter)
+				fmt.Fprintf(&b, "  Nenhum resultado para %q\n", m.entryFilter)
 			} else {
-				fmt.Fprintln(&b, "  Empty directory")
+				fmt.Fprintln(&b, "  Pasta vazia")
 			}
 		} else {
 			if m.inOverviewMode() {
@@ -248,7 +248,7 @@ func (m model) View() string {
 					// animated spinner keeps the row visibly alive, and the
 					// string is exactly 10 display columns, flush with the
 					// right-aligned sizes (a static placeholder read as stuck).
-					sizeText := fmt.Sprintf("%s scanning", spinnerFrames[m.spinner])
+					sizeText := fmt.Sprintf("%s escaneando", spinnerFrames[m.spinner])
 					sizeColor := colorCyan
 					if sizeVal >= 0 {
 						sizeText = sizeColumn(measuredSizeLabel(sizeVal, entry.State))
@@ -320,7 +320,7 @@ func (m model) View() string {
 					sizeColor := sizeColorForPercent(percent)
 					size := sizeColumn(measuredSizeLabel(entry.Size, entry.State))
 					if entry.Size < 0 {
-						size = fmt.Sprintf("%s %s", spinnerFrames[m.spinner], "scanning")
+						size = fmt.Sprintf("%s %s", spinnerFrames[m.spinner], "escaneando")
 						sizeColor = colorCyan
 					}
 
@@ -374,41 +374,41 @@ func (m model) View() string {
 	fmt.Fprintln(&b)
 	if m.inOverviewMode() {
 		if len(m.history) > 0 {
-			fmt.Fprintf(&b, "%s↑↓←→ | Enter | R Refresh | O Open | P Preview | F File | Esc Back | Q/Ctrl+C Quit%s\n", colorGray, colorReset)
+			fmt.Fprintf(&b, "%s↑↓←→ | Enter | R Atualizar | O Abrir | P Prévia | F Arquivo | Esc Voltar | Q/Ctrl+C Sair%s\n", colorGray, colorReset)
 		} else {
-			fmt.Fprintf(&b, "%s↑↓→ | Enter | R Refresh | O Open | P Preview | F File | Esc/Q Quit%s\n", colorGray, colorReset)
+			fmt.Fprintf(&b, "%s↑↓→ | Enter | R Atualizar | O Abrir | P Prévia | F Arquivo | Esc/Q Sair%s\n", colorGray, colorReset)
 		}
 	} else if m.showLargeFiles {
 		if m.largeFiltering {
-			fmt.Fprintf(&b, "%sType to filter  |  Enter Apply  |  Esc Clear  |  Ctrl+C Quit%s\n", colorGray, colorReset)
+			fmt.Fprintf(&b, "%sDigite para filtrar  |  Enter Aplicar  |  Esc Limpar  |  Ctrl+C Sair%s\n", colorGray, colorReset)
 		} else if m.largeFilter != "" {
-			fmt.Fprintf(&b, "%s↑↓← | Space Select | / Edit | Esc Clear filter | O Open | P Preview | F File | ⌫ Del | Q Quit%s\n", colorGray, colorReset)
+			fmt.Fprintf(&b, "%s↑↓← | Espaço Selecionar | / Editar | Esc Limpar filtro | O Abrir | P Prévia | F Arquivo | ⌫ Apagar | Q Sair%s\n", colorGray, colorReset)
 		} else {
 			selectCount := len(m.largeMultiSelected)
 			if selectCount > 0 {
-				fmt.Fprintf(&b, "%s↑↓← | Space Select | / Filter | R Refresh | O Open | P Preview | F File | ⌫ Del %d | Esc Back | Q/Ctrl+C Quit%s\n", colorGray, selectCount, colorReset)
+				fmt.Fprintf(&b, "%s↑↓← | Espaço Selecionar | / Filtro | R Atualizar | O Abrir | P Prévia | F Arquivo | ⌫ Apagar %d | Esc Voltar | Q/Ctrl+C Sair%s\n", colorGray, selectCount, colorReset)
 			} else {
-				fmt.Fprintf(&b, "%s↑↓← | Space Select | / Filter | R Refresh | O Open | P Preview | F File | ⌫ Del | Esc Back | Q/Ctrl+C Quit%s\n", colorGray, colorReset)
+				fmt.Fprintf(&b, "%s↑↓← | Espaço Selecionar | / Filtro | R Atualizar | O Abrir | P Prévia | F Arquivo | ⌫ Apagar | Esc Voltar | Q/Ctrl+C Sair%s\n", colorGray, colorReset)
 			}
 		}
 	} else if m.entryFiltering {
-		fmt.Fprintf(&b, "%sType to filter  |  Enter Apply  |  Esc Clear  |  Ctrl+C Quit%s\n", colorGray, colorReset)
+		fmt.Fprintf(&b, "%sDigite para filtrar  |  Enter Aplicar  |  Esc Limpar  |  Ctrl+C Sair%s\n", colorGray, colorReset)
 	} else if m.entryFilter != "" {
-		fmt.Fprintf(&b, "%s↑↓←→ | Enter | Space Select | / Edit | Esc Clear filter | O Open | P Preview | F File | ⌫ Del | Q Quit%s\n", colorGray, colorReset)
+		fmt.Fprintf(&b, "%s↑↓←→ | Enter | Espaço Selecionar | / Editar | Esc Limpar filtro | O Abrir | P Prévia | F Arquivo | ⌫ Apagar | Q Sair%s\n", colorGray, colorReset)
 	} else {
 		largeFileCount := len(m.largeFiles)
 		selectCount := len(m.multiSelected)
 		if selectCount > 0 {
 			if largeFileCount > 0 {
-				fmt.Fprintf(&b, "%s↑↓←→ | Space Select | Enter | / Filter | R Refresh | O Open | P Preview | F File | ⌫ Del %d | T Top %d | Esc Back | Q/Ctrl+C Quit%s\n", colorGray, selectCount, largeFileCount, colorReset)
+				fmt.Fprintf(&b, "%s↑↓←→ | Espaço Selecionar | Enter | / Filtro | R Atualizar | O Abrir | P Prévia | F Arquivo | ⌫ Apagar %d | T Maiores %d | Esc Voltar | Q/Ctrl+C Sair%s\n", colorGray, selectCount, largeFileCount, colorReset)
 			} else {
-				fmt.Fprintf(&b, "%s↑↓←→ | Space Select | Enter | / Filter | R Refresh | O Open | P Preview | F File | ⌫ Del %d | Esc Back | Q/Ctrl+C Quit%s\n", colorGray, selectCount, colorReset)
+				fmt.Fprintf(&b, "%s↑↓←→ | Espaço Selecionar | Enter | / Filtro | R Atualizar | O Abrir | P Prévia | F Arquivo | ⌫ Apagar %d | Esc Voltar | Q/Ctrl+C Sair%s\n", colorGray, selectCount, colorReset)
 			}
 		} else {
 			if largeFileCount > 0 {
-				fmt.Fprintf(&b, "%s↑↓←→ | Space Select | Enter | / Filter | R Refresh | O Open | P Preview | F File | ⌫ Del | T Top %d | Esc Back | Q/Ctrl+C Quit%s\n", colorGray, largeFileCount, colorReset)
+				fmt.Fprintf(&b, "%s↑↓←→ | Espaço Selecionar | Enter | / Filtro | R Atualizar | O Abrir | P Prévia | F Arquivo | ⌫ Apagar | T Maiores %d | Esc Voltar | Q/Ctrl+C Sair%s\n", colorGray, largeFileCount, colorReset)
 			} else {
-				fmt.Fprintf(&b, "%s↑↓←→ | Space Select | Enter | / Filter | R Refresh | O Open | P Preview | F File | ⌫ Del | Esc Back | Q/Ctrl+C Quit%s\n", colorGray, colorReset)
+				fmt.Fprintf(&b, "%s↑↓←→ | Espaço Selecionar | Enter | / Filtro | R Atualizar | O Abrir | P Prévia | F Arquivo | ⌫ Apagar | Esc Voltar | Q/Ctrl+C Sair%s\n", colorGray, colorReset)
 			}
 		}
 	}
@@ -440,21 +440,21 @@ func (m model) View() string {
 		}
 
 		if deleteCount > 1 {
-			fmt.Fprintf(&b, "%sMove to Trash:%s %d items, %s  %sPress Enter to confirm  |  ESC cancel%s\n",
+			fmt.Fprintf(&b, "%sMover para a Lixeira:%s %d itens, %s  %sEnter para confirmar  |  ESC cancelar%s\n",
 				colorRed, colorReset,
 				deleteCount, measuredSizeLabel(totalDeleteSize, deleteState),
 				colorGray, colorReset)
 		} else {
-			fmt.Fprintf(&b, "%sMove to Trash:%s %s, %s  %sPress Enter to confirm  |  ESC cancel%s\n",
+			fmt.Fprintf(&b, "%sMover para a Lixeira:%s %s, %s  %sEnter para confirmar  |  ESC cancelar%s\n",
 				colorRed, colorReset,
 				m.deleteTarget.Name, measuredSizeLabel(m.deleteTarget.Size, m.deleteTarget.State),
 				colorGray, colorReset)
 		}
 		if deleteCount > 1 && hasAppBundle {
-			fmt.Fprintf(&b, "%sOnly the app bundle moves to Trash. Use mo uninstall <App> to also remove support files.%s\n",
+			fmt.Fprintf(&b, "%sSó o pacote do app vai para a Lixeira. Use mo uninstall <App> para remover também os arquivos de suporte.%s\n",
 				colorYellow, colorReset)
 		} else if deleteCount <= 1 && isAppBundleEntry(*m.deleteTarget) {
-			fmt.Fprintf(&b, "%sApp bundle: only the bundle moves to Trash. Use %s to also remove its support files.%s\n",
+			fmt.Fprintf(&b, "%sPacote do app: só ele vai para a Lixeira. Use %s para remover também os arquivos de suporte.%s\n",
 				colorYellow, uninstallCommandForApp(m.deleteTarget.Name), colorReset)
 		}
 	}
@@ -462,7 +462,7 @@ func (m model) View() string {
 }
 
 func (m model) writeOverviewStatus(b *strings.Builder) {
-	const prompt = "Select a location to explore:"
+	const prompt = "Selecione um local para explorar:"
 	status := m.status
 	inlineWidth := displayWidth(prompt) + 2 + displayWidth(spinnerFrames[m.spinner]) + 1 + displayWidth(status)
 	if m.width > 0 && inlineWidth > m.width {

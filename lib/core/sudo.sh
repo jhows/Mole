@@ -94,7 +94,7 @@ _mole_touchid_hint() {
     local enrolled=""
     enrolled=$(run_with_timeout "$MOLE_TIMEOUT_QUICK_DETECT_SEC" bioutil -c 2> /dev/null) || return 0
     [[ "$enrolled" =~ [1-9][0-9]*\ biometric\ template ]] || return 0
-    echo -e "${GRAY}Tip: run ${NC}mo touchid${GRAY} to use Touch ID instead of the password${NC}"
+    echo -e "${GRAY}Dica: execute ${NC}mo touchid${GRAY} para usar o Touch ID em vez da senha${NC}"
 }
 
 _request_password() {
@@ -106,7 +106,7 @@ _request_password() {
     stty_orig=$(stty -g < "$tty_path" 2> /dev/null || echo "")
     trap '[[ -n "${stty_orig:-}" ]] && stty "${stty_orig:-}" < "$tty_path" 2> /dev/null || true' RETURN
 
-    echo -e "${PURPLE}${ICON_ARROW}${NC} Enter your credentials:" > "$tty_path"
+    echo -e "${PURPLE}${ICON_ARROW}${NC} Digite suas credenciais:" > "$tty_path"
 
     # shellcheck disable=SC2024,SC2094
     # Intentionally route sudo's native prompt to the same TTY device it reads from.
@@ -118,7 +118,7 @@ _request_password() {
 }
 
 request_sudo_access() {
-    local prompt_msg="${1:-Admin access required}"
+    local prompt_msg="${1:-Acesso de administrador necessário}"
 
     # Tests must never trigger real password or Touch ID prompts.
     if [[ "${MOLE_TEST_MODE:-0}" == "1" || "${MOLE_TEST_NO_AUTH:-0}" == "1" ]]; then
@@ -204,7 +204,7 @@ request_sudo_access() {
     # the password; Cancel there falls back to sudo's own terminal prompt.
     # Killing it after a few seconds and starting another sudo opened the
     # same dialog twice and threw away a password typed into the first.
-    echo -e "${PURPLE}${ICON_ARROW}${NC} ${prompt_msg} ${GRAY}, Touch ID or password${NC}"
+    echo -e "${PURPLE}${ICON_ARROW}${NC} ${prompt_msg} ${GRAY}, Touch ID ou senha${NC}"
 
     # Text typed into the terminal while the dialog is up stays off the screen.
     # shellcheck disable=SC2024,SC2094
@@ -219,7 +219,7 @@ request_sudo_access() {
 
 request_sudo_access_with_password() {
     local password="$1"
-    local prompt_msg="${2:-Admin access required}"
+    local prompt_msg="${2:-Acesso de administrador necessário}"
 
     # Tests must never trigger real password or Touch ID prompts.
     if [[ "${MOLE_TEST_MODE:-0}" == "1" || "${MOLE_TEST_NO_AUTH:-0}" == "1" ]]; then
@@ -347,7 +347,7 @@ adopt_sudo_session() {
 
 # Request administrative access
 request_sudo() {
-    local prompt_msg="${1:-Admin access required}"
+    local prompt_msg="${1:-Acesso de administrador necessário}"
 
     if has_sudo_session; then
         return 0
@@ -363,7 +363,7 @@ request_sudo() {
 
 # Maintain active sudo session with keepalive
 ensure_sudo_session() {
-    local prompt="${1:-Admin access required}"
+    local prompt="${1:-Acesso de administrador necessário}"
 
     # Check if already established
     if has_sudo_session && [[ "$MOLE_SUDO_ESTABLISHED" == "true" ]]; then
@@ -396,7 +396,7 @@ ensure_sudo_session() {
 
 ensure_sudo_session_with_password() {
     local password="$1"
-    local prompt="${2:-Admin access required}"
+    local prompt="${2:-Acesso de administrador necessário}"
 
     # Check if already established
     if has_sudo_session && [[ "$MOLE_SUDO_ESTABLISHED" == "true" ]]; then

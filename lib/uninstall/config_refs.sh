@@ -63,7 +63,7 @@ uninstall_configuration_references() {
     mentions=$(_uninstall_scan_configuration_references "$@") || rc=$?
     mole_rc_signal "$rc" && return "$rc"
     [[ $rc -eq 0 && -n "$mentions" ]] || return 0
-    printf '\nConfiguration references kept (review manually):\n%s\n' "$mentions"
+    printf '\nReferências de configuração mantidas (revise manualmente):\n%s\n' "$mentions"
 }
 
 # shellcheck disable=SC2154  # Results and plans belong to batch_uninstall_applications.

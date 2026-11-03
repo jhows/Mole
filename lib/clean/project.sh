@@ -191,7 +191,7 @@ write_purge_config() {
 warn_purge_config_write_failure() {
     [[ -t 1 ]] || return 0
     [[ -z "${_PURGE_DISCOVERY_SILENT:-}" ]] || return 0
-    echo -e "${YELLOW}${ICON_WARNING}${NC} Could not save purge paths to ${PURGE_CONFIG_FILE/#$HOME/~}, using discovered paths for this run" >&2
+    echo -e "${YELLOW}${ICON_WARNING}${NC} Não foi possível salvar os caminhos do purge em ${PURGE_CONFIG_FILE/#$HOME/~}; usando os caminhos descobertos nesta execução" >&2
 }
 
 # Save discovered paths to config.
@@ -228,7 +228,7 @@ load_purge_config() {
 
     if [[ ${#PURGE_SEARCH_PATHS[@]} -eq 0 ]]; then
         if [[ -t 1 ]] && [[ -z "${_PURGE_DISCOVERY_SILENT:-}" ]]; then
-            echo -e "${GRAY}First run: discovering project directories...${NC}" >&2
+            echo -e "${GRAY}Primeira execução: descobrindo diretórios de projetos...${NC}" >&2
         fi
 
         local -a discovered=()
@@ -239,7 +239,7 @@ load_purge_config() {
             [[ -n "$path" ]] && discovered+=("$path")
         done <<< "$discovery_output"
         if [[ $PURGE_DISCOVERY_STATUS -ne 0 && -z "${_PURGE_DISCOVERY_SILENT:-}" ]]; then
-            echo -e "${YELLOW}${ICON_WARNING}${NC} Project discovery was incomplete; using completed roots without saving them. Run mo purge --paths to review search paths." >&2
+            echo -e "${YELLOW}${ICON_WARNING}${NC} A descoberta de projetos ficou incompleta; usando as raízes concluídas sem salvá-las. Execute mo purge --paths para revisar os caminhos de busca." >&2
         fi
 
         if [[ ${#discovered[@]} -gt 0 ]]; then
@@ -248,7 +248,7 @@ load_purge_config() {
                 : # A partial inventory must not become the next run's saved scope.
             elif save_discovered_paths "${discovered[@]}"; then
                 if [[ -t 1 ]] && [[ -z "${_PURGE_DISCOVERY_SILENT:-}" ]]; then
-                    echo -e "${GRAY}Found ${#discovered[@]} project directories, saved to config${NC}" >&2
+                    echo -e "${GRAY}Encontrados ${#discovered[@]} diretórios de projetos, salvos na configuração${NC}" >&2
                 fi
             else
                 warn_purge_config_write_failure
@@ -1653,7 +1653,7 @@ select_purge_categories() {
         menu_ready=true
         if [[ $_term_w -lt 30 || $items_per_page -eq 0 ]]; then
             menu_ready=false
-            printf '\033[H%s%s\n%s%s\n\033[J' "$clear_line" "$(truncate_by_display_width "Resize to 30 columns, 13 rows" "$_term_w")" "$clear_line" "$(truncate_by_display_width "Q Quit" "$_term_w")"
+            printf '\033[H%s%s\n%s%s\n\033[J' "$clear_line" "$(truncate_by_display_width "Redimensione para 30 colunas e 13 linhas" "$_term_w")" "$clear_line" "$(truncate_by_display_width "Q Sair" "$_term_w")"
             return 0
         fi
         if [[ $rendered_width -ne $_term_w ]]; then
@@ -1681,7 +1681,7 @@ select_purge_categories() {
         # Format selected size (stored in KB) using shared display rules.
         local selected_size_human
         selected_size_human=$(bytes_to_human_kb "$selected_size")
-        [[ $selected_unknown -eq 0 ]] || selected_size_human+=" + $selected_unknown unmeasured"
+        [[ $selected_unknown -eq 0 ]] || selected_size_human+=" + $selected_unknown sem medição"
 
         # Show position indicator if scrolling is needed
         local scroll_indicator=""
@@ -1690,8 +1690,8 @@ select_purge_categories() {
             scroll_indicator=" [${current_pos}/${total_items}]"
         fi
 
-        printf "%s${PURPLE_BOLD}%s${NC}\n" "$clear_line" "$(truncate_by_display_width "Select Artifacts to Purge${scroll_indicator}" "$_term_w")"
-        local subtitle="${selected_size_human}, ${selected_count} selected"
+        printf "%s${PURPLE_BOLD}%s${NC}\n" "$clear_line" "$(truncate_by_display_width "Selecione os artefatos para purgar${scroll_indicator}" "$_term_w")"
+        local subtitle="${selected_size_human}, ${selected_count} selecionados"
         if [[ -n "$search_message" ]]; then
             subtitle="$subtitle · $search_message"
         fi
@@ -1732,7 +1732,7 @@ select_purge_categories() {
                     row_width=$((row_width - ${#_age} - 3))
                 fi
                 [[ $row_width -lt 1 ]] && row_width=1
-                local row_size="unknown"
+                local row_size="desconh."
                 if [[ "${PURGE_CATEGORY_SIZE_UNKNOWN_FLAGS_ARRAY[i]:-false}" != "true" ]]; then
                     row_size=$(bytes_to_human_kb "${sizes[i]:-0}")
                 fi
@@ -1763,14 +1763,14 @@ select_purge_categories() {
             group_size_label=$(bytes_to_human_kb "$group_size")
             if [[ "$group_has_unknown_size" == "true" ]]; then
                 if [[ $group_size -gt 0 ]]; then
-                    group_size_label="${group_size_label} + unknown"
+                    group_size_label="${group_size_label} + desconhecido"
                 else
-                    group_size_label="unknown size"
+                    group_size_label="tamanho desconhecido"
                 fi
             fi
 
-            local project_label="Project: "
-            local project_summary=" · ${group_size_label} · ${group_selected_count}/${group_item_count} selected"
+            local project_label="Projeto: "
+            local project_summary=" · ${group_size_label} · ${group_selected_count}/${group_item_count} selecionados"
             local project_path_width=$((_term_w - ${#project_label} - ${#project_summary}))
             if [[ $project_path_width -ge 12 ]]; then
                 printf "%s${GRAY}%s${NC}%s%s\n" "$clear_line" "$project_label" "$(compact_purge_menu_path "$current_project_path" "$project_path_width")" "$project_summary"
@@ -1778,7 +1778,7 @@ select_purge_categories() {
                 project_path_width=$((_term_w - ${#project_label}))
                 [[ $project_path_width -lt 4 ]] && project_path_width=4
                 printf "%s${GRAY}%s${NC}%s\n" "$clear_line" "$project_label" "$(compact_purge_menu_path "$current_project_path" "$project_path_width")"
-                printf "%s${GRAY}%s${NC}\n" "$clear_line" "$(truncate_by_display_width "Group: $group_size_label · $group_selected_count/$group_item_count selected" "$_term_w")"
+                printf "%s${GRAY}%s${NC}\n" "$clear_line" "$(truncate_by_display_width "Grupo: $group_size_label · $group_selected_count/$group_item_count selecionados" "$_term_w")"
             fi
         fi
 
@@ -1788,19 +1788,19 @@ select_purge_categories() {
             current_full_path="${PURGE_CATEGORY_FULL_PATHS_ARRAY[current_index]}"
         fi
         if [[ -n "$current_full_path" ]]; then
-            printf "%s${GRAY}Path:${NC} %s\n" "$clear_line" "$(compact_purge_menu_path "$current_full_path" "$((_term_w - 6))")"
+            printf "%s${GRAY}Caminho:${NC} %s\n" "$clear_line" "$(compact_purge_menu_path "$current_full_path" "$((_term_w - 6))")"
             printf "%s\n" "$clear_line"
         fi
 
         # Adaptive footer hints, mirrors menu_paginated.sh pattern
         local _sep=" ${GRAY}|${NC} "
-        local _nav="${GRAY}${ICON_NAV_UP}${ICON_NAV_DOWN} [] Projects / Find${NC}"
-        local _space="${GRAY}Space Select${NC}"
-        local _enter="${GRAY}Enter Confirm${NC}"
-        local _all="${GRAY}A All${NC}"
-        local _invert="${GRAY}I Invert${NC}"
-        local _skip_project="${GRAY}X Skip Project${NC}"
-        local _quit="${GRAY}Q Quit${NC}"
+        local _nav="${GRAY}${ICON_NAV_UP}${ICON_NAV_DOWN} [] Projetos / Buscar${NC}"
+        local _space="${GRAY}Espaço Selecionar${NC}"
+        local _enter="${GRAY}Enter Confirmar${NC}"
+        local _all="${GRAY}A Todos${NC}"
+        local _invert="${GRAY}I Inverter${NC}"
+        local _skip_project="${GRAY}X Pular projeto${NC}"
+        local _quit="${GRAY}Q Sair${NC}"
 
         # Strip ANSI to measure real length
         _ph_len() { printf "%s" "$1" | LC_ALL=C awk '{gsub(/\033\[[0-9;]*[A-Za-z]/,""); printf "%d", length}'; }
@@ -1821,7 +1821,7 @@ select_purge_categories() {
                     printf "%s${_l2}${NC}\n" "$clear_line"
                 else
                     # Level 3 (minimal): ↑↓ | Enter | X Skip | Q
-                    printf "%s${GRAY}${ICON_NAV_UP}${ICON_NAV_DOWN}${NC}${_sep}${GRAY}Enter${NC}${_sep}${GRAY}X Skip${NC}${_sep}${GRAY}Q${NC}\n" "$clear_line"
+                    printf "%s${GRAY}${ICON_NAV_UP}${ICON_NAV_DOWN}${NC}${_sep}${GRAY}Enter${NC}${_sep}${GRAY}X Pular${NC}${_sep}${GRAY}Q${NC}\n" "$clear_line"
                 fi
             fi
         fi
@@ -1862,9 +1862,9 @@ select_purge_categories() {
         [[ "$case_was_enabled" == true ]] || shopt -u nocasematch
         if [[ $match -ge 0 ]]; then
             focus_item "$match"
-            search_message="n: next match"
+            search_message="n: próxima ocorrência"
         else
-            search_message="No match: $search_query"
+            search_message="Nenhuma ocorrência: $search_query"
         fi
     }
     trap restore_terminal EXIT
@@ -1887,7 +1887,7 @@ select_purge_categories() {
             CHAR:/)
                 # Readline owns text editing and multibyte input. A byte-at-a-time
                 # key loop on Bash 3.2 cannot safely edit Unicode project names.
-                if ! IFS= read -e -r -p "Find project/artifact: " search_query; then
+                if ! IFS= read -e -r -p "Buscar projeto/artefato: " search_query; then
                     restore_terminal
                     return 1
                 fi
@@ -1973,22 +1973,22 @@ confirm_purge_cleanup() {
     [[ "$unknown_count" =~ ^[0-9]+$ ]] || unknown_count=0
     [[ "$cloud_count" =~ ^[0-9]+$ ]] || cloud_count=0
 
-    local item_text="artifact"
-    [[ $item_count -ne 1 ]] && item_text="artifacts"
+    local item_text="artefato"
+    [[ $item_count -ne 1 ]] && item_text="artefatos"
 
     local size_display
     size_display=$(bytes_to_human "$((total_size_kb * 1024))")
 
     local unknown_hint=""
     if [[ $unknown_count -gt 0 ]]; then
-        local unknown_text="unknown size"
-        [[ $unknown_count -gt 1 ]] && unknown_text="unknown sizes"
+        local unknown_text="tamanho desconhecido"
+        [[ $unknown_count -gt 1 ]] && unknown_text="tamanhos desconhecidos"
         unknown_hint=", ${unknown_count} ${unknown_text}"
     fi
 
     if [[ ${#selected_paths[@]} -gt 0 ]]; then
         echo ""
-        echo -e "${GRAY}Selected paths:${NC}"
+        echo -e "${GRAY}Caminhos selecionados:${NC}"
         local selected_path=""
         for selected_path in "${selected_paths[@]}"; do
             echo "  $selected_path"
@@ -1997,11 +1997,11 @@ confirm_purge_cleanup() {
 
     if [[ $cloud_count -gt 0 ]]; then
         echo ""
-        echo -e "${YELLOW}${ICON_WARNING}${NC} Cloud-synced artifacts may also be removed from other devices."
-        echo -e "${GRAY}Use 'mo purge --paths' to exclude cloud storage roots.${NC}"
+        echo -e "${YELLOW}${ICON_WARNING}${NC} Artefatos sincronizados na nuvem também podem ser removidos de outros dispositivos."
+        echo -e "${GRAY}Use 'mo purge --paths' para excluir as raízes de armazenamento em nuvem.${NC}"
     fi
 
-    echo -ne "${PURPLE}${ICON_ARROW}${NC} Remove ${item_count} ${item_text}, ${size_display}${unknown_hint}  ${GREEN}Enter${NC} confirm, ${GRAY}ESC${NC} cancel: "
+    echo -ne "${PURPLE}${ICON_ARROW}${NC} Remover ${item_count} ${item_text}, ${size_display}${unknown_hint}  ${GREEN}Enter${NC} confirma, ${GRAY}ESC${NC} cancela: "
     drain_pending_input
     local key=""
     if ! IFS= read -r -s -n1 key; then
@@ -2029,7 +2029,7 @@ confirm_purge_cleanup() {
 clean_project_artifacts() {
     if [[ ! -t 0 && "${MOLE_DRY_RUN:-0}" != "1" && "${MOLE_PURGE_YES:-0}" != "1" ]]; then
         PURGE_RUN_OUTCOME="cancelled"
-        echo "Purge requires confirmation. Run mo purge in a terminal, or use --dry-run to preview and --yes to confirm unattended cleanup." >&2
+        echo "O purge exige confirmação. Execute mo purge em um terminal, ou use --dry-run para simular e --yes para confirmar a limpeza sem acompanhamento." >&2
         return 1
     fi
     PURGE_RUN_OUTCOME="completed"
@@ -2405,10 +2405,10 @@ clean_project_artifacts() {
     _restore_purge_scan_traps
     if [[ $failed_scan_count -gt 0 ]]; then
         PURGE_RUN_OUTCOME="incomplete"
-        local root_text="root"
-        [[ $failed_scan_count -ne 1 ]] && root_text="roots"
+        local root_text="raiz"
+        [[ $failed_scan_count -ne 1 ]] && root_text="raízes"
         echo ""
-        echo -e "${YELLOW}${ICON_WARNING}${NC} Skipped ${failed_scan_count} project scan ${root_text} because scanning did not complete:"
+        echo -e "${YELLOW}${ICON_WARNING}${NC} Não foi possível concluir a varredura de ${failed_scan_count} ${root_text} de projetos:"
         # A root with thousands of children must not flood the screen; the
         # heading keeps the full count.
         local failed_shown_limit=10
@@ -2417,9 +2417,9 @@ clean_project_artifacts() {
             echo -e "  ${GRAY}${display_root}${NC} (status ${failed_scan_statuses[$scan_index]:-1})"
         done
         if [[ ${#failed_scan_roots[@]} -gt $failed_shown_limit ]]; then
-            echo -e "  ${GRAY}and $((${#failed_scan_roots[@]} - failed_shown_limit)) more${NC}"
+            echo -e "  ${GRAY}e mais $((${#failed_scan_roots[@]} - failed_shown_limit))${NC}"
         fi
-        echo -e "${GRAY}Re-run with 'mo purge --debug' to inspect the scan failure.${NC}"
+        echo -e "${GRAY}Execute novamente com 'mo purge --debug' para inspecionar a falha da varredura.${NC}"
         if [[ $completed_scan_count -eq 0 ]]; then
             printf '\n'
             PURGE_RUN_OUTCOME="scan_failed"
@@ -2429,9 +2429,9 @@ clean_project_artifacts() {
     if [[ ${#all_found_items[@]} -eq 0 ]]; then
         echo ""
         if [[ "$PURGE_RUN_OUTCOME" == "incomplete" ]]; then
-            echo -e "${GRAY}No artifacts found in the completed project scans${NC}"
+            echo -e "${GRAY}Nenhum artefato encontrado nas varreduras de projetos concluídas${NC}"
         else
-            echo -e "${GREEN}${ICON_SUCCESS}${NC} No old project artifacts to clean"
+            echo -e "${GREEN}${ICON_SUCCESS}${NC} Nenhum artefato antigo de projeto para limpar"
         fi
         printf '\n'
         [[ "$PURGE_RUN_OUTCOME" != "incomplete" ]] && PURGE_RUN_OUTCOME="no_candidates"
@@ -2439,7 +2439,7 @@ clean_project_artifacts() {
     fi
     # Bind candidates before starting the activity evidence budget.
     if [[ -t 1 ]]; then
-        start_inline_spinner "Preparing artifacts..."
+        start_inline_spinner "Preparando artefatos..."
     fi
     local candidate_index
     for ((candidate_index = 0; candidate_index < ${#all_found_items[@]}; candidate_index++)); do
@@ -2563,15 +2563,15 @@ clean_project_artifacts() {
         safe_scan_root_indexes=("${kept_root_indexes[@]+"${kept_root_indexes[@]}"}")
     fi
     for item in "${uninspected_paths[@]+"${uninspected_paths[@]}"}"; do
-        echo -e "${YELLOW}${ICON_WARNING}${NC} Could not inspect ${item/#$HOME/~}; kept" >&2
+        echo -e "${YELLOW}${ICON_WARNING}${NC} Não foi possível inspecionar ${item/#$HOME/~}; mantido" >&2
     done
     if [[ ${#safe_to_clean[@]} -eq 0 ]]; then
-        echo -e "${GRAY}No eligible project artifacts to purge${NC}"
+        echo -e "${GRAY}Nenhum artefato de projeto elegível para purgar${NC}"
         [[ "$PURGE_RUN_OUTCOME" != "incomplete" ]] && PURGE_RUN_OUTCOME="no_candidates"
         return 0
     fi
     if [[ -t 1 ]]; then
-        start_inline_spinner "Checking recent activity..."
+        start_inline_spinner "Verificando atividade recente..."
     fi
     local _now_epoch
     _now_epoch=$(get_epoch_seconds)
@@ -2697,7 +2697,7 @@ clean_project_artifacts() {
     fi
     # Build menu options - one per artifact
     if [[ -t 1 ]]; then
-        start_inline_spinner "Calculating sizes..."
+        start_inline_spinner "Calculando tamanhos..."
     fi
 
     # Pre-compute sizes in parallel with sliding-window throttle.
@@ -2932,7 +2932,7 @@ clean_project_artifacts() {
         _age_secs=$((_now_epoch - _mod_time))
         _age_d=$((_age_secs / 86400))
         if [[ "$activity_state" == "uncertain" ]]; then
-            item_age_labels+=("unknown")
+            item_age_labels+=("desconh.")
         elif [[ "$activity_state" == "recent" && $_age_d -ge $MIN_AGE_DAYS ]]; then
             item_age_labels+=("<${MIN_AGE_DAYS}d")
         elif [[ $_age_d -lt 1 ]]; then
@@ -2940,9 +2940,9 @@ clean_project_artifacts() {
         elif [[ $_age_d -lt 30 ]]; then
             item_age_labels+=("${_age_d}d")
         elif [[ $_age_d -lt 365 ]]; then
-            item_age_labels+=("$((_age_d / 30))mo")
+            item_age_labels+=("$((_age_d / 30))m")
         else
-            item_age_labels+=("$((_age_d / 365))y")
+            item_age_labels+=("$((_age_d / 365))a")
         fi
     done
     rm -f "${_size_tmpfiles[@]+"${_size_tmpfiles[@]}"}" 2> /dev/null || true # SAFE: exact registered mktemp size result files
@@ -3068,16 +3068,16 @@ clean_project_artifacts() {
         stop_inline_spinner
     fi
     for item in "${size_failed_paths[@]+"${size_failed_paths[@]}"}"; do
-        echo -e "${YELLOW}${ICON_WARNING}${NC} Could not measure ${item/#$HOME/~}; skipped" >&2
+        echo -e "${YELLOW}${ICON_WARNING}${NC} Não foi possível medir ${item/#$HOME/~}; ignorado" >&2
     done
     # Exit early if no artifacts were found to avoid unbound variable errors
     # when expanding empty arrays with set -u active.
     if [[ ${#menu_options[@]} -eq 0 ]]; then
         echo ""
         if [[ "$PURGE_RUN_OUTCOME" == "incomplete" ]]; then
-            echo -e "${YELLOW}No artifacts could be prepared for review${NC}"
+            echo -e "${YELLOW}Nenhum artefato pôde ser preparado para revisão${NC}"
         else
-            echo -e "${GRAY}No artifacts found to purge${NC}"
+            echo -e "${GRAY}Nenhum artefato encontrado para purgar${NC}"
             PURGE_RUN_OUTCOME="no_candidates"
         fi
         printf '\n'
@@ -3126,15 +3126,15 @@ clean_project_artifacts() {
             fi
         done
         if [[ $skipped_cloud_count -gt 0 ]]; then
-            local skipped_cloud_text="artifact"
-            [[ $skipped_cloud_count -ne 1 ]] && skipped_cloud_text="artifacts"
+            local skipped_cloud_text="artefato"
+            [[ $skipped_cloud_count -ne 1 ]] && skipped_cloud_text="artefatos"
             echo ""
-            echo -e "${YELLOW}${ICON_WARNING}${NC} Skipped ${skipped_cloud_count} cloud-synced ${skipped_cloud_text} in non-interactive mode (confirmation required)"
+            echo -e "${YELLOW}${ICON_WARNING}${NC} Ignorados ${skipped_cloud_count} ${skipped_cloud_text} sincronizados na nuvem no modo não interativo (confirmação necessária)"
         fi
     fi
     if [[ -z "$PURGE_SELECTION_RESULT" ]]; then
         echo ""
-        echo -e "${GRAY}No items selected${NC}"
+        echo -e "${GRAY}Nenhum item selecionado${NC}"
         printf '\n'
         PURGE_CATEGORY_FULL_PATHS_ARRAY=()
         PURGE_CATEGORY_PROJECT_IDS_ARRAY=()
@@ -3164,7 +3164,7 @@ clean_project_artifacts() {
 
     if [[ -t 0 ]]; then
         if ! confirm_purge_cleanup "${#selected_indices[@]}" "$selected_total_kb" "$selected_unknown_count" "$selected_cloud_count" "${selected_display_paths[@]}"; then
-            echo -e "${GRAY}Purge cancelled${NC}"
+            echo -e "${GRAY}Purge cancelado${NC}"
             printf '\n'
             PURGE_CATEGORY_FULL_PATHS_ARRAY=()
             PURGE_CATEGORY_PROJECT_IDS_ARRAY=()
@@ -3208,7 +3208,7 @@ clean_project_artifacts() {
             "${scan_root_parents[$expected_scan_root_index]}" \
             "${scan_root_parent_ids[$expected_scan_root_index]}" \
             "${scan_root_target_ids[$expected_scan_root_index]}"; then
-            echo -e "${YELLOW}${ICON_WARNING}${NC} Skipped $display_item_path (scan root changed after review)"
+            echo -e "${YELLOW}${ICON_WARNING}${NC} Ignorado $display_item_path (a raiz da varredura mudou após a revisão)"
             continue
         fi
         if ! _mole_path_matches_identity \
@@ -3216,12 +3216,12 @@ clean_project_artifacts() {
             "${scan_root_physical_parents[$expected_scan_root_index]}" \
             "${scan_root_physical_parent_ids[$expected_scan_root_index]}" \
             "${scan_root_physical_target_ids[$expected_scan_root_index]}"; then
-            echo -e "${YELLOW}${ICON_WARNING}${NC} Skipped $display_item_path (scan root target changed after review)"
+            echo -e "${YELLOW}${ICON_WARNING}${NC} Ignorado $display_item_path (o destino da raiz da varredura mudou após a revisão)"
             continue
         fi
         if ! _mole_path_matches_identity \
             "$item_path" "$expected_parent" "$expected_parent_id" "$expected_target_id"; then
-            echo -e "${YELLOW}${ICON_WARNING}${NC} Skipped $display_item_path (path changed after review)"
+            echo -e "${YELLOW}${ICON_WARNING}${NC} Ignorado $display_item_path (o caminho mudou após a revisão)"
             continue
         fi
         local current_item_physical_path="${_MOLE_PATH_SNAPSHOT_PARENT%/}/${item_path##*/}"
@@ -3239,7 +3239,7 @@ clean_project_artifacts() {
         fi
         if [[ $protection_rc -eq 0 ]]; then
             if [[ "$PURGE_PROTECTION_UNVERIFIED" == "true" ]]; then
-                echo -e "${YELLOW}${ICON_WARNING}${NC} Skipped $display_item_path (could not inspect contents; re-run mo purge to review it again)"
+                echo -e "${YELLOW}${ICON_WARNING}${NC} Ignorado $display_item_path (não foi possível inspecionar o conteúdo; execute mo purge de novo para revisá-lo)"
             else
                 debug_log "Skipping purge target that became protected after review: $item_path"
             fi
@@ -3253,11 +3253,11 @@ clean_project_artifacts() {
             return "$activity_status"
         fi
         if [[ $activity_status -ne 0 ]]; then
-            echo -e "${YELLOW}${ICON_WARNING}${NC} Skipped $display_item_path (activity changed after review)"
+            echo -e "${YELLOW}${ICON_WARNING}${NC} Ignorado $display_item_path (a atividade mudou após a revisão)"
             continue
         fi
         if [[ -t 1 ]]; then
-            start_inline_spinner "Cleaning $display_item_path..."
+            start_inline_spinner "Limpando $display_item_path..."
         fi
         local removal_recorded=false
         if [[ -e "$item_path" ]]; then
@@ -3296,7 +3296,7 @@ clean_project_artifacts() {
                     fi
                     return "$removal_status"
                 fi
-                echo -e "${YELLOW}${ICON_WARNING}${NC} Skipped $display_item_path (final removal check failed; re-run mo purge to review it again)"
+                echo -e "${YELLOW}${ICON_WARNING}${NC} Ignorado $display_item_path (a verificação final de remoção falhou; execute mo purge de novo para revisá-lo)"
             fi
         fi
         if [[ -t 1 ]]; then
@@ -3304,7 +3304,7 @@ clean_project_artifacts() {
         fi
         if [[ "$removal_recorded" == "true" ]]; then
             if [[ "$dry_run_mode" == "1" ]]; then
-                echo -e "${GREEN}${ICON_SUCCESS}${NC} [DRY RUN] $display_item_path${NC}, ${GREEN}$size_human${NC}"
+                echo -e "${GREEN}${ICON_SUCCESS}${NC} [SIMULAÇÃO] $display_item_path${NC}, ${GREEN}$size_human${NC}"
             elif [[ -t 1 ]]; then
                 echo -e "${GREEN}${ICON_SUCCESS}${NC} $display_item_path${NC}, ${GREEN}$size_human${NC}"
             fi

@@ -154,7 +154,7 @@ _uninstall_choose_personal_data() {
     # Unlike app selection, Enter on an empty data selection must keep everything.
     local _MOLE_MENU_KEEP_EMPTY=true
     local _MOLE_MENU_SELECT_ALL=true
-    paginated_multi_select "Personal data to remove" "${labels[@]}" || rc=$?
+    paginated_multi_select "Dados pessoais a remover" "${labels[@]}" || rc=$?
     mole_rc_timeout_or_signal "$rc" && return "$rc"
     if [[ $rc -ne 0 ]]; then
         [[ "${_MOLE_MENU_USER_QUIT:-0}" == 1 ]] && return 0

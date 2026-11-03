@@ -216,8 +216,8 @@ load_whitelist() {
         config_file="$WHITELIST_CONFIG_CLEAN"
     fi
 
-    local using_legacy="false" config_state=0 unreadable_label="whitelist"
-    [[ "$mode" != "optimize" ]] || unreadable_label="optimize whitelist"
+    local using_legacy="false" config_state=0 unreadable_label="lista de proteção"
+    [[ "$mode" != "optimize" ]] || unreadable_label="lista de proteção de otimização"
     mole_whitelist_file_state "$config_file" "$unreadable_label" || config_state=$?
     [[ $config_state -ne 2 ]] || return 1
     if [[ $config_state -eq 1 && -n "$legacy_file" ]]; then
@@ -360,8 +360,8 @@ manage_whitelist_categories() {
         items_source=$(get_optimize_whitelist_items)
         active_config_file="$WHITELIST_CONFIG_OPTIMIZE"
         local display_config="${active_config_file/#$HOME/~}"
-        menu_title="Whitelist Manager, Select optimize tasks to ignore
-${GRAY}Edit: ${display_config}${NC}"
+        menu_title="Gerenciador da lista de proteção, selecione as tarefas de otimização a ignorar
+${GRAY}Editar: ${display_config}${NC}"
     else
         items_source=$(get_all_cache_items)
         active_config_file="$WHITELIST_CONFIG_CLEAN"
@@ -370,8 +370,8 @@ ${GRAY}Edit: ${display_config}${NC}"
         # whole feature and did not know the file also takes arbitrary paths,
         # so a cache Mole cleans but does not list looked unprotectable
         # (discussion #1436). Say what the file accepts, not just where it is.
-        menu_title="Whitelist Manager, Select caches to protect
-${GRAY}Edit: ${display_config}, any path added there is protected too${NC}"
+        menu_title="Gerenciador da lista de proteção, selecione os caches a proteger
+${GRAY}Editar: ${display_config}, qualquer caminho adicionado ali também fica protegido${NC}"
     fi
 
     while IFS='|' read -r display_name pattern _; do
@@ -468,7 +468,7 @@ ${GRAY}Edit: ${display_config}, any path added there is protected too${NC}"
     unset MOLE_PRESELECTED_INDICES
 
     if [[ $exit_code -ne 0 ]]; then
-        echo -e "${GRAY}Cancelled, no changes saved${NC}"
+        echo -e "${GRAY}Cancelado, nenhuma alteração salva${NC}"
         return 0
     fi
 
@@ -507,14 +507,14 @@ ${GRAY}Edit: ${display_config}, any path added there is protected too${NC}"
 
     local total_protected=$((${#selected_patterns[@]} + ${#custom_patterns[@]}))
     local -a summary_lines=()
-    summary_lines+=("Whitelist Updated")
+    summary_lines+=("Lista de proteção atualizada")
     if [[ ${#custom_patterns[@]} -gt 0 ]]; then
-        summary_lines+=("Protected ${#selected_patterns[@]} predefined + ${#custom_patterns[@]} custom patterns")
+        summary_lines+=("${#selected_patterns[@]} padrões predefinidos + ${#custom_patterns[@]} personalizados protegidos")
     else
-        summary_lines+=("Protected ${total_protected} caches")
+        summary_lines+=("${total_protected} caches protegidos")
     fi
     local display_config="${active_config_file/#$HOME/~}"
-    summary_lines+=("Config: ${GRAY}${display_config}${NC}")
+    summary_lines+=("Configuração: ${GRAY}${display_config}${NC}")
 
     print_summary_block "${summary_lines[@]}"
     printf '\n'

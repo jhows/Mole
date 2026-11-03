@@ -8,7 +8,7 @@ set -euo pipefail
 # User state and installed tools must never run with inherited root privileges.
 # Individual maintenance operations request administrator access themselves.
 if [[ "$EUID" -eq 0 ]]; then
-    printf '%s\n' 'Run Mole without sudo; it requests administrator access when needed.' >&2
+    printf '%s\n' 'Execute o Mole sem sudo; ele solicita acesso de administrador quando necessário.' >&2
     exit 1
 fi
 
@@ -31,7 +31,7 @@ source "$SCRIPT_DIR/lib/manage/whitelist.sh"
 
 print_header() {
     printf '\n'
-    echo -e "${PURPLE_BOLD}Optimize${NC}"
+    echo -e "${PURPLE_BOLD}Otimizar${NC}"
 }
 
 # Extract a simple numeric value from JSON by key without a jq dependency.
@@ -150,7 +150,7 @@ show_system_health() {
         'BEGIN { printf "%.0f %.0f %.0f %.0f %.0f", mu, mt, du, dt, ut }' 2> /dev/null || echo "0 0 0 0 0")
     read -r mem_used mem_total disk_used disk_total uptime <<< "$rounded"
 
-    printf "${ICON_ADMIN} System  %s/%s GB RAM | %s/%s GB Disk | Uptime %sd\n" \
+    printf "${ICON_ADMIN} Sistema  %s/%s GB RAM | %s/%s GB Disco | Ligado há %sd\n" \
         "$mem_used" "$mem_total" "$disk_used" "$disk_total" "$uptime"
 }
 
@@ -227,8 +227,8 @@ main() {
                 exit 0
                 ;;
             *)
-                echo "Unknown optimize option: $arg" >&2
-                echo "Use 'mo optimize --help' for supported options." >&2
+                echo "Opção desconhecida de optimize: $arg" >&2
+                echo "Use 'mo optimize --help' para ver as opções suportadas." >&2
                 exit 1
                 ;;
         esac
@@ -246,17 +246,17 @@ main() {
 
     # Dry-run indicator.
     if [[ "${MOLE_DRY_RUN:-0}" == "1" ]]; then
-        echo -e "${YELLOW}${ICON_DRY_RUN} DRY RUN MODE${NC}, No files will be modified\n"
+        echo -e "${YELLOW}${ICON_DRY_RUN} MODO SIMULAÇÃO (DRY RUN)${NC}, nenhum arquivo será modificado\n"
     fi
 
     if ! command -v bc > /dev/null 2>&1; then
-        echo -e "${YELLOW}${ICON_ERROR}${NC} Missing dependency: bc"
-        echo -e "${GRAY}Install with: ${GREEN}brew install bc${NC}"
+        echo -e "${YELLOW}${ICON_ERROR}${NC} Dependência ausente: bc"
+        echo -e "${GRAY}Instale com: ${GREEN}brew install bc${NC}"
         exit 1
     fi
 
     if [[ -t 1 ]]; then
-        start_inline_spinner "Collecting system info..."
+        start_inline_spinner "Coletando informações do sistema..."
     fi
 
     if ! health_json=$(generate_health_json 2> /dev/null); then
@@ -264,7 +264,7 @@ main() {
             stop_inline_spinner
         fi
         echo ""
-        log_error "Failed to collect system health data"
+        log_error "Falha ao coletar dados de saúde do sistema"
         exit 1
     fi
 
@@ -273,8 +273,8 @@ main() {
             stop_inline_spinner
         fi
         echo ""
-        log_error "Invalid system health data format"
-        echo -e "${GRAY}${ICON_REVIEW}${NC} Check if awk, sysctl, and df commands are available"
+        log_error "Formato inválido dos dados de saúde do sistema"
+        echo -e "${GRAY}${ICON_REVIEW}${NC} Verifique se os comandos awk, sysctl e df estão disponíveis"
         exit 1
     fi
 
@@ -290,7 +290,7 @@ main() {
                 IFS=', '
                 echo "${CURRENT_WHITELIST_PATTERNS[*]}"
             )
-            echo -e "${ICON_ADMIN} Active Whitelist: ${patterns_list}"
+            echo -e "${ICON_ADMIN} Lista de proteção ativa: ${patterns_list}"
         fi
     fi
 
@@ -306,10 +306,10 @@ main() {
     export MOLE_OPTIMIZE_SUDO_AVAILABLE="false"
     if [[ "${MOLE_DRY_RUN:-0}" == "1" ]]; then
         MOLE_OPTIMIZE_SUDO_AVAILABLE="true"
-    elif ensure_sudo_session "System optimization requires admin access"; then
+    elif ensure_sudo_session "A otimização do sistema requer acesso de administrador"; then
         MOLE_OPTIMIZE_SUDO_AVAILABLE="true"
     else
-        opt_msg "Skipping sudo-required optimizations: admin access not granted"
+        opt_msg "Ignorando otimizações que exigem sudo: acesso de administrador não concedido"
     fi
 
     export FIRST_ACTION=true
@@ -323,7 +323,7 @@ main() {
     done
 
     if [[ "$(optimize_outcome_total)" -ne ${#MOLE_OPTIMIZE_ACTIONS[@]} ]]; then
-        log_error "Optimize task outcomes are incomplete"
+        log_error "Os resultados das tarefas de otimização estão incompletos"
         return 1
     fi
 

@@ -8,7 +8,7 @@ set -euo pipefail
 # User state and installed tools must never run with inherited root privileges.
 # Individual maintenance operations request administrator access themselves.
 if [[ "$EUID" -eq 0 ]]; then
-    printf '%s\n' 'Run Mole without sudo; it requests administrator access when needed.' >&2
+    printf '%s\n' 'Execute o Mole sem sudo; ele solicita acesso de administrador quando necessário.' >&2
     exit 1
 fi
 
@@ -169,7 +169,7 @@ perform_purge() {
     # Show scanning with spinner below the title line
     if [[ -t 1 ]]; then
         # Print title ONCE with newline; spinner occupies the line below
-        printf '%s\n' "${PURPLE_BOLD}Purge Project Artifacts${NC}"
+        printf '%s\n' "${PURPLE_BOLD}Purgar artefatos de projetos${NC}"
 
         # Capture terminal width in parent (most reliable before forking)
         local _parent_cols=80
@@ -215,11 +215,11 @@ perform_purge() {
 
                 # Write directly to /dev/tty: \033[2K clears entire current line, \r goes to start
                 if [[ -n "$last_path" ]]; then
-                    printf '\r\033[2K%s %sScanning %s%s' \
+                    printf '\r\033[2K%s %sEscaneando %s%s' \
                         "${BLUE}${spin_char}${NC}" \
                         "${GRAY}" "$last_path" "${NC}" > /dev/tty 2> /dev/null
                 else
-                    printf '\r\033[2K%s %sScanning...%s' \
+                    printf '\r\033[2K%s %sEscaneando...%s' \
                         "${BLUE}${spin_char}${NC}" \
                         "${GRAY}" "${NC}" > /dev/tty 2> /dev/null
                 fi
@@ -231,7 +231,7 @@ perform_purge() {
         ) &
         monitor_pid=$!
     else
-        echo -e "${PURPLE_BOLD}Purge Project Artifacts${NC}"
+        echo -e "${PURPLE_BOLD}Purgar artefatos de projetos${NC}"
     fi
 
     clean_project_artifacts
@@ -246,7 +246,7 @@ perform_purge() {
         scan_failed) return 1 ;;
         completed | incomplete) ;;
         *)
-            log_error "Unknown purge outcome: $purge_outcome"
+            log_error "Resultado de purge desconhecido: $purge_outcome"
             return 1
             ;;
     esac
@@ -254,7 +254,7 @@ perform_purge() {
     # Final summary (matching clean.sh format)
     echo ""
 
-    local summary_heading="Purge complete"
+    local summary_heading="Purge concluído"
     local -a summary_details=()
     local total_size_cleaned=0
     local total_items_cleaned=0
@@ -270,33 +270,33 @@ perform_purge() {
     fi
 
     if [[ "${MOLE_DRY_RUN:-0}" == "1" ]]; then
-        summary_heading="Dry run complete - no changes made"
+        summary_heading="Simulação concluída - nenhuma alteração feita"
     fi
     if [[ "$purge_outcome" == "incomplete" ]]; then
-        summary_heading="Purge incomplete"
-        [[ "${MOLE_DRY_RUN:-0}" == "1" ]] && summary_heading="Dry run incomplete - no changes made"
+        summary_heading="Purge incompleto"
+        [[ "${MOLE_DRY_RUN:-0}" == "1" ]] && summary_heading="Simulação incompleta - nenhuma alteração feita"
     fi
 
     if [[ $total_items_cleaned -gt 0 ]]; then
         local freed_size_human
         freed_size_human=$(bytes_to_human_kb "$total_size_cleaned")
 
-        local summary_line="Estimated space freed: ${GREEN}${freed_size_human}${NC}"
+        local summary_line="Espaço liberado estimado: ${GREEN}${freed_size_human}${NC}"
         if [[ "${MOLE_DRY_RUN:-0}" == "1" ]]; then
-            summary_line="Would free approximately: ${GREEN}${freed_size_human}${NC}"
+            summary_line="Liberaria aproximadamente: ${GREEN}${freed_size_human}${NC}"
         fi
         if [[ ${PURGE_UNKNOWN_SIZE_COUNT:-0} -gt 0 ]]; then
-            summary_line+=" + ${PURGE_UNKNOWN_SIZE_COUNT} unmeasured"
+            summary_line+=" + ${PURGE_UNKNOWN_SIZE_COUNT} não medidos"
         fi
-        [[ $total_items_cleaned -gt 0 ]] && summary_line+=" | Items: $total_items_cleaned"
-        summary_line+=" | Free: $(get_free_space)"
+        [[ $total_items_cleaned -gt 0 ]] && summary_line+=" | Itens: $total_items_cleaned"
+        summary_line+=" | Livre: $(get_free_space)"
         summary_details+=("$summary_line")
     else
-        summary_details+=("No artifacts were removed.")
-        summary_details+=("Free space: $(get_free_space)")
+        summary_details+=("Nenhum artefato foi removido.")
+        summary_details+=("Espaço livre: $(get_free_space)")
     fi
     if [[ "$purge_outcome" == "incomplete" ]]; then
-        summary_details+=("Some artifacts were skipped or could not be processed.")
+        summary_details+=("Alguns artefatos foram ignorados ou não puderam ser processados.")
     fi
 
     # Log session end
@@ -309,19 +309,19 @@ perform_purge() {
 
 # Show help message
 show_help() {
-    echo -e "${PURPLE_BOLD}Mole Purge${NC}, Clean old project build artifacts"
+    echo -e "${PURPLE_BOLD}Mole Purge${NC}, Limpa artefatos de build antigos de projetos"
     echo ""
-    echo -e "${YELLOW}Usage:${NC} mo purge [options]"
+    echo -e "${YELLOW}Uso:${NC} mo purge [opções]"
     echo ""
-    echo -e "${YELLOW}Options:${NC}"
-    echo "  --paths         Edit custom scan directories"
-    echo "  --dry-run       Preview purge actions without making changes"
-    echo "  --include-empty Show zero-size project artifact directories"
-    echo "  --yes           Confirm unattended cleanup of eligible artifacts"
-    echo "  --debug         Enable debug logging"
-    echo "  -h, --help      Show this help message"
+    echo -e "${YELLOW}Opções:${NC}"
+    echo "  --paths         Edita os diretórios de busca personalizados"
+    echo "  --dry-run       Simula as ações de purge sem fazer alterações"
+    echo "  --include-empty Mostra diretórios de artefatos de projeto com tamanho zero"
+    echo "  --yes           Confirma a limpeza automática dos artefatos elegíveis"
+    echo "  --debug         Ativa o log de depuração"
+    echo "  -h, --help      Mostra esta ajuda"
     echo ""
-    echo -e "${YELLOW}Default Paths:${NC}"
+    echo -e "${YELLOW}Caminhos padrão:${NC}"
     for path in "${DEFAULT_PURGE_SEARCH_PATHS[@]}"; do
         echo "  * $path"
     done
@@ -354,8 +354,8 @@ main() {
                 export MOLE_PURGE_INCLUDE_EMPTY=1
                 ;;
             *)
-                echo "Unknown option: $arg" >&2
-                echo "Use 'mo purge --help' for usage information" >&2
+                echo "Opção desconhecida: $arg" >&2
+                echo "Use 'mo purge --help' para ver as informações de uso" >&2
                 exit 1
                 ;;
         esac
@@ -363,7 +363,7 @@ main() {
 
     start_purge
     if [[ "${MOLE_DRY_RUN:-0}" == "1" ]]; then
-        echo -e "${YELLOW}${ICON_DRY_RUN} DRY RUN MODE${NC}, No project artifacts will be removed"
+        echo -e "${YELLOW}${ICON_DRY_RUN} MODO SIMULAÇÃO (DRY RUN)${NC}, nenhum artefato de projeto será removido"
         printf '\n'
     fi
     hide_cursor

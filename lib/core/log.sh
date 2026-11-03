@@ -55,7 +55,7 @@ _mole_warn_log_broken() {
     [[ -n "${_MOLE_DELETE_LOG_WARNED:-}" ]] && return 0
     _MOLE_DELETE_LOG_WARNED=1
     export _MOLE_DELETE_LOG_WARNED
-    printf 'Warning: audit log unavailable (%s). Forensic trail incomplete this session.\n' "$1" >&2
+    printf 'Aviso: log de auditoria indisponível (%s). Rastro forense incompleto nesta sessão.\n' "$1" >&2
 }
 
 append_log_line() {
@@ -66,7 +66,7 @@ append_log_line() {
         _mole_escape_log_value line "$line"
         _mole_prepare_log_append "$file_path" 2> /dev/null || true
         printf '%s\n' "$line" >> "$file_path" 2> /dev/null ||
-            _mole_warn_log_broken "write to: $file_path"
+            _mole_warn_log_broken "gravar em: $file_path"
         return 0
     fi
     _mole_prepare_log_append "$file_path"
@@ -86,7 +86,7 @@ append_log_lines() {
             operation_records+=("$record")
         done
         printf '%s\n' "${operation_records[@]+"${operation_records[@]}"}" >> "$file_path" 2> /dev/null ||
-            _mole_warn_log_broken "write to: $file_path"
+            _mole_warn_log_broken "gravar em: $file_path"
         return 0
     fi
     _mole_prepare_log_append "$file_path"
@@ -448,7 +448,7 @@ log_system_info() {
     # Reset debug log file for this new session
     ensure_user_file "$DEBUG_LOG_FILE"
     if ! : > "$DEBUG_LOG_FILE" 2> /dev/null; then
-        echo -e "${YELLOW}${ICON_WARNING}${NC} Debug log not writable: $DEBUG_LOG_FILE" >&2
+        echo -e "${YELLOW}${ICON_WARNING}${NC} Log de depuração sem permissão de escrita: $DEBUG_LOG_FILE" >&2
     fi
 
     # Start block in debug log file
@@ -477,7 +477,7 @@ log_system_info() {
     } >> "$DEBUG_LOG_FILE" 2> /dev/null || true
 
     # Notification to stderr
-    echo -e "${GRAY}[DEBUG] Debug logging enabled. Session log: $DEBUG_LOG_FILE${NC}" >&2
+    echo -e "${GRAY}[DEBUG] Log de depuração ativado. Log da sessão: $DEBUG_LOG_FILE${NC}" >&2
 }
 
 # ============================================================================
@@ -523,7 +523,7 @@ print_summary_block() {
 
     # If debug mode is on, remind user about the log file location
     if [[ "${MO_DEBUG:-}" == "1" ]]; then
-        echo -e "${GRAY}Debug session log saved to:${NC} ${DEBUG_LOG_FILE}"
+        echo -e "${GRAY}Log da sessão de depuração salvo em:${NC} ${DEBUG_LOG_FILE}"
     fi
 }
 

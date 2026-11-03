@@ -52,7 +52,7 @@ optimize_outcomes_reset() {
 
 optimize_task_start() {
     if [[ "$MOLE_OPTIMIZE_TASK_ACTIVE" == "1" ]]; then
-        echo "Previous optimize task was not finished" >&2
+        echo "A tarefa de otimização anterior não foi finalizada" >&2
         return 1
     fi
     MOLE_OPTIMIZE_TASK_ACTIVE=1
@@ -63,15 +63,15 @@ optimize_task_result() {
     local outcome="$1"
 
     if ! _optimize_outcome_is_valid "$outcome"; then
-        echo "Invalid optimize task outcome: $outcome" >&2
+        echo "Resultado de tarefa de otimização inválido: $outcome" >&2
         return 1
     fi
     if [[ "$MOLE_OPTIMIZE_TASK_ACTIVE" != "1" ]]; then
-        echo "Optimize task was not started" >&2
+        echo "A tarefa de otimização não foi iniciada" >&2
         return 1
     fi
     if [[ -n "$MOLE_OPTIMIZE_TASK_OUTCOME" ]]; then
-        echo "Optimize task outcome is already set: $MOLE_OPTIMIZE_TASK_OUTCOME" >&2
+        echo "O resultado da tarefa de otimização já está definido: $MOLE_OPTIMIZE_TASK_OUTCOME" >&2
         return 1
     fi
     MOLE_OPTIMIZE_TASK_OUTCOME="$outcome"
@@ -87,7 +87,7 @@ optimize_task_result_from_counts() {
 
     for count in "$applied" "$failed" "$skipped"; do
         if [[ ! "$count" =~ ^[0-9]+$ ]]; then
-            echo "Invalid optimize task count: $count" >&2
+            echo "Contagem de tarefas de otimização inválida: $count" >&2
             return 1
         fi
     done
@@ -107,15 +107,15 @@ optimize_task_finish() {
     local action="$1"
 
     if [[ "$MOLE_OPTIMIZE_TASK_ACTIVE" != "1" ]]; then
-        echo "Optimize task was not started: $action" >&2
+        echo "A tarefa de otimização não foi iniciada: $action" >&2
         return 1
     fi
     if [[ ! "$action" =~ ^[a-z0-9_]+$ ]]; then
-        echo "Invalid optimize task action: $action" >&2
+        echo "Ação de tarefa de otimização inválida: $action" >&2
         return 1
     fi
     if [[ -z "$MOLE_OPTIMIZE_TASK_OUTCOME" ]]; then
-        echo "Optimize task did not report an outcome: $action" >&2
+        echo "A tarefa de otimização não informou um resultado: $action" >&2
         return 1
     fi
 
@@ -123,7 +123,7 @@ optimize_task_finish() {
     if [[ ${#MOLE_OPTIMIZE_RESULT_ACTIONS[@]} -gt 0 ]]; then
         for existing in "${MOLE_OPTIMIZE_RESULT_ACTIONS[@]}"; do
             if [[ "$existing" == "$action" ]]; then
-                echo "Optimize task outcome is already recorded: $action" >&2
+                echo "O resultado da tarefa de otimização já foi registrado: $action" >&2
                 return 1
             fi
         done
@@ -138,7 +138,7 @@ optimize_task_finish() {
 optimize_outcome_count() {
     local requested="$1"
     if ! _optimize_outcome_is_valid "$requested"; then
-        echo "Invalid optimize task outcome: $requested" >&2
+        echo "Resultado de tarefa de otimização inválido: $requested" >&2
         return 1
     fi
 

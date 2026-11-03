@@ -58,7 +58,7 @@ paginated_multi_select() {
 
     # Validation
     if [[ ${#items[@]} -eq 0 ]]; then
-        echo "No items provided" >&2
+        echo "Nenhum item informado" >&2
         return 1
     fi
 
@@ -180,12 +180,12 @@ paginated_multi_select() {
         done
 
         # Header
-        printf "${clear_line}${PURPLE_BOLD}%s${NC}  ${GRAY}%d/%d selected${NC}\n" "${title}" "$selected_count" "$total_items" >&2
+        printf "${clear_line}${PURPLE_BOLD}%s${NC}  ${GRAY}%d/%d selecionados${NC}\n" "${title}" "$selected_count" "$total_items" >&2
 
         if [[ $total_items -eq 0 ]]; then
-            printf '%b' "${clear_line}${GRAY}No items available${NC}\n" >&2
+            printf '%b' "${clear_line}${GRAY}Nenhum item disponível${NC}\n" >&2
             printf '%b' "${clear_line}\n" >&2
-            printf '%b' "${clear_line}${GRAY}Q${NC} Quit\n" >&2
+            printf '%b' "${clear_line}${GRAY}Q${NC} Sair\n" >&2
             printf '%b' "${clear_line}" >&2
             return
         fi
@@ -229,7 +229,7 @@ paginated_multi_select() {
 
         # Clear any remaining lines at bottom
         printf '%b' "${clear_line}\n" >&2
-        printf '%b' "${clear_line}${GRAY}${ICON_NAV_UP}${ICON_NAV_DOWN} | Space | Enter Save | Q Cancel${NC}\n" >&2
+        printf '%b' "${clear_line}${GRAY}${ICON_NAV_UP}${ICON_NAV_DOWN} | Espaço | Enter Salvar | Q Cancelar${NC}\n" >&2
 
         # Clear one more line to ensure no artifacts
         printf '%b' "${clear_line}" >&2
@@ -337,6 +337,6 @@ paginated_multi_select() {
 
 # Export function for external use
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    echo "This is a library file. Source it from other scripts." >&2
+    echo "Este é um arquivo de biblioteca. Importe-o a partir de outros scripts." >&2
     exit 1
 fi

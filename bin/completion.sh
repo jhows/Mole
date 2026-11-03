@@ -2,7 +2,7 @@
 # User state and installed tools must never run with inherited root privileges.
 # Individual maintenance operations request administrator access themselves.
 if [[ "$EUID" -eq 0 ]]; then
-    printf '%s\n' 'Run Mole without sudo; it requests administrator access when needed.' >&2
+    printf '%s\n' 'Execute o Mole sem sudo; ele solicita acesso de administrador quando necessário.' >&2
     exit 1
 fi
 
@@ -37,34 +37,34 @@ emit_fish_completions() {
     done
 
     printf '\n'
-    printf 'complete -f -c %s -n "__fish_seen_subcommand_from clean" -l dry-run -s n -d "Preview cleanup without making changes"\n' "$cmd"
-    printf 'complete -c %s -n "__fish_seen_subcommand_from clean" -l external -r -a "(__fish_complete_directories)" -d "Clean OS metadata from an external volume"\n' "$cmd"
-    printf 'complete -f -c %s -n "__fish_seen_subcommand_from clean" -l whitelist -d "Manage protected paths"\n' "$cmd"
-    printf 'complete -f -c %s -n "__fish_seen_subcommand_from clean" -l debug -d "Show detailed logs"\n' "$cmd"
-    printf 'complete -f -c %s -n "__fish_seen_subcommand_from clean" -l help -s h -d "Show help"\n' "$cmd"
-    printf 'complete -f -c %s -n "__fish_seen_subcommand_from analyze analyse" -l json -d "Output analysis as JSON"\n' "$cmd"
-    printf 'complete -f -c %s -n "__fish_seen_subcommand_from analyze analyse" -l help -s h -d "Show help"\n' "$cmd"
-    printf 'complete -c %s -n "__fish_seen_subcommand_from analyze analyse; and not __fish_seen_argument -l json -l help -s h" -a "(__fish_complete_directories)" -d "Path to analyze"\n' "$cmd"
-    printf 'complete -f -c %s -n "__fish_seen_subcommand_from history" -l json -d "Output history as JSON"\n' "$cmd"
-    printf 'complete -f -c %s -n "__fish_seen_subcommand_from history" -l limit -r -d "Limit recent entries"\n' "$cmd"
-    printf 'complete -f -c %s -n "__fish_seen_subcommand_from history" -l help -s h -d "Show help"\n' "$cmd"
-    printf 'complete -f -c %s -n "__fish_seen_subcommand_from purge" -l paths -d "Edit custom scan directories"\n' "$cmd"
-    printf 'complete -f -c %s -n "__fish_seen_subcommand_from purge" -l dry-run -s n -d "Preview purge actions without making changes"\n' "$cmd"
-    printf 'complete -f -c %s -n "__fish_seen_subcommand_from purge" -l include-empty -d "Show zero-size project artifact directories"\n' "$cmd"
-    printf 'complete -f -c %s -n "__fish_seen_subcommand_from purge" -l yes -d "Confirm unattended cleanup of eligible artifacts"\n' "$cmd"
-    printf 'complete -f -c %s -n "__fish_seen_subcommand_from purge" -l debug -d "Show detailed logs"\n' "$cmd"
-    printf 'complete -f -c %s -n "__fish_seen_subcommand_from purge" -l help -s h -d "Show help"\n' "$cmd"
+    printf 'complete -f -c %s -n "__fish_seen_subcommand_from clean" -l dry-run -s n -d "Simula a limpeza sem fazer alterações"\n' "$cmd"
+    printf 'complete -c %s -n "__fish_seen_subcommand_from clean" -l external -r -a "(__fish_complete_directories)" -d "Limpa metadados do sistema em um volume externo"\n' "$cmd"
+    printf 'complete -f -c %s -n "__fish_seen_subcommand_from clean" -l whitelist -d "Gerencia os caminhos protegidos"\n' "$cmd"
+    printf 'complete -f -c %s -n "__fish_seen_subcommand_from clean" -l debug -d "Mostra logs detalhados"\n' "$cmd"
+    printf 'complete -f -c %s -n "__fish_seen_subcommand_from clean" -l help -s h -d "Mostra a ajuda"\n' "$cmd"
+    printf 'complete -f -c %s -n "__fish_seen_subcommand_from analyze analyse" -l json -d "Exibe a análise em JSON"\n' "$cmd"
+    printf 'complete -f -c %s -n "__fish_seen_subcommand_from analyze analyse" -l help -s h -d "Mostra a ajuda"\n' "$cmd"
+    printf 'complete -c %s -n "__fish_seen_subcommand_from analyze analyse; and not __fish_seen_argument -l json -l help -s h" -a "(__fish_complete_directories)" -d "Caminho a analisar"\n' "$cmd"
+    printf 'complete -f -c %s -n "__fish_seen_subcommand_from history" -l json -d "Exibe o histórico em JSON"\n' "$cmd"
+    printf 'complete -f -c %s -n "__fish_seen_subcommand_from history" -l limit -r -d "Limita as entradas recentes"\n' "$cmd"
+    printf 'complete -f -c %s -n "__fish_seen_subcommand_from history" -l help -s h -d "Mostra a ajuda"\n' "$cmd"
+    printf 'complete -f -c %s -n "__fish_seen_subcommand_from purge" -l paths -d "Edita os diretórios de busca personalizados"\n' "$cmd"
+    printf 'complete -f -c %s -n "__fish_seen_subcommand_from purge" -l dry-run -s n -d "Simula as ações de purge sem fazer alterações"\n' "$cmd"
+    printf 'complete -f -c %s -n "__fish_seen_subcommand_from purge" -l include-empty -d "Mostra diretórios de artefatos de projeto com tamanho zero"\n' "$cmd"
+    printf 'complete -f -c %s -n "__fish_seen_subcommand_from purge" -l yes -d "Confirma a limpeza automática dos artefatos elegíveis"\n' "$cmd"
+    printf 'complete -f -c %s -n "__fish_seen_subcommand_from purge" -l debug -d "Mostra logs detalhados"\n' "$cmd"
+    printf 'complete -f -c %s -n "__fish_seen_subcommand_from purge" -l help -s h -d "Mostra a ajuda"\n' "$cmd"
     printf '\n'
-    printf 'complete -f -c %s -n "not __fish_mole_no_subcommand" -a bash -d "generate bash completion" -n "__fish_see_subcommand_path completion"\n' "$cmd"
-    printf 'complete -f -c %s -n "not __fish_mole_no_subcommand" -a zsh -d "generate zsh completion" -n "__fish_see_subcommand_path completion"\n' "$cmd"
-    printf 'complete -f -c %s -n "not __fish_mole_no_subcommand" -a fish -d "generate fish completion" -n "__fish_see_subcommand_path completion"\n' "$cmd"
+    printf 'complete -f -c %s -n "not __fish_mole_no_subcommand" -a bash -d "gera o script de autocompletar para bash" -n "__fish_see_subcommand_path completion"\n' "$cmd"
+    printf 'complete -f -c %s -n "not __fish_mole_no_subcommand" -a zsh -d "gera o script de autocompletar para zsh" -n "__fish_see_subcommand_path completion"\n' "$cmd"
+    printf 'complete -f -c %s -n "not __fish_mole_no_subcommand" -a fish -d "gera o script de autocompletar para fish" -n "__fish_see_subcommand_path completion"\n' "$cmd"
 }
 
 # A dotfile chain is followed to its final file; a broken link or a cycle
 # leaves the config untouched and says what to fix.
 _completion_rc_target() {
     mole_resolve_link_chain "$1" && return 0
-    log_error "Could not follow the shell config link $1, so it was left unchanged. Fix or remove that link, then rerun mo completion"
+    log_error "Não foi possível seguir o link do arquivo de configuração do shell $1, então ele foi mantido sem alterações. Corrija ou remova esse link e execute mo completion novamente"
     return 1
 }
 
@@ -109,7 +109,7 @@ fi
 # Auto-install mode when run without arguments
 if [[ $# -eq 0 ]]; then
     if [[ "${MOLE_DRY_RUN:-0}" == "1" ]]; then
-        echo -e "${YELLOW}${ICON_DRY_RUN} DRY RUN MODE${NC}, shell config files will not be modified"
+        echo -e "${YELLOW}${ICON_DRY_RUN} MODO SIMULAÇÃO (DRY RUN)${NC}, os arquivos de configuração do shell não serão modificados"
         echo ""
     fi
 
@@ -137,37 +137,37 @@ if [[ $# -eq 0 ]]; then
         if [[ -z "$completion_name" ]]; then
             # Clean up any stale config.fish entries even when mole is not in PATH
             if [[ "${MOLE_DRY_RUN:-0}" != "1" ]]; then
-                remove_stale_completion_entries "$config_fish" "Removed stale completion entries from config.fish" || true
+                remove_stale_completion_entries "$config_fish" "Entradas de autocompletar obsoletas removidas do config.fish" || true
             fi
-            log_error "mole not found in PATH, install Mole before enabling completion"
+            log_error "mole não encontrado no PATH, instale o Mole antes de ativar o autocompletar"
             exit 1
         fi
 
         if [[ "${MOLE_DRY_RUN:-0}" == "1" ]]; then
-            echo -e "${GRAY}${ICON_REVIEW} [DRY RUN] Would write Fish completions to:${NC}"
+            echo -e "${GRAY}${ICON_REVIEW} [SIMULAÇÃO] Gravaria o autocompletar do Fish em:${NC}"
             echo "  $mole_file"
             echo "  $mo_file"
             echo ""
-            echo -e "${GREEN}${ICON_SUCCESS}${NC} Dry run complete, no changes made"
+            echo -e "${GREEN}${ICON_SUCCESS}${NC} Simulação concluída, nenhuma alteração feita"
             exit 0
         fi
 
         # Remove stale config.fish source-based entries (previous install method)
-        if remove_stale_completion_entries "$config_fish" "Removed stale source-based entries from config.fish"; then
+        if remove_stale_completion_entries "$config_fish" "Entradas obsoletas baseadas em source removidas do config.fish"; then
             echo ""
         fi
 
         # Prompt only on first install; silently update if files exist
         if [[ ! -f "$mole_file" ]]; then
             echo ""
-            echo -e "${GRAY}Will write Fish completions to:${NC}"
+            echo -e "${GRAY}Gravará o autocompletar do Fish em:${NC}"
             echo "  $mole_file"
             echo "  $mo_file"
             echo ""
-            echo -ne "${PURPLE}${ICON_ARROW}${NC} Enable completion for ${GREEN}fish${NC}? ${GRAY}Enter confirm / Q cancel${NC}: "
+            echo -ne "${PURPLE}${ICON_ARROW}${NC} Ativar o autocompletar para ${GREEN}fish${NC}? ${GRAY}Enter confirma / Q cancela${NC}: "
             if ! IFS= read -r -s -n1 key; then
                 echo ""
-                echo -e "${YELLOW}Cancelled${NC}"
+                echo -e "${YELLOW}Cancelado${NC}"
                 exit 1
             fi
             drain_pending_input
@@ -175,12 +175,12 @@ if [[ $# -eq 0 ]]; then
 
             case "$key" in
                 $'\e' | [Qq] | [Nn])
-                    echo -e "${YELLOW}Cancelled${NC}"
+                    echo -e "${YELLOW}Cancelado${NC}"
                     exit 0
                     ;;
                 "" | $'\n' | $'\r' | [Yy]) ;;
                 *)
-                    log_error "Invalid key"
+                    log_error "Tecla inválida"
                     exit 1
                     ;;
             esac
@@ -193,7 +193,7 @@ if [[ $# -eq 0 ]]; then
         printf 'source %s\n' "$mole_file" >> "$mo_file"
 
         if [[ -f "$mole_file" ]]; then
-            echo -e "${GREEN}${ICON_SUCCESS}${NC} Fish completions written to $fish_dir"
+            echo -e "${GREEN}${ICON_SUCCESS}${NC} Autocompletar do Fish gravado em $fish_dir"
         fi
         echo ""
         exit 0
@@ -212,7 +212,7 @@ if [[ $# -eq 0 ]]; then
             completion_line='if output="$('"$completion_name"' completion zsh 2>/dev/null)"; then eval "$output"; fi'
             ;;
         *)
-            log_error "Unsupported shell: $current_shell"
+            log_error "Shell não suportado: $current_shell"
             echo "  mole completion <bash|zsh|fish>"
             exit 1
             ;;
@@ -221,7 +221,7 @@ if [[ $# -eq 0 ]]; then
     if [[ -z "$completion_name" ]]; then
         if [[ -f "$config_file" ]] && grep -Eq "$MOLE_COMPLETION_LINE_PATTERN" "$config_file" 2> /dev/null; then
             if [[ "${MOLE_DRY_RUN:-0}" == "1" ]]; then
-                echo -e "${GRAY}${ICON_REVIEW} [DRY RUN] Would remove stale completion entries from $config_file${NC}"
+                echo -e "${GRAY}${ICON_REVIEW} [SIMULAÇÃO] Removeria as entradas de autocompletar obsoletas de $config_file${NC}"
                 echo ""
             else
                 original_mode=""
@@ -233,18 +233,18 @@ if [[ $# -eq 0 ]]; then
                 if [[ -n "$original_mode" ]]; then
                     chmod "$original_mode" "$target" 2> /dev/null || true
                 fi
-                echo -e "${GREEN}${ICON_SUCCESS}${NC} Removed stale completion entries from $config_file"
+                echo -e "${GREEN}${ICON_SUCCESS}${NC} Entradas de autocompletar obsoletas removidas de $config_file"
                 echo ""
             fi
         fi
-        log_error "mole not found in PATH, install Mole before enabling completion"
+        log_error "mole não encontrado no PATH, instale o Mole antes de ativar o autocompletar"
         exit 1
     fi
 
     # Check if already installed and normalize to latest line
     if [[ -f "$config_file" ]] && grep -Eq "$MOLE_COMPLETION_LINE_PATTERN" "$config_file" 2> /dev/null; then
         if [[ "${MOLE_DRY_RUN:-0}" == "1" ]]; then
-            echo -e "${GRAY}${ICON_REVIEW} [DRY RUN] Would normalize completion entry in $config_file${NC}"
+            echo -e "${GRAY}${ICON_REVIEW} [SIMULAÇÃO] Normalizaria a entrada de autocompletar em $config_file${NC}"
             echo ""
             exit 0
         fi
@@ -264,25 +264,25 @@ if [[ $# -eq 0 ]]; then
             echo "$completion_line"
         } >> "$config_file"
         echo ""
-        echo -e "${GREEN}${ICON_SUCCESS}${NC} Shell completion updated in $config_file"
+        echo -e "${GREEN}${ICON_SUCCESS}${NC} Autocompletar do shell atualizado em $config_file"
         echo ""
         exit 0
     fi
 
     # Prompt user for installation
     echo ""
-    echo -e "${GRAY}Will add to ${config_file}:${NC}"
+    echo -e "${GRAY}Será adicionado a ${config_file}:${NC}"
     echo "  $completion_line"
     echo ""
     if [[ "${MOLE_DRY_RUN:-0}" == "1" ]]; then
-        echo -e "${GREEN}${ICON_SUCCESS}${NC} Dry run complete, no changes made"
+        echo -e "${GREEN}${ICON_SUCCESS}${NC} Simulação concluída, nenhuma alteração feita"
         exit 0
     fi
 
-    echo -ne "${PURPLE}${ICON_ARROW}${NC} Enable completion for ${GREEN}${current_shell}${NC}? ${GRAY}Enter confirm / Q cancel${NC}: "
+    echo -ne "${PURPLE}${ICON_ARROW}${NC} Ativar o autocompletar para ${GREEN}${current_shell}${NC}? ${GRAY}Enter confirma / Q cancela${NC}: "
     if ! IFS= read -r -s -n1 key; then
         echo ""
-        echo -e "${YELLOW}Cancelled${NC}"
+        echo -e "${YELLOW}Cancelado${NC}"
         exit 1
     fi
     drain_pending_input
@@ -290,12 +290,12 @@ if [[ $# -eq 0 ]]; then
 
     case "$key" in
         $'\e' | [Qq] | [Nn])
-            echo -e "${YELLOW}Cancelled${NC}"
+            echo -e "${YELLOW}Cancelado${NC}"
             exit 0
             ;;
         "" | $'\n' | $'\r' | [Yy]) ;;
         *)
-            log_error "Invalid key"
+            log_error "Tecla inválida"
             exit 1
             ;;
     esac
@@ -326,10 +326,10 @@ if [[ $# -eq 0 ]]; then
         echo "$completion_line"
     } >> "$config_file"
 
-    echo -e "${GREEN}${ICON_SUCCESS}${NC} Completion added to $config_file"
+    echo -e "${GREEN}${ICON_SUCCESS}${NC} Autocompletar adicionado a $config_file"
     echo ""
     echo ""
-    echo -e "${GRAY}To activate now:${NC}"
+    echo -e "${GRAY}Para ativar agora:${NC}"
     echo -e "  ${GREEN}source $config_file${NC}"
     exit 0
 fi
@@ -398,34 +398,34 @@ EOF
         printf "    case \"\$words[2]\" in\n"
         printf '        clean)\n'
         printf '            _arguments \\\n'
-        printf "                '--dry-run[Preview cleanup without making changes]' \\\\\n"
-        printf "                '-n[Preview cleanup without making changes]' \\\\\n"
-        printf "                '--external[Clean OS metadata from an external volume]:path:_files -/' \\\\\n"
-        printf "                '--whitelist[Manage protected paths]' \\\\\n"
-        printf "                '--debug[Show detailed logs]' \\\\\n"
-        printf "                '(-h --help)'{-h,--help}'[Show help]'\n"
+        printf "                '--dry-run[Simula a limpeza sem fazer alterações]' \\\\\n"
+        printf "                '-n[Simula a limpeza sem fazer alterações]' \\\\\n"
+        printf "                '--external[Limpa metadados do sistema em um volume externo]:path:_files -/' \\\\\n"
+        printf "                '--whitelist[Gerencia os caminhos protegidos]' \\\\\n"
+        printf "                '--debug[Mostra logs detalhados]' \\\\\n"
+        printf "                '(-h --help)'{-h,--help}'[Mostra a ajuda]'\n"
         printf '            ;;\n'
         printf '        analyze|analyse)\n'
         printf '            _arguments \\\n'
-        printf "                '--json[Output analysis as JSON]' \\\\\n"
-        printf "                '(-h --help)'{-h,--help}'[Show help]' \\\\\n"
+        printf "                '--json[Exibe a análise em JSON]' \\\\\n"
+        printf "                '(-h --help)'{-h,--help}'[Mostra a ajuda]' \\\\\n"
         printf "                '*:path:_files'\n"
         printf '            ;;\n'
         printf '        history)\n'
         printf '            _arguments \\\n'
-        printf "                '--json[Output history as JSON]' \\\\\n"
-        printf "                '--limit[Limit recent entries]:limit:' \\\\\n"
-        printf "                '(-h --help)'{-h,--help}'[Show help]'\n"
+        printf "                '--json[Exibe o histórico em JSON]' \\\\\n"
+        printf "                '--limit[Limita as entradas recentes]:limit:' \\\\\n"
+        printf "                '(-h --help)'{-h,--help}'[Mostra a ajuda]'\n"
         printf '            ;;\n'
         printf '        purge)\n'
         printf '            _arguments \\\n'
-        printf "                '--paths[Edit custom scan directories]' \\\\\n"
-        printf "                '--dry-run[Preview purge actions without making changes]' \\\\\n"
-        printf "                '-n[Preview purge actions without making changes]' \\\\\n"
-        printf "                '--include-empty[Show zero-size project artifact directories]' \\\\\n"
-        printf "                '--yes[Confirm unattended cleanup of eligible artifacts]' \\\\\n"
-        printf "                '--debug[Show detailed logs]' \\\\\n"
-        printf "                '(-h --help)'{-h,--help}'[Show help]'\n"
+        printf "                '--paths[Edita os diretórios de busca personalizados]' \\\\\n"
+        printf "                '--dry-run[Simula as ações de purge sem fazer alterações]' \\\\\n"
+        printf "                '-n[Simula as ações de purge sem fazer alterações]' \\\\\n"
+        printf "                '--include-empty[Mostra diretórios de artefatos de projeto com tamanho zero]' \\\\\n"
+        printf "                '--yes[Confirma a limpeza automática dos artefatos elegíveis]' \\\\\n"
+        printf "                '--debug[Mostra logs detalhados]' \\\\\n"
+        printf "                '(-h --help)'{-h,--help}'[Mostra a ajuda]'\n"
         printf '            ;;\n'
         printf '        completion)\n'
         printf "            _arguments '1:shell:(bash zsh fish)'\n"
@@ -457,30 +457,30 @@ EOF
         ;;
     *)
         cat << 'EOF'
-Usage: mole completion [bash|zsh|fish]
+Uso: mole completion [bash|zsh|fish]
 
-Setup shell tab completion for mole and mo commands.
+Configura o autocompletar (tab) do shell para os comandos mole e mo.
 
-Auto-install:
-  mole completion              # Auto-detect shell and install
-  mole completion --dry-run    # Preview config changes without writing files
+Instalação automática:
+  mole completion              # Detecta o shell e instala
+  mole completion --dry-run    # Simula as alterações de configuração sem gravar arquivos
 
-Manual install:
-  mole completion bash         # Generate bash completion script
-  mole completion zsh          # Generate zsh completion script
-  mole completion fish         # Generate fish completion script
+Instalação manual:
+  mole completion bash         # Gera o script de autocompletar para bash
+  mole completion zsh          # Gera o script de autocompletar para zsh
+  mole completion fish         # Gera o script de autocompletar para fish
 
-Examples:
-  # Auto-install (recommended)
+Exemplos:
+  # Instalação automática (recomendada)
   mole completion
 
-  # Manual install - Bash
+  # Instalação manual - Bash
   eval "$(mole completion bash)"
 
-  # Manual install - Zsh
+  # Instalação manual - Zsh
   eval "$(mole completion zsh)"
 
-  # Manual install - Fish
+  # Instalação manual - Fish
   mole completion fish | source
 EOF
         [[ "$1" == "--help" || "$1" == "-h" ]] && exit 0

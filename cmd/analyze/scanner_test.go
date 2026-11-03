@@ -422,7 +422,7 @@ func TestDuFailureKeepsDiagnosticAndPartialBytes(t *testing.T) {
 			m = updated.(model)
 			wantReason := tc.diagnostic
 			if tc.permission {
-				wantReason = "access denied"
+				wantReason = "acesso negado"
 			}
 			for _, width := range []int{60, 80, 120} {
 				m.width = width

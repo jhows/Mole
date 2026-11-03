@@ -23,14 +23,14 @@ const (
 
 var (
 	// Command-line flags
-	jsonOutput       = flag.Bool("json", false, "output metrics as JSON instead of TUI")
-	procCPUThreshold = flag.Float64("proc-cpu-threshold", 100, "alert when a process stays above this CPU percent")
-	procCPUWindow    = flag.Duration("proc-cpu-window", 5*time.Minute, "continuous duration a process must exceed the CPU threshold")
-	procCPUAlerts    = flag.Bool("proc-cpu-alerts", true, "enable persistent high-CPU process alerts")
+	jsonOutput       = flag.Bool("json", false, "exibe as métricas em JSON em vez da TUI")
+	procCPUThreshold = flag.Float64("proc-cpu-threshold", 100, "alerta quando um processo fica acima deste percentual de CPU")
+	procCPUWindow    = flag.Duration("proc-cpu-window", 5*time.Minute, "duração contínua acima do limite de CPU para um processo")
+	procCPUAlerts    = flag.Bool("proc-cpu-alerts", true, "ativa alertas persistentes de processos com CPU alta")
 
 	// Watch mode: stream NDJSON (one snapshot per line) from a single warm collector.
-	watchMode     = flag.Bool("watch", false, "stream metrics continuously as newline-delimited JSON instead of the one-shot TUI/JSON")
-	watchInterval = flag.String("interval", "", "with --watch, collection interval (e.g. 1s, 2s); defaults to 1s")
+	watchMode     = flag.Bool("watch", false, "transmite métricas continuamente como JSON delimitado por linhas, em vez da TUI/JSON único")
+	watchInterval = flag.String("interval", "", "com --watch, intervalo de coleta (ex.: 1s, 2s); padrão 1s")
 )
 
 func shouldUseJSONOutput(forceJSON bool, stdout *os.File) bool {
@@ -100,10 +100,10 @@ func processWatchOptionsFromFlags() ProcessWatchOptions {
 
 func validateFlags() error {
 	if *procCPUThreshold < 0 {
-		return fmt.Errorf("--proc-cpu-threshold must be >= 0")
+		return fmt.Errorf("--proc-cpu-threshold deve ser >= 0")
 	}
 	if *procCPUWindow <= 0 {
-		return fmt.Errorf("--proc-cpu-window must be > 0")
+		return fmt.Errorf("--proc-cpu-window deve ser > 0")
 	}
 	return nil
 }
@@ -283,11 +283,11 @@ func runJSONMode() {
 // printed and exit 0. A snapshot with no core metrics, or an encoding error, fails.
 func writeJSONSnapshot(stdout, stderr io.Writer, data MetricsSnapshot, err error) int {
 	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "status: collect failed: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "status: falha na coleta: %v\n", err)
 	}
 	if !hasCoreMetrics(data) {
 		if err == nil {
-			_, _ = fmt.Fprintln(stderr, "status: collect failed: no metrics collected")
+			_, _ = fmt.Fprintln(stderr, "status: falha na coleta: nenhuma métrica coletada")
 		}
 		return 1
 	}
@@ -295,7 +295,7 @@ func writeJSONSnapshot(stdout, stderr io.Writer, data MetricsSnapshot, err error
 	encoder := json.NewEncoder(stdout)
 	encoder.SetIndent("", "  ")
 	if err := encoder.Encode(data); err != nil {
-		_, _ = fmt.Fprintf(stderr, "error encoding JSON: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "erro ao codificar JSON: %v\n", err)
 		return 1
 	}
 	return 0
@@ -319,7 +319,7 @@ func hasCoreMetrics(data MetricsSnapshot) bool {
 func runTUIMode() {
 	p := tea.NewProgram(newModel(), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "system status error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "erro no status do sistema: %v\n", err)
 		os.Exit(1)
 	}
 }
@@ -331,10 +331,10 @@ func parseWatchInterval(raw string) (time.Duration, error) {
 
 	d, err := time.ParseDuration(raw)
 	if err != nil {
-		return 0, fmt.Errorf("invalid --interval %q (want e.g. 1s, 2s): %w", raw, err)
+		return 0, fmt.Errorf("--interval inválido %q (use, por exemplo, 1s, 2s): %w", raw, err)
 	}
 	if d <= 0 {
-		return 0, fmt.Errorf("invalid --interval %q (must be > 0)", raw)
+		return 0, fmt.Errorf("--interval inválido %q (deve ser > 0)", raw)
 	}
 	return d, nil
 }
@@ -342,24 +342,24 @@ func parseWatchInterval(raw string) (time.Duration, error) {
 // usageText is the help every other Mole subcommand prints by hand. The Go flag
 // package would otherwise render "Usage of /usr/local/bin/status-go:", naming a
 // bundled binary the user never typed, so the text is written out here instead.
-const usageText = `Usage: mo status [OPTIONS]
+const usageText = `Uso: mo status [OPÇÕES]
 
-Monitor system health. Without options it opens the interactive dashboard, and
-switches to a single JSON snapshot when stdout is not a terminal.
+Monitore a saúde do sistema. Sem opções, abre o painel interativo e passa
+para um único snapshot JSON quando a saída não é um terminal.
 
-Options:
-  --json                          Output one metrics snapshot as JSON
-  --watch                         Stream snapshots as newline-delimited JSON
-  --interval DURATION             With --watch, collection interval (default 1s)
-  --proc-cpu-alerts               Enable high-CPU process alerts (default true)
-  --proc-cpu-threshold PERCENT    Alert above this CPU percent (default 100)
-  --proc-cpu-window DURATION      Time above the threshold before alerting (default 5m)
-  -h, --help                      Show this help message
+Opções:
+  --json                          Exibe um snapshot de métricas em JSON
+  --watch                         Transmite snapshots como JSON delimitado por linhas
+  --interval DURATION             Com --watch, intervalo de coleta (padrão 1s)
+  --proc-cpu-alerts               Ativa alertas de processos com CPU alta (padrão true)
+  --proc-cpu-threshold PERCENT    Alerta acima deste percentual de CPU (padrão 100)
+  --proc-cpu-window DURATION      Tempo acima do limite antes de alertar (padrão 5m)
+  -h, --help                      Mostra esta ajuda
 
-Examples:
-  mo status                       Interactive dashboard
-  mo status --json                One machine-readable snapshot
-  mo status --watch --interval 2s Continuous NDJSON stream
+Exemplos:
+  mo status                       Painel interativo
+  mo status --json                Um snapshot legível por máquina
+  mo status --watch --interval 2s Fluxo NDJSON contínuo
 `
 
 // parseArgs applies Mole's CLI conventions to the flag package: help goes to
@@ -380,13 +380,13 @@ func parseArgs(args []string, stdout, stderr io.Writer) (int, bool) {
 		return 0, false
 	case err != nil:
 		_, _ = fmt.Fprintln(stderr, err)
-		_, _ = fmt.Fprintln(stderr, "Use 'mo status --help' for usage information")
+		_, _ = fmt.Fprintln(stderr, "Use 'mo status --help' para ver o modo de uso")
 		return 1, false
 	}
 
 	if err := validateFlags(); err != nil {
 		_, _ = fmt.Fprintln(stderr, err)
-		_, _ = fmt.Fprintln(stderr, "Use 'mo status --help' for usage information")
+		_, _ = fmt.Fprintln(stderr, "Use 'mo status --help' para ver o modo de uso")
 		return 1, false
 	}
 	return 0, true
@@ -401,7 +401,7 @@ func main() {
 		interval, err := parseWatchInterval(*watchInterval)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
-			fmt.Fprintln(os.Stderr, "Use 'mo status --help' for usage information")
+			fmt.Fprintln(os.Stderr, "Use 'mo status --help' para ver o modo de uso")
 			os.Exit(1)
 		}
 		runWatchMode(interval)

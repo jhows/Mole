@@ -19,24 +19,24 @@ import (
 )
 
 var (
-	jsonMode = flag.Bool("json", false, "output analysis as JSON instead of TUI")
+	jsonMode = flag.Bool("json", false, "exibe a análise em JSON em vez da TUI")
 )
 
 // usageText is the help every other Mole subcommand prints by hand. The Go flag
 // package would otherwise render "Usage of /usr/local/bin/analyze-go:", naming a
 // bundled binary the user never typed, so the text is written out here instead.
-const usageText = `Usage: mo analyze [OPTIONS] [PATH]
+const usageText = `Uso: mo analyze [OPÇÕES] [CAMINHO]
 
-Explore disk usage. Without PATH, scans a machine-wide overview.
+Explore o uso do disco. Sem CAMINHO, faz uma visão geral da máquina.
 
-Options:
-  --json          Output the analysis as JSON instead of the interactive TUI
-  -h, --help      Show this help message
+Opções:
+  --json          Exibe a análise em JSON em vez da TUI interativa
+  -h, --help      Mostra esta ajuda
 
-Examples:
-  mo analyze                 Machine-wide overview
-  mo analyze ~/Library       Scan one directory
-  mo analyze --json /Volumes Machine-readable output
+Exemplos:
+  mo analyze                 Visão geral da máquina
+  mo analyze ~/Library       Escaneia uma pasta
+  mo analyze --json /Volumes Saída legível por máquina
 `
 
 // parseArgs applies Mole's CLI conventions to the flag package: help goes to
@@ -57,7 +57,7 @@ func parseArgs(args []string, stdout, stderr io.Writer) (int, bool) {
 		return 0, false
 	case err != nil:
 		_, _ = fmt.Fprintln(stderr, err)
-		_, _ = fmt.Fprintln(stderr, "Use 'mo analyze --help' for usage information")
+		_, _ = fmt.Fprintln(stderr, "Use 'mo analyze --help' para ver o modo de uso")
 		return 1, false
 	}
 	return 0, true
@@ -100,7 +100,7 @@ func resolveScanTarget(envPath string, args []string) (string, bool, error) {
 
 	abs, err := filepath.Abs(target)
 	if err != nil {
-		return "", false, fmt.Errorf("cannot resolve %q: %v", target, err)
+		return "", false, fmt.Errorf("não foi possível resolver %q: %v", target, err)
 	}
 	return abs, false, nil
 }
@@ -119,7 +119,7 @@ func runTUIMode(path string, isOverview bool) {
 
 	p := tea.NewProgram(m, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "analyzer error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "erro no analisador: %v\n", err)
 		os.Exit(1)
 	}
 }

@@ -93,20 +93,20 @@ format_duration_human() {
     local days=$((seconds / 86400))
 
     if [[ $days -eq 0 ]]; then
-        echo "today"
+        echo "hoje"
     elif [[ $days -eq 1 ]]; then
-        echo "1 day"
+        echo "1 dia"
     elif [[ $days -lt 7 ]]; then
-        echo "${days} days"
+        echo "${days} dias"
     elif [[ $days -lt 30 ]]; then
         local weeks=$((days / 7))
-        [[ $weeks -eq 1 ]] && echo "1 week" || echo "${weeks} weeks"
+        [[ $weeks -eq 1 ]] && echo "1 semana" || echo "${weeks} semanas"
     elif [[ $days -lt 365 ]]; then
         local months=$((days / 30))
-        [[ $months -eq 1 ]] && echo "1 month" || echo "${months} months"
+        [[ $months -eq 1 ]] && echo "1 mês" || echo "${months} meses"
     else
         local years=$((days / 365))
-        [[ $years -eq 1 ]] && echo "1 year" || echo "${years} years"
+        [[ $years -eq 1 ]] && echo "1 ano" || echo "${years} anos"
     fi
 }
 
@@ -1163,13 +1163,13 @@ validate_path_for_deletion() {
 
     # Check path is not empty
     if [[ -z "$path" ]]; then
-        log_error "Path validation failed: empty path"
+        log_error "Validação de caminho falhou: caminho vazio"
         return 1
     fi
 
     # Check path is absolute
     if [[ "$path" != /* ]]; then
-        log_error "Path validation failed: path must be absolute: $path"
+        log_error "Validação de caminho falhou: o caminho precisa ser absoluto: $path"
         return 1
     fi
 
@@ -1177,13 +1177,13 @@ validate_path_for_deletion() {
     # Only reject .. when it appears as a complete path component (/../ or /.. or ../)
     # This allows legitimate directory names containing .. (e.g., Firefox's "name..files")
     if [[ "$path" =~ (^|/)\.\.(\/|$) ]]; then
-        log_error "Path validation failed: path traversal not allowed: $path"
+        log_error "Validação de caminho falhou: travessia de caminho não permitida: $path"
         return 1
     fi
 
     # Check path doesn't contain dangerous characters
     if [[ "$path" =~ [[:cntrl:]] ]] || [[ "$path" =~ $'\n' ]]; then
-        log_error "Path validation failed: contains control characters: $path"
+        log_error "Validação de caminho falhou: contém caracteres de controle: $path"
         return 1
     fi
 
@@ -1195,7 +1195,7 @@ validate_path_for_deletion() {
     if [[ -L "$path" ]]; then
         local link_target
         link_target=$(readlink "$path" 2> /dev/null) || {
-            log_error "Cannot read symlink: $path"
+            log_error "Não foi possível ler o link simbólico: $path"
             return 1
         }
 
@@ -1211,7 +1211,7 @@ validate_path_for_deletion() {
         if [[ -n "$resolved_target" ]]; then
             resolved_target=$(_mole_normalize_deletion_policy_path "$resolved_target")
             if _mole_is_critical_deletion_path "$resolved_target"; then
-                log_error "Symlink points to protected system path: $path -> $resolved_target"
+                log_error "O link simbólico aponta para um caminho de sistema protegido: $path -> $resolved_target"
                 return 1
             fi
         fi
@@ -1253,13 +1253,13 @@ validate_path_for_deletion() {
             local resolved_path
             resolved_path=$(_mole_normalize_deletion_policy_path "${resolved_parent}/${policy_path##*/}")
             if _mole_is_critical_deletion_path "$resolved_path"; then
-                log_error "Path validation failed: resolves into a critical system path: $path -> $resolved_path"
+                log_error "Validação de caminho falhou: resolve para um caminho crítico do sistema: $path -> $resolved_path"
                 return 1
             fi
             if declare -f should_protect_path > /dev/null 2>&1 && should_protect_path "$resolved_path"; then
                 _mole_record_uninstall_refusal "$path" protected
                 if [[ "${MO_DEBUG:-0}" == "1" ]]; then
-                    log_warning "Path validation: resolves into a protected path: $path -> $resolved_path"
+                    log_warning "Validação de caminho: resolve para um caminho protegido: $path -> $resolved_path"
                 fi
                 return 1
             fi
@@ -1336,7 +1336,7 @@ validate_path_for_deletion() {
     # not only the cleanup sweeps that pre-check the predicate.
     if declare -f is_endpoint_security_cache_path > /dev/null 2>&1 && is_endpoint_security_cache_path "$policy_path"; then
         if [[ "${MO_DEBUG:-0}" == "1" ]]; then
-            log_warning "Path validation: endpoint-security agent cache skipped: $policy_path"
+            log_warning "Validação de caminho: cache de agente de segurança de endpoint ignorado: $policy_path"
         fi
         return 1
     fi
@@ -1358,7 +1358,7 @@ validate_path_for_deletion() {
 
     # Check path isn't critical system directory
     if _mole_is_critical_deletion_path "$policy_path"; then
-        log_error "Path validation failed: critical system path: $path"
+        log_error "Validação de caminho falhou: caminho crítico do sistema: $path"
         return 1
     fi
 
@@ -1369,7 +1369,7 @@ validate_path_for_deletion() {
         elif should_protect_path "$policy_path"; then
             _mole_record_uninstall_refusal "$path" protected
             if [[ "${MO_DEBUG:-0}" == "1" ]]; then
-                log_warning "Path validation: protected path skipped: $policy_path"
+                log_warning "Validação de caminho: caminho protegido ignorado: $policy_path"
             fi
             return 1
         fi
@@ -1851,7 +1851,7 @@ safe_remove() {
             debug_log "Permission denied: $path, may need Full Disk Access"
             log_operation "${MOLE_CURRENT_COMMAND:-clean}" "FAILED" "$path" "permission denied"
         else
-            [[ "$silent" != "true" ]] && log_error "Failed to remove: $path"
+            [[ "$silent" != "true" ]] && log_error "Falha ao remover: $path"
             log_operation "${MOLE_CURRENT_COMMAND:-clean}" "FAILED" "$path" "error"
         fi
         return 1
@@ -2021,7 +2021,7 @@ safe_sudo_remove() {
             debug_log "Skipped sudo remove for protected path: $path"
             return "$MOLE_ERR_PROTECTED_PATH"
         else
-            log_error "Path validation failed for sudo remove: $path"
+            log_error "Validação de caminho falhou para remoção com sudo: $path"
         fi
         return 1
     fi
@@ -2031,7 +2031,7 @@ safe_sudo_remove() {
     fi
 
     if [[ -L "$path" ]]; then
-        log_error "Refusing to sudo remove symlink: $path"
+        log_error "Recusando remover link simbólico com sudo: $path"
         return 1
     fi
 
@@ -2073,7 +2073,7 @@ safe_sudo_remove() {
 
     if [[ "${MOLE_TEST_MODE:-0}" == "1" || "${MOLE_TEST_NO_AUTH:-0}" == "1" ]]; then
         if [[ "${MOLE_DRY_RUN:-0}" == "1" ]]; then
-            log_info "[DRY-RUN] Would sudo remove: $path"
+            log_info "[SIMULAÇÃO] Removeria com sudo: $path"
             return 0
         fi
         log_operation "${MOLE_CURRENT_COMMAND:-clean}" "FAILED" "$path" "sudo blocked in test mode"
@@ -2150,11 +2150,11 @@ safe_sudo_remove() {
                 fi
             fi
 
-            log_info "[DRY-RUN] Would sudo remove: $file_type $path"
-            [[ -n "$file_size" ]] && log_info "  Size: $file_size"
-            [[ -n "$file_age" ]] && log_info "  Age: $file_age"
+            log_info "[SIMULAÇÃO] Removeria com sudo: $file_type $path"
+            [[ -n "$file_size" ]] && log_info "  Tamanho: $file_size"
+            [[ -n "$file_age" ]] && log_info "  Idade: $file_age"
         else
-            log_info "[DRY-RUN] Would sudo remove: $path"
+            log_info "[SIMULAÇÃO] Removeria com sudo: $path"
         fi
         return 0
     fi
@@ -2279,7 +2279,7 @@ safe_sudo_remove() {
             return "$MOLE_ERR_AUTH_FAILED"
             ;;
         *)
-            log_error "Failed to remove, sudo: $path"
+            log_error "Falha ao remover, sudo: $path"
             log_operation "${MOLE_CURRENT_COMMAND:-clean}" "FAILED" "$path" "sudo error"
             return 1
             ;;
@@ -2357,17 +2357,17 @@ _mole_report_unverified_delete() {
     local reason="${4:-$MOLE_ERR_OWNER_UNVERIFIED}"
     local refusal_reason="ownership-unverified"
     local detail="agent ownership unverified"
-    local explanation="the agent file changed or could not be inspected. Review the plist before retrying."
+    local explanation="o arquivo do agente mudou ou não pôde ser inspecionado. Revise o plist antes de tentar de novo."
     if [[ $reason -eq $MOLE_ERR_APP_REAPPEARED ]]; then
         refusal_reason="app-reappeared"
         detail="selected app path reappeared"
-        explanation="the selected app path exists again. Select the app and review its removal plan."
+        explanation="o caminho do app selecionado existe de novo. Selecione o app e revise o plano de remoção."
     fi
     _mole_delete_log "$mode" "$size_kb" "$refusal_reason" "$path"
     log_operation "${MOLE_CURRENT_COMMAND:-uninstall}" "SKIPPED" "$path" "$detail"
     _mole_record_uninstall_refusal "$path" "$refusal_reason"
     if [[ "${_MOLE_UNINSTALL_REFUSALS_ACTIVE:-0}" != 1 ]]; then
-        printf 'Kept %s: %s\n' "$path" "$explanation" >&2
+        printf 'Mantido %s: %s\n' "$path" "$explanation" >&2
     fi
 }
 
@@ -2410,7 +2410,7 @@ mole_delete() {
             if [[ -z "${_MOLE_INVALID_MODE_WARNED:-}" ]]; then
                 _MOLE_INVALID_MODE_WARNED=1
                 export _MOLE_INVALID_MODE_WARNED
-                printf 'Error: invalid MOLE_DELETE_MODE: %s (expected "permanent" or "trash")\n' "$mode" >&2
+                printf 'Erro: MOLE_DELETE_MODE inválido: %s (esperado "permanent" ou "trash")\n' "$mode" >&2
             fi
             return 1
             ;;
@@ -2601,7 +2601,7 @@ mole_delete() {
                 _MOLE_PRIVACY_DENIED_WARNED=1
                 export _MOLE_PRIVACY_DENIED_WARNED
                 declare -F stop_inline_spinner > /dev/null && stop_inline_spinner
-                printf 'Error: macOS denied Trash access. Try moving the item to Trash in Finder. Run with --debug for details.\n' >&2
+                printf 'Erro: o macOS negou o acesso à Lixeira. Tente mover o item para a Lixeira pelo Finder. Execute com --debug para ver os detalhes.\n' >&2
             fi
             debug_log "macOS privacy permission denied while moving to Trash: $path"
             return "$MOLE_ERR_PRIVACY_DENIED"
@@ -2629,7 +2629,7 @@ mole_delete() {
             _MOLE_TRASH_UNAVAILABLE_WARNED=1
             export _MOLE_TRASH_UNAVAILABLE_WARNED
             declare -F stop_inline_spinner > /dev/null && stop_inline_spinner
-            printf 'Error: Trash unavailable; refusing permanent delete. Use --permanent to delete immediately.\n' >&2
+            printf 'Erro: Lixeira indisponível; recusando a exclusão permanente. Use --permanent para excluir imediatamente.\n' >&2
         fi
         debug_log "Trash move failed, refusing permanent delete: $path"
         return 1
@@ -2805,7 +2805,7 @@ APPLESCRIPT
             _MOLE_PRIVACY_DENIED_WARNED=1
             export _MOLE_PRIVACY_DENIED_WARNED
             declare -F stop_inline_spinner > /dev/null && stop_inline_spinner
-            printf 'Error: macOS blocked Finder automation. Allow your terminal app to control Finder in System Settings > Privacy & Security > Automation, then retry.\n' >&2
+            printf 'Erro: o macOS bloqueou a automação do Finder. Permita que seu terminal controle o Finder em Ajustes do Sistema > Privacidade e Segurança > Automação e tente de novo.\n' >&2
         fi
         return 1
     elif [[ -e "$path" || -L "$path" ]]; then
@@ -3140,7 +3140,7 @@ _mole_move_path_to_user_trash() {
         if [[ $stage_move_rc -ne 0 ]]; then
             if mole_rc_timeout_or_signal "$stage_move_rc"; then
                 if [[ -e "$stage_path" || -L "$stage_path" ]]; then
-                    log_error "Trash move interrupted; item preserved for recovery at: $stage_path"
+                    log_error "Movimentação para a Lixeira interrompida; item preservado para recuperação em: $stage_path"
                 fi
                 return "$stage_move_rc"
             fi
@@ -3171,10 +3171,10 @@ _mole_move_path_to_user_trash() {
         fi
         if [[ $handoff_rc -ne 0 ]]; then
             if mole_rc_timeout_or_signal "$handoff_rc"; then
-                log_error "Trash move interrupted; item preserved for recovery at: $stage_path"
+                log_error "Movimentação para a Lixeira interrompida; item preservado para recuperação em: $stage_path"
                 return "$handoff_rc"
             fi
-            log_error "Trash move failed; item preserved for recovery at: $stage_path"
+            log_error "Falha ao mover para a Lixeira; item preservado para recuperação em: $stage_path"
             debug_log "Failed to hand Trash staging directory to invoking user"
             return 1
         fi
@@ -3190,7 +3190,7 @@ _mole_move_path_to_user_trash() {
         if [[ $move_rc -ne 0 || -e "$stage_path" || -L "$stage_path" ]]; then
             if mole_rc_timeout_or_signal "$move_rc"; then
                 if [[ -e "$stage_path" || -L "$stage_path" ]]; then
-                    log_error "Trash move interrupted; item preserved for recovery at: $stage_path"
+                    log_error "Movimentação para a Lixeira interrompida; item preservado para recuperação em: $stage_path"
                 elif [[ -e "$dest" || -L "$dest" ]]; then
                     debug_log "Trash move completed before interruption was observed: $dest"
                 fi
@@ -3201,7 +3201,7 @@ _mole_move_path_to_user_trash() {
             # Never let root resolve stage_path again: it may have been replaced
             # between the failed user move and this branch. Preserve the item
             # in staging and report the exact recovery location instead.
-            log_error "Trash move failed; item preserved for recovery at: $stage_path"
+            log_error "Falha ao mover para a Lixeira; item preservado para recuperação em: $stage_path"
         else
             # The invoking user owns stage_dir but has no write bit on the
             # root-owned 0711 parent, so only a privileged rmdir can unlink it.
@@ -3421,7 +3421,7 @@ _mole_delete_log() {
     # log dir is unwritable (root-owned from prior sudo, ENOSPC, read-only
     # volume) defeats the design.
     if [[ ! -d "$log_dir" ]] && ! mkdir -p "$log_dir" 2> /dev/null; then
-        _mole_warn_log_broken "create directory: $log_dir"
+        _mole_warn_log_broken "criar diretório: $log_dir"
         return 0
     fi
 
@@ -3435,7 +3435,7 @@ _mole_delete_log() {
     if ! printf '%s\t%s\t%s\t%s\t%s\n' \
         "$ts" "$mode" "$size_kb" "$status" "$target" \
         >> "$log_file" 2> /dev/null; then
-        _mole_warn_log_broken "write to: $log_file"
+        _mole_warn_log_broken "gravar em: $log_file"
     fi
 }
 
@@ -3457,18 +3457,18 @@ safe_find_delete() {
 
     # Validate base directory exists and is not a symlink
     if [[ ! -d "$base_dir" ]]; then
-        log_error "Directory does not exist: $base_dir"
+        log_error "O diretório não existe: $base_dir"
         return 1
     fi
 
     if [[ -L "$base_dir" ]]; then
-        log_error "Refusing to search symlinked directory: $base_dir"
+        log_error "Recusando buscar em diretório que é link simbólico: $base_dir"
         return 1
     fi
 
     # Validate type filter
     if [[ "$type_filter" != "f" && "$type_filter" != "d" ]]; then
-        log_error "Invalid type filter: $type_filter, must be 'f' or 'd'"
+        log_error "Filtro de tipo inválido: $type_filter, deve ser 'f' ou 'd'"
         return 1
     fi
 
@@ -3598,19 +3598,19 @@ safe_sudo_find_delete() {
     fi
 
     if [[ "$type_filter" != "f" && "$type_filter" != "d" ]]; then
-        log_error "Invalid type filter: $type_filter, must be 'f' or 'd'"
+        log_error "Filtro de tipo inválido: $type_filter, deve ser 'f' ou 'd'"
         return 1
     fi
     if [[ ! "$age_days" =~ ^[0-9]+$ ]]; then
-        log_error "Invalid age: $age_days, must be a non-negative integer"
+        log_error "Idade inválida: $age_days, deve ser um inteiro não negativo"
         return 1
     fi
     if [[ ! "$max_depth" =~ ^[1-5]$ ]]; then
-        log_error "Invalid max depth: $max_depth, must be between 1 and 5"
+        log_error "Profundidade máxima inválida: $max_depth, deve estar entre 1 e 5"
         return 1
     fi
     if [[ -n "$deadline_seconds" && ! "$deadline_seconds" =~ ^[0-9]+$ ]]; then
-        log_error "Invalid cleanup deadline: $deadline_seconds"
+        log_error "Prazo de limpeza inválido: $deadline_seconds"
         return 1
     fi
 
@@ -3695,7 +3695,7 @@ safe_sudo_find_delete() {
     _mole_bounded_sudo_until "$deadline_seconds" "$MOLE_TIMEOUT_QUICK_DETECT_SEC" \
         -n test -L "$base_dir" < /dev/null 2> /dev/null || link_rc=$?
     if [[ $link_rc -eq 0 ]]; then
-        log_error "Refusing to search symlinked directory: $base_dir"
+        log_error "Recusando buscar em diretório que é link simbólico: $base_dir"
         [[ $restore_errexit -eq 1 ]] && set -e
         return 1
     fi

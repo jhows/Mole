@@ -47,7 +47,7 @@ clean_trash() {
     # would read zero and Trash would be skipped without a word. Listing is the
     # only reliable probe: stat and -r both succeed under that block.
     if [[ -d "$HOME/.Trash" ]] && ! command ls -A "$HOME/.Trash" > /dev/null 2>&1; then
-        echo -e "  ${GRAY}${ICON_WARNING}${NC} Trash · skipped, grant Full Disk Access to your terminal"
+        echo -e "  ${GRAY}${ICON_WARNING}${NC} Lixeira · ignorada, conceda Acesso Total ao Disco ao seu terminal"
         note_activity
         return 0
     fi
@@ -67,7 +67,7 @@ clean_trash() {
             local preview_count=0
             local trash_item
             # Each item is measured; one large folder takes over a second.
-            start_section_spinner "Measuring Trash..."
+            start_section_spinner "Medindo a Lixeira..."
             while IFS= read -r -d '' trash_item; do
                 [[ -e "$trash_item" ]] || continue
                 if is_path_whitelisted "$trash_item" 2> /dev/null ||
@@ -114,7 +114,7 @@ clean_trash() {
             done < <(command find "$HOME/.Trash" -mindepth 1 -maxdepth 1 -print0 2> /dev/null || true)
             stop_section_spinner
             if [[ $preview_count -gt 0 ]]; then
-                echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Trash · would empty, $(mole_count_label "$preview_count" item)"
+                echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Lixeira · seria esvaziada, $(mole_count_label "$preview_count" item)"
                 note_activity
             fi
         fi
@@ -127,7 +127,7 @@ clean_trash() {
     fi
 
     if [[ -t 1 ]]; then
-        MOLE_SPINNER_PREFIX="  " start_inline_spinner "Emptying trash..."
+        MOLE_SPINNER_PREFIX="  " start_inline_spinner "Esvaziando a lixeira..."
     fi
 
     local cleaned_count=0
@@ -145,7 +145,7 @@ clean_trash() {
         # terminal) the update returns before doing anything.
         processed_count=$((processed_count + 1))
         if [[ $trash_count -gt 100 && $((processed_count % 100)) -eq 0 ]]; then
-            update_inline_spinner_message "Emptying trash... $processed_count/$trash_count" || true
+            update_inline_spinner_message "Esvaziando a lixeira... $processed_count/$trash_count" || true
         fi
     done < <(command find "$HOME/.Trash" -mindepth 1 -maxdepth 1 -print0 2> /dev/null || true)
 
@@ -153,13 +153,13 @@ clean_trash() {
 
     if [[ $cleaned_count -gt 0 ]]; then
         if [[ $skipped_count -gt 0 ]]; then
-            echo -e "  ${YELLOW}${ICON_WARNING}${NC} Trash · removed $(mole_count_label "$cleaned_count" item), $skipped_count could not be removed"
+            echo -e "  ${YELLOW}${ICON_WARNING}${NC} Lixeira · removidos $(mole_count_label "$cleaned_count" item), $skipped_count não puderam ser removidos"
         else
-            echo -e "  ${GREEN}${ICON_SUCCESS}${NC} Trash · emptied, $(mole_count_label "$cleaned_count" item)"
+            echo -e "  ${GREEN}${ICON_SUCCESS}${NC} Lixeira · esvaziada, $(mole_count_label "$cleaned_count" item)"
         fi
         note_activity
     elif [[ $skipped_count -gt 0 ]]; then
-        echo -e "  ${GRAY}${ICON_WARNING}${NC} Trash · $(mole_count_label "$skipped_count" item) could not be removed"
+        echo -e "  ${GRAY}${ICON_WARNING}${NC} Lixeira · $(mole_count_label "$skipped_count" item) não puderam ser removidos"
         note_activity
     fi
 }
@@ -263,7 +263,7 @@ _clean_user_log_directory() {
 }
 
 clean_user_essentials() {
-    start_section_spinner "Scanning caches..."
+    start_section_spinner "Analisando caches..."
     # Deno's default root sits inside the otherwise broad user-cache sweep,
     # but `deno clean` removes the entire DENO_DIR, including origin storage
     # and downloaded runtime payloads. Keep the effective root for review and
@@ -307,21 +307,21 @@ clean_user_essentials() {
         # because safe_remove does real work between the two.
         local _MOLE_SAFE_REMOVE_FINAL_GUARD=_user_cache_deno_delete_guard
         safe_clean_guarded _user_cache_deno_delete_guard \
-            "${user_cache_targets[@]}" "User app cache" || user_cache_rc=$?
+            "${user_cache_targets[@]}" "Cache de apps do usuário" || user_cache_rc=$?
         if [[ $user_cache_rc -eq 75 ]]; then
-            echo -e "  ${GRAY}${ICON_WARNING}${NC} User app cache · stopped (Deno root changed during cleanup)"
+            echo -e "  ${GRAY}${ICON_WARNING}${NC} Cache de apps do usuário · interrompido (a raiz do Deno mudou durante a limpeza)"
             note_activity
         fi
     elif [[ "$deno_cache_root_valid" != "true" ]]; then
         # Refusing here is right, but staying silent about it is not: the whole
         # category would just be missing from the section. Name the cause the
         # way every other guard in this file does.
-        echo -e "  ${GRAY}${ICON_WARNING}${NC} User app cache · stopped (DENO_DIR unresolved)"
+        echo -e "  ${GRAY}${ICON_WARNING}${NC} Cache de apps do usuário · interrompido (DENO_DIR não resolvido)"
         note_activity
     fi
     stop_section_spinner
 
-    _clean_user_log_directory "$HOME/Library/Logs" "User app logs" || return $?
+    _clean_user_log_directory "$HOME/Library/Logs" "Logs de apps do usuário" || return $?
 
     clean_trash
     stop_section_spinner
@@ -348,10 +348,10 @@ _clean_recent_items() {
     )
     if [[ -d "$shared_dir" ]]; then
         for sfl_file in "${recent_lists[@]}"; do
-            [[ -e "$sfl_file" ]] && safe_clean "$sfl_file" "Recent items list" || true
+            [[ -e "$sfl_file" ]] && safe_clean "$sfl_file" "Lista de itens recentes" || true
         done
     fi
-    safe_clean ~/Library/Preferences/com.apple.recentitems.plist "Recent items preferences" || true
+    safe_clean ~/Library/Preferences/com.apple.recentitems.plist "Preferências de itens recentes" || true
 }
 
 _incomplete_download_delete_guard_allows() {
@@ -385,7 +385,7 @@ _clean_incomplete_downloads() {
     [[ -d "$HOME/Downloads" ]] || return 0
 
     local -a extensions=("download" "crdownload" "part")
-    local -a labels=("Safari incomplete downloads" "Chrome incomplete downloads" "Partial incomplete downloads")
+    local -a labels=("Downloads incompletos do Safari" "Downloads incompletos do Chrome" "Downloads parciais incompletos")
     local i=0
     for ext in "${extensions[@]}"; do
         local label="${labels[$i]}"
@@ -399,12 +399,12 @@ _clean_incomplete_downloads() {
                 return 0
             fi
             if [[ $open_state -eq 0 ]]; then
-                echo -e "  ${GRAY}${ICON_WARNING}${NC} Skipping active download: $(basename "$f")"
+                echo -e "  ${GRAY}${ICON_WARNING}${NC} Ignorando download ativo: $(basename "$f")"
                 note_activity
                 continue
             fi
             if [[ $open_state -eq 2 ]]; then
-                echo -e "  ${GRAY}${ICON_WARNING}${NC} Skipping incomplete download (open-file check unavailable): $(basename "$f")"
+                echo -e "  ${GRAY}${ICON_WARNING}${NC} Ignorando download incompleto (verificação de arquivo aberto indisponível): $(basename "$f")"
                 note_activity
                 continue
             fi
@@ -416,7 +416,7 @@ _clean_incomplete_downloads() {
                 return 0
             fi
             if [[ $guarded_rc -eq 75 ]]; then
-                echo -e "  ${GRAY}${ICON_WARNING}${NC} Skipping incomplete download after final open-file check: $(basename "$f")"
+                echo -e "  ${GRAY}${ICON_WARNING}${NC} Ignorando download incompleto após a verificação final de arquivo aberto: $(basename "$f")"
                 note_activity
             fi
         done
@@ -497,7 +497,7 @@ _clean_mail_downloads() {
     for target_path in "${mail_dirs[@]}"; do
         if [[ -d "$target_path" ]]; then
             if [[ "$spinner_active" == "false" && -t 1 ]]; then
-                start_section_spinner "Cleaning old Mail attachments..."
+                start_section_spinner "Limpando anexos antigos do Mail..."
                 spinner_active=true
             fi
             local dir_size_kb=0
@@ -513,7 +513,7 @@ _clean_mail_downloads() {
                     # signal keeps its cancellation semantics.
                     [[ "$spinner_active" == "true" ]] && stop_section_spinner
                     spinner_active=false
-                    echo -e "  ${GRAY}${ICON_WARNING}${NC} Mail Downloads · skipped (sizing unavailable)"
+                    echo -e "  ${GRAY}${ICON_WARNING}${NC} Mail Downloads · ignorado (tamanho indisponível)"
                     note_activity
                     continue
                 fi
@@ -577,9 +577,9 @@ _clean_mail_downloads() {
         local cleaned_mb
         cleaned_mb=$(echo "$cleaned_kb" | awk '{printf "%.1f", $1/1024}' || echo "0.0")
         if [[ "$dry_run_mode" == "true" ]]; then
-            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Would clean $count mail attachments older than ${mail_age_days}d, about ${cleaned_mb}MB"
+            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Limparia $count anexos de e-mail com mais de ${mail_age_days}d, cerca de ${cleaned_mb}MB"
         else
-            echo -e "  ${GREEN}${ICON_SUCCESS}${NC} Cleaned $count mail attachments older than ${mail_age_days}d, about ${cleaned_mb}MB"
+            echo -e "  ${GREEN}${ICON_SUCCESS}${NC} Limpou $count anexos de e-mail com mais de ${mail_age_days}d, cerca de ${cleaned_mb}MB"
         fi
         note_activity
     fi
@@ -634,7 +634,7 @@ _clean_chromium_old_versions() {
         # Verify the Current symlink target exists. If broken, skip to avoid
         # accidentally deleting the active browser version.
         if [[ ! -d "$versions_dir/$current_version" ]]; then
-            echo -e "  ${GRAY}${ICON_WARNING}${NC} ${label} old versions · skipped (Current symlink broken)"
+            echo -e "  ${GRAY}${ICON_WARNING}${NC} Versões antigas do ${label} · ignorado (link simbólico Current quebrado)"
             note_activity
             continue
         fi
@@ -687,7 +687,7 @@ _clean_chromium_old_versions() {
         "$running_probe" || process_state=$?
         if [[ $process_state -ne 1 ]]; then
             if [[ $process_state -eq 2 ]]; then
-                echo -e "  ${GRAY}${ICON_WARNING}${NC} ${label} old versions · skipped (process state unknown)"
+                echo -e "  ${GRAY}${ICON_WARNING}${NC} Versões antigas do ${label} · ignorado (estado do processo desconhecido)"
                 note_activity
             else
                 mole_defer_cleanup_family "$label"
@@ -748,18 +748,18 @@ _clean_chromium_old_versions() {
         local size_human
         size_human=$(bytes_to_human "$((total_size * 1024))")
         if [[ "$DRY_RUN" == "true" ]]; then
-            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} ${label} old versions${NC} · ${YELLOW}$(mole_count_label "${cleaned_count}" dir), $(colorize_human_size "$size_human") ${YELLOW}dry${NC}"
+            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Versões antigas do ${label}${NC} · ${YELLOW}$(mole_count_label "${cleaned_count}" dir), $(colorize_human_size "$size_human") ${YELLOW}simulação${NC}"
         else
             local line_color
             line_color=$(cleanup_result_color_kb "$total_size")
-            echo -e "  ${line_color}${ICON_SUCCESS}${NC} ${label} old versions${NC} · ${line_color}$(mole_count_label "${cleaned_count}" dir), $(colorize_human_size "${size_human}")"
+            echo -e "  ${line_color}${ICON_SUCCESS}${NC} Versões antigas do ${label}${NC} · ${line_color}$(mole_count_label "${cleaned_count}" dir), $(colorize_human_size "${size_human}")"
         fi
         mole_add_cleaned_row "$cleaned_count" "$total_size"
         note_activity
     fi
     if [[ -n "$stopped_reason" ]]; then
         if [[ "$stopped_reason" == "process state unknown" ]]; then
-            echo -e "  ${GRAY}${ICON_WARNING}${NC} ${label} old versions · stopped (${stopped_reason})"
+            echo -e "  ${GRAY}${ICON_WARNING}${NC} Versões antigas do ${label} · interrompido (${stopped_reason})"
             note_activity
         else
             mole_defer_cleanup_family "$label"
@@ -828,48 +828,48 @@ _utm_process_state() {
 }
 
 _clean_chrome_profile_caches_guarded() {
-    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Chrome app cache" \
-        ~/Library/Application\ Support/Google/Chrome/*/Application\ Cache/* "Chrome app cache" || return 1
-    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Chrome code cache" \
-        ~/Library/Application\ Support/Google/Chrome/*/Code\ Cache/* "Chrome code cache" || return 1
-    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Chrome GPU cache" \
-        ~/Library/Application\ Support/Google/Chrome/*/GPUCache/* "Chrome GPU cache" || return 1
-    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Chrome Dawn cache" \
-        ~/Library/Application\ Support/Google/Chrome/*/DawnCache/* "Chrome Dawn cache" || return 1
-    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Chrome GR shader cache" \
-        ~/Library/Application\ Support/Google/Chrome/*/GrShaderCache/* "Chrome GR shader cache" || return 1
-    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Chrome Graphite Dawn cache" \
-        ~/Library/Application\ Support/Google/Chrome/*/GraphiteDawnCache/* "Chrome Graphite Dawn cache" || return 1
-    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Chrome component CRX cache" \
-        ~/Library/Application\ Support/Google/Chrome/component_crx_cache/* "Chrome component CRX cache" || return 1
-    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Chrome shader cache" \
-        ~/Library/Application\ Support/Google/Chrome/ShaderCache/* "Chrome shader cache" || return 1
-    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Chrome GR shader cache" \
-        ~/Library/Application\ Support/Google/Chrome/GrShaderCache/* "Chrome GR shader cache" || return 1
-    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Chrome Dawn cache" \
-        ~/Library/Application\ Support/Google/Chrome/GraphiteDawnCache/* "Chrome Dawn cache" || return 1
-    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Chrome crash reports" \
-        ~/Library/Application\ Support/Google/Chrome/Crashpad/completed/* "Chrome crash reports" || return 1
-    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Chrome on-device model cache" \
-        ~/Library/Application\ Support/Google/Chrome/OptGuideOnDeviceModel/* "Chrome on-device model cache" || return 1
-    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Chrome on-device classifier cache" \
-        ~/Library/Application\ Support/Google/Chrome/OptGuideOnDeviceClassifierModel/* "Chrome on-device classifier cache" || return 1
-    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Chrome optimization guide models" \
-        ~/Library/Application\ Support/Google/Chrome/optimization_guide_model_store/* "Chrome optimization guide models" || return 1
+    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Cache de apps do Chrome" \
+        ~/Library/Application\ Support/Google/Chrome/*/Application\ Cache/* "Cache de apps do Chrome" || return 1
+    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Cache de código do Chrome" \
+        ~/Library/Application\ Support/Google/Chrome/*/Code\ Cache/* "Cache de código do Chrome" || return 1
+    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Cache de GPU do Chrome" \
+        ~/Library/Application\ Support/Google/Chrome/*/GPUCache/* "Cache de GPU do Chrome" || return 1
+    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Cache Dawn do Chrome" \
+        ~/Library/Application\ Support/Google/Chrome/*/DawnCache/* "Cache Dawn do Chrome" || return 1
+    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Cache de shader GR do Chrome" \
+        ~/Library/Application\ Support/Google/Chrome/*/GrShaderCache/* "Cache de shader GR do Chrome" || return 1
+    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Cache Graphite Dawn do Chrome" \
+        ~/Library/Application\ Support/Google/Chrome/*/GraphiteDawnCache/* "Cache Graphite Dawn do Chrome" || return 1
+    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Cache CRX de componentes do Chrome" \
+        ~/Library/Application\ Support/Google/Chrome/component_crx_cache/* "Cache CRX de componentes do Chrome" || return 1
+    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Cache de shader do Chrome" \
+        ~/Library/Application\ Support/Google/Chrome/ShaderCache/* "Cache de shader do Chrome" || return 1
+    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Cache de shader GR do Chrome" \
+        ~/Library/Application\ Support/Google/Chrome/GrShaderCache/* "Cache de shader GR do Chrome" || return 1
+    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Cache Dawn do Chrome" \
+        ~/Library/Application\ Support/Google/Chrome/GraphiteDawnCache/* "Cache Dawn do Chrome" || return 1
+    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Relatórios de falha do Chrome" \
+        ~/Library/Application\ Support/Google/Chrome/Crashpad/completed/* "Relatórios de falha do Chrome" || return 1
+    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Cache de modelos locais do Chrome" \
+        ~/Library/Application\ Support/Google/Chrome/OptGuideOnDeviceModel/* "Cache de modelos locais do Chrome" || return 1
+    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Cache de classificadores locais do Chrome" \
+        ~/Library/Application\ Support/Google/Chrome/OptGuideOnDeviceClassifierModel/* "Cache de classificadores locais do Chrome" || return 1
+    _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Modelos do guia de otimização do Chrome" \
+        ~/Library/Application\ Support/Google/Chrome/optimization_guide_model_store/* "Modelos do guia de otimização do Chrome" || return 1
 }
 
 _clean_firefox_caches_guarded() {
-    _user_safe_clean_process_guarded _firefox_process_state "Firefox" "Firefox cache" \
-        ~/Library/Caches/Firefox/* "Firefox cache" || return 1
-    _user_safe_clean_process_guarded _firefox_process_state "Firefox" "Firefox profile cache" \
-        ~/Library/Application\ Support/Firefox/Profiles/*/cache2/* "Firefox profile cache" || return 1
+    _user_safe_clean_process_guarded _firefox_process_state "Firefox" "Cache do Firefox" \
+        ~/Library/Caches/Firefox/* "Cache do Firefox" || return 1
+    _user_safe_clean_process_guarded _firefox_process_state "Firefox" "Cache de perfil do Firefox" \
+        ~/Library/Application\ Support/Firefox/Profiles/*/cache2/* "Cache de perfil do Firefox" || return 1
 }
 
 _clean_dropbox_caches_guarded() {
-    _user_safe_clean_process_guarded _dropbox_process_state "Dropbox" "Dropbox cache" \
-        ~/Library/Caches/com.dropbox.* "Dropbox cache" || return 1
-    _user_safe_clean_process_guarded _dropbox_process_state "Dropbox" "Dropbox cache" \
-        ~/Library/Caches/com.getdropbox.dropbox "Dropbox cache" || return 1
+    _user_safe_clean_process_guarded _dropbox_process_state "Dropbox" "Cache do Dropbox" \
+        ~/Library/Caches/com.dropbox.* "Cache do Dropbox" || return 1
+    _user_safe_clean_process_guarded _dropbox_process_state "Dropbox" "Cache do Dropbox" \
+        ~/Library/Caches/com.getdropbox.dropbox "Cache do Dropbox" || return 1
 }
 
 # Remove old Google Chrome versions while keeping Current.
@@ -968,7 +968,7 @@ clean_edge_updater_old_versions() {
     is_microsoft_edge_running || process_state=$?
     if [[ $process_state -ne 1 ]]; then
         if [[ $process_state -eq 2 ]]; then
-            echo -e "  ${GRAY}${ICON_WARNING}${NC} Edge updater old versions · skipped (process state unknown)"
+            echo -e "  ${GRAY}${ICON_WARNING}${NC} Versões antigas do atualizador do Edge · ignorado (estado do processo desconhecido)"
             note_activity
         else
             mole_defer_cleanup_family "Edge"
@@ -1016,18 +1016,18 @@ clean_edge_updater_old_versions() {
         local size_human
         size_human=$(bytes_to_human "$((total_size * 1024))")
         if [[ "$DRY_RUN" == "true" ]]; then
-            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Edge updater old versions${NC} · ${YELLOW}$(mole_count_label "${cleaned_count}" dir), $(colorize_human_size "$size_human") ${YELLOW}dry${NC}"
+            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Versões antigas do atualizador do Edge${NC} · ${YELLOW}$(mole_count_label "${cleaned_count}" dir), $(colorize_human_size "$size_human") ${YELLOW}simulação${NC}"
         else
             local line_color
             line_color=$(cleanup_result_color_kb "$total_size")
-            echo -e "  ${line_color}${ICON_SUCCESS}${NC} Edge updater old versions${NC} · ${line_color}$(mole_count_label "${cleaned_count}" dir), $(colorize_human_size "${size_human}")"
+            echo -e "  ${line_color}${ICON_SUCCESS}${NC} Versões antigas do atualizador do Edge${NC} · ${line_color}$(mole_count_label "${cleaned_count}" dir), $(colorize_human_size "${size_human}")"
         fi
         mole_add_cleaned_row "$cleaned_count" "$total_size"
         note_activity
     fi
     if [[ -n "$stopped_reason" ]]; then
         if [[ "$stopped_reason" == "process state unknown" ]]; then
-            echo -e "  ${GRAY}${ICON_WARNING}${NC} Edge updater old versions · stopped (${stopped_reason})"
+            echo -e "  ${GRAY}${ICON_WARNING}${NC} Versões antigas do atualizador do Edge · interrompido (${stopped_reason})"
             note_activity
         else
             mole_defer_cleanup_family "Edge"
@@ -1056,7 +1056,7 @@ clean_finder_metadata() {
     if [[ "$PROTECT_FINDER_METADATA" == "true" ]]; then
         return
     fi
-    clean_ds_store_tree "$HOME" "Home directory, .DS_Store"
+    clean_ds_store_tree "$HOME" "Pasta pessoal, .DS_Store"
 }
 
 # Conservative cleanup for support caches not covered by generic rules.
@@ -1079,9 +1079,9 @@ clean_support_app_data() {
     # protects these assets alongside com.apple.wallpaper (#1118).
 
     # Do not touch Messages attachments, only preview/sticker caches.
-    safe_clean ~/Library/Messages/StickerCache/* "Messages sticker cache"
-    safe_clean ~/Library/Messages/Caches/Previews/Attachments/* "Messages preview attachment cache"
-    safe_clean ~/Library/Messages/Caches/Previews/StickerCache/* "Messages preview sticker cache"
+    safe_clean ~/Library/Messages/StickerCache/* "Cache de stickers do Mensagens"
+    safe_clean ~/Library/Messages/Caches/Previews/Attachments/* "Cache de prévia de anexos do Mensagens"
+    safe_clean ~/Library/Messages/Caches/Previews/StickerCache/* "Cache de prévia de stickers do Mensagens"
 }
 
 # App caches (merged: macOS system caches + Sandboxed apps).
@@ -1234,7 +1234,7 @@ _clean_wallpaper_renders() {
         return "$wallpaper_rc"
     fi
     if [[ ${#_MOLE_WALLPAPER_RENDERS[@]} -gt 0 ]]; then
-        safe_clean "${_MOLE_WALLPAPER_RENDERS[@]}" "Wallpaper agent cache"
+        safe_clean "${_MOLE_WALLPAPER_RENDERS[@]}" "Cache do agente de papel de parede"
     fi
     return 0
 }
@@ -1243,27 +1243,27 @@ clean_app_caches() {
     # Every App Container handle probe in this section shares one wall-clock
     # budget, including the explicit Apple cache rows before the generic scan.
     local _MOLE_CONTAINER_CACHE_PROBE_DEADLINE=""
-    start_section_spinner "Scanning app caches..."
+    start_section_spinner "Analisando caches de apps..."
 
     # macOS system caches (merged from clean_macos_system_caches)
-    safe_clean ~/Library/Saved\ Application\ State/* "Saved application states" || true
-    safe_clean ~/Library/Caches/com.apple.photoanalysisd "Photo analysis cache" || true
-    safe_clean ~/Library/Caches/com.apple.akd "Apple ID cache" || true
-    safe_clean ~/Library/Caches/com.apple.WebKit.Networking/* "WebKit network cache" || true
-    _clean_user_log_directory "$HOME/Library/DiagnosticReports" "Diagnostic reports" || return $?
-    safe_clean ~/Library/Caches/com.apple.QuickLook.thumbnailcache "QuickLook thumbnails" || true
-    safe_clean ~/Library/Caches/Quick\ Look/* "QuickLook cache" || true
-    safe_clean ~/Library/Caches/com.apple.iconservices* "Icon services cache" || true
+    safe_clean ~/Library/Saved\ Application\ State/* "Estados salvos de aplicativos" || true
+    safe_clean ~/Library/Caches/com.apple.photoanalysisd "Cache de análise de fotos" || true
+    safe_clean ~/Library/Caches/com.apple.akd "Cache do Apple ID" || true
+    safe_clean ~/Library/Caches/com.apple.WebKit.Networking/* "Cache de rede do WebKit" || true
+    _clean_user_log_directory "$HOME/Library/DiagnosticReports" "Relatórios de diagnóstico" || return $?
+    safe_clean ~/Library/Caches/com.apple.QuickLook.thumbnailcache "Miniaturas do QuickLook" || true
+    safe_clean ~/Library/Caches/Quick\ Look/* "Cache do QuickLook" || true
+    safe_clean ~/Library/Caches/com.apple.iconservices* "Cache de serviços de ícones" || true
     _clean_incomplete_downloads
     # Do not clean ~/Library/Autosave Information by default: it can contain
     # recoverable user documents, not only disposable cache data.
-    safe_clean ~/Library/IdentityCaches/* "Identity caches" || true
-    safe_clean ~/Library/Suggestions/* "Siri suggestions cache" || true
+    safe_clean ~/Library/IdentityCaches/* "Caches de identidade" || true
+    safe_clean ~/Library/Suggestions/* "Cache de sugestões da Siri" || true
     # Do not clean ~/Library/Calendars/Calendar Cache*: CalendarAgent keeps this
     # SQLite index open in the background. Deleting it while the daemon is
     # running can crash Calendar.app until logout/login (#1508). Apple treats
     # this as a manual troubleshooting step, not routine cache maintenance.
-    safe_clean ~/Library/Application\ Support/AddressBook/Sources/*/Photos.cache "Address Book photo cache" || true
+    safe_clean ~/Library/Application\ Support/AddressBook/Sources/*/Photos.cache "Cache de fotos do Contatos" || true
     local support_rc=0
     clean_support_app_data || support_rc=$?
     if mole_rc_signal "$support_rc"; then
@@ -1275,35 +1275,35 @@ clean_app_caches() {
 
     # Sandboxed app caches
     _clean_wallpaper_renders || return $?
-    safe_clean ~/Library/Containers/com.apple.mediaanalysisd/Data/Library/Caches/* "Media analysis cache"
-    safe_clean ~/Library/Containers/com.apple.mediaanalysisd/Data/tmp/* "Media analysis temp files"
-    safe_clean ~/Library/Containers/com.apple.AppStore/Data/Library/Caches/* "App Store cache"
-    safe_clean ~/Library/Containers/com.apple.configurator.xpc.InternetService/Data/tmp/* "Apple Configurator temp files"
-    safe_clean ~/Library/Containers/com.apple.wallpaper.extension.aerials/Data/tmp/* "Wallpaper aerials temp files"
-    safe_clean ~/Library/Containers/com.apple.geod/Data/tmp/* "Geod temp files"
-    safe_clean ~/Library/Containers/com.apple.stocks/Data/Library/Caches/* "Stocks cache"
+    safe_clean ~/Library/Containers/com.apple.mediaanalysisd/Data/Library/Caches/* "Cache de análise de mídia"
+    safe_clean ~/Library/Containers/com.apple.mediaanalysisd/Data/tmp/* "Arquivos temporários de análise de mídia"
+    safe_clean ~/Library/Containers/com.apple.AppStore/Data/Library/Caches/* "Cache da App Store"
+    safe_clean ~/Library/Containers/com.apple.configurator.xpc.InternetService/Data/tmp/* "Arquivos temporários do Apple Configurator"
+    safe_clean ~/Library/Containers/com.apple.wallpaper.extension.aerials/Data/tmp/* "Arquivos temporários de papéis de parede aéreos"
+    safe_clean ~/Library/Containers/com.apple.geod/Data/tmp/* "Arquivos temporários do Geod"
+    safe_clean ~/Library/Containers/com.apple.stocks/Data/Library/Caches/* "Cache de Bolsa"
     # Do NOT clean ~/Library/Application Support/com.apple.wallpaper/aerials/
     # thumbnails: those ~50KB PNGs are the wallpaper "cover" previews shown in
     # System Settings > Wallpaper. Deleting them reclaims almost nothing yet
     # blanks every cover into a cloud-download placeholder and forces a
     # re-download on the next open (issue #1118).
     safe_clean ~/Library/Caches/com.apple.helpd/* "macOS Help system cache"
-    safe_clean ~/Library/Caches/GeoServices/* "Maps geo tile cache"
-    safe_clean ~/Library/Containers/com.apple.AvatarUI.AvatarPickerMemojiPicker/Data/Library/Caches/* "Memoji picker cache"
-    safe_clean ~/Library/Containers/com.apple.AMPArtworkAgent/Data/Library/Caches/* "Music album art cache"
-    safe_clean ~/Library/Containers/com.apple.CoreDevice.CoreDeviceService/Data/Library/Caches/* "CoreDevice service cache"
-    safe_clean ~/Library/Containers/com.apple.NeptuneOneExtension/Data/Library/Caches/* "Apple Intelligence extension cache"
-    safe_clean ~/Library/Containers/com.apple.AppleMediaServicesUI.UtilityExtension/Data/tmp/* "Apple Media Services temp files"
-    safe_clean ~/Library/Caches/com.apple.AppleMediaServices/* "Apple Media Services cache"
-    safe_clean ~/Library/Caches/com.apple.duetexpertd/* "Duet Expert cache"
-    safe_clean ~/Library/Caches/com.apple.parsecd/* "Parsecd cache"
-    safe_clean ~/Library/Caches/com.apple.python/* "Apple Python cache"
+    safe_clean ~/Library/Caches/GeoServices/* "Cache de blocos geográficos do Mapas"
+    safe_clean ~/Library/Containers/com.apple.AvatarUI.AvatarPickerMemojiPicker/Data/Library/Caches/* "Cache do seletor de Memoji"
+    safe_clean ~/Library/Containers/com.apple.AMPArtworkAgent/Data/Library/Caches/* "Cache de capas de álbuns do Música"
+    safe_clean ~/Library/Containers/com.apple.CoreDevice.CoreDeviceService/Data/Library/Caches/* "Cache do serviço CoreDevice"
+    safe_clean ~/Library/Containers/com.apple.NeptuneOneExtension/Data/Library/Caches/* "Cache de extensões do Apple Intelligence"
+    safe_clean ~/Library/Containers/com.apple.AppleMediaServicesUI.UtilityExtension/Data/tmp/* "Arquivos temporários do Apple Media Services"
+    safe_clean ~/Library/Caches/com.apple.AppleMediaServices/* "Cache do Apple Media Services"
+    safe_clean ~/Library/Caches/com.apple.duetexpertd/* "Cache do Duet Expert"
+    safe_clean ~/Library/Caches/com.apple.parsecd/* "Cache do Parsecd"
+    safe_clean ~/Library/Caches/com.apple.python/* "Cache do Python da Apple"
     # The E5RT bundle cache used to be cleaned here. It is now protected by
     # holds_compiled_model_cache(): wiping it under a running daemon breaks
     # recognition until that daemon restarts, for a few MB.
     local containers_dir="$HOME/Library/Containers"
     [[ ! -d "$containers_dir" ]] && return 0
-    start_section_spinner "Scanning sandboxed apps..."
+    start_section_spinner "Analisando apps em sandbox..."
     local total_size=0
     local total_size_partial=false
     local cleaned_count=0
@@ -1328,21 +1328,21 @@ clean_app_caches() {
     if [[ "$found_any" == "true" ]]; then
         if [[ "$DRY_RUN" == "true" ]]; then
             if [[ "$total_size_partial" == "true" ]]; then
-                echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Sandboxed app caches${NC} · ${YELLOW}dry${NC}"
+                echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Caches de apps em sandbox${NC} · ${YELLOW}simulação${NC}"
             else
                 local size_human
                 size_human=$(bytes_to_human "$((total_size * 1024))")
-                echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Sandboxed app caches${NC} · $(colorize_human_size "$size_human") ${YELLOW}dry${NC}"
+                echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Caches de apps em sandbox${NC} · $(colorize_human_size "$size_human") ${YELLOW}simulação${NC}"
             fi
         else
             if [[ "$total_size_partial" == "true" ]]; then
-                echo -e "  ${GREEN}${ICON_SUCCESS}${NC} Sandboxed app caches${NC} · ${GREEN}cleaned${NC}"
+                echo -e "  ${GREEN}${ICON_SUCCESS}${NC} Caches de apps em sandbox${NC} · ${GREEN}limpo${NC}"
             else
                 local size_human
                 size_human=$(bytes_to_human "$((total_size * 1024))")
                 local line_color
                 line_color=$(cleanup_result_color_kb "$total_size")
-                echo -e "  ${line_color}${ICON_SUCCESS}${NC} Sandboxed app caches${NC} · $(colorize_human_size "${size_human}")"
+                echo -e "  ${line_color}${ICON_SUCCESS}${NC} Caches de apps em sandbox${NC} · $(colorize_human_size "${size_human}")"
             fi
         fi
         mole_add_cleaned_row "$cleaned_count" "$total_size"
@@ -1400,11 +1400,11 @@ clean_handoff_pasteboard_cache() {
     local size_human
     size_human=$(bytes_to_human "$((total_kb * 1024))")
     if [[ "$DRY_RUN" == "true" ]]; then
-        echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Handoff clipboard cache${NC} · $(colorize_human_size "$size_human") ${YELLOW}dry${NC}"
+        echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Cache da área de transferência do Handoff${NC} · $(colorize_human_size "$size_human") ${YELLOW}simulação${NC}"
     else
         local line_color
         line_color=$(cleanup_result_color_kb "$total_kb")
-        echo -e "  ${line_color}${ICON_SUCCESS}${NC} Handoff clipboard cache${NC} · $(colorize_human_size "${size_human}")"
+        echo -e "  ${line_color}${ICON_SUCCESS}${NC} Cache da área de transferência do Handoff${NC} · $(colorize_human_size "${size_human}")"
     fi
     mole_add_cleaned_row "$cleaned_count" "$total_kb"
     note_activity
@@ -1516,7 +1516,7 @@ clean_group_container_caches() {
         return 0
     fi
 
-    start_section_spinner "Scanning Group Containers..."
+    start_section_spinner "Analisando Group Containers..."
     local total_size=0
     local total_size_partial=false
     local cleaned_count=0
@@ -1685,21 +1685,21 @@ clean_group_container_caches() {
     if [[ "$found_any" == "true" ]]; then
         if [[ "$DRY_RUN" == "true" ]]; then
             if [[ "$total_size_partial" == "true" ]]; then
-                echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Group Containers logs/caches${NC} · ${YELLOW}dry${NC}"
+                echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Logs/caches de Group Containers${NC} · ${YELLOW}simulação${NC}"
             else
                 local size_human
                 size_human=$(bytes_to_human "$((total_size * 1024))")
-                echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Group Containers logs/caches${NC} · $(colorize_human_size "$size_human") ${YELLOW}dry${NC}"
+                echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Logs/caches de Group Containers${NC} · $(colorize_human_size "$size_human") ${YELLOW}simulação${NC}"
             fi
         else
             if [[ "$total_size_partial" == "true" ]]; then
-                echo -e "  ${GREEN}${ICON_SUCCESS}${NC} Group Containers logs/caches${NC} · ${GREEN}cleaned${NC}"
+                echo -e "  ${GREEN}${ICON_SUCCESS}${NC} Logs/caches de Group Containers${NC} · ${GREEN}limpo${NC}"
             else
                 local size_human
                 size_human=$(bytes_to_human "$((total_size * 1024))")
                 local line_color
                 line_color=$(cleanup_result_color_kb "$total_size")
-                echo -e "  ${line_color}${ICON_SUCCESS}${NC} Group Containers logs/caches${NC} · $(colorize_human_size "${size_human}")"
+                echo -e "  ${line_color}${ICON_SUCCESS}${NC} Logs/caches de Group Containers${NC} · $(colorize_human_size "${size_human}")"
             fi
         fi
         mole_add_cleaned_row "$cleaned_count" "$total_size"
@@ -1736,36 +1736,36 @@ validate_external_volume_target() {
     resolved_root="${resolved_root%/}"
 
     if [[ -z "$target" ]]; then
-        echo "Missing external volume path" >&2
+        echo "Caminho do volume externo ausente" >&2
         return 1
     fi
     if [[ "$target" != /* ]]; then
-        echo "External volume path must be absolute: $target" >&2
+        echo "O caminho do volume externo deve ser absoluto: $target" >&2
         return 1
     fi
     if [[ "$target" == "$root" || "$target" == "$resolved_root" ]]; then
-        echo "Refusing to clean the volumes root directly: $resolved_root" >&2
+        echo "Recusando limpar diretamente a raiz de volumes: $resolved_root" >&2
         return 1
     fi
     if [[ -L "$target" ]]; then
-        echo "Refusing to clean symlinked volume path: $target" >&2
+        echo "Recusando limpar caminho de volume que é link simbólico: $target" >&2
         return 1
     fi
 
     local resolved
     resolved=$(resolve_existing_path "$target") || {
-        echo "External volume path does not exist: $target" >&2
+        echo "O caminho do volume externo não existe: $target" >&2
         return 1
     }
 
     if [[ "$resolved" != "$resolved_root/"* ]]; then
-        echo "External volume path must be under $resolved_root: $resolved" >&2
+        echo "O caminho do volume externo deve estar em $resolved_root: $resolved" >&2
         return 1
     fi
 
     local relative_path="${resolved#"$resolved_root"/}"
     if [[ -z "$relative_path" || "$relative_path" == "$resolved" || "$relative_path" == */* ]]; then
-        echo "External cleanup only supports mounted paths directly under $resolved_root: $resolved" >&2
+        echo "A limpeza externa só aceita caminhos montados diretamente em $resolved_root: $resolved" >&2
         return 1
     fi
 
@@ -1778,18 +1778,18 @@ validate_external_volume_target() {
         ! internal=$(printf '%s' "$disk_info" | /usr/bin/plutil -extract Internal raw -expect bool -o - - 2> /dev/null) ||
         ! protocol=$(printf '%s' "$disk_info" | /usr/bin/plutil -extract BusProtocol raw -expect string -o - - 2> /dev/null) ||
         [[ -z "$protocol" ]]; then
-        echo "Refusing to clean a volume diskutil could not describe: $resolved" >&2
-        echo "Check that it is still mounted with diskutil info -plist \"$resolved\", then retry" >&2
+        echo "Recusando limpar volume que o diskutil não conseguiu descrever: $resolved" >&2
+        echo "Verifique se ele ainda está montado com diskutil info -plist \"$resolved\", e tente novamente" >&2
         return 1
     fi
     if [[ "$internal" != "false" ]]; then
-        echo "Refusing to clean an internal volume: $resolved" >&2
+        echo "Recusando limpar um volume interno: $resolved" >&2
         return 1
     fi
 
     case "$protocol" in
         SMB | NFS | AFP | CIFS | WebDAV)
-            echo "Refusing to clean network volume protocol $protocol: $resolved" >&2
+            echo "Recusando limpar volume de protocolo de rede $protocol: $resolved" >&2
             return 1
             ;;
     esac
@@ -1832,14 +1832,14 @@ _report_external_metadata_failure() {
     local next_step=""
     case "$first_detail" in
         *'Permission denied'* | *'Operation not permitted'*)
-            next_step="Check this path's permissions and your terminal's disk access in System Settings."
+            next_step="Verifique as permissões deste caminho e o acesso a disco do seu terminal em Ajustes do Sistema."
             ;;
         *'No such file or directory'* | *'Device not configured'*)
-            next_step="Check that the external volume is still connected."
+            next_step="Verifique se o volume externo ainda está conectado."
             ;;
         *)
             _mole_escape_log_value next_step "$LOG_FILE"
-            next_step="Details: $next_step"
+            next_step="Detalhes: $next_step"
             ;;
     esac
     printf '  %b%s%b\n' "$GRAY" "$next_step" "$NC"
@@ -1851,7 +1851,7 @@ clean_external_volume_target() {
     [[ -L "$volume" ]] && return 1
 
     if ! _mole_snapshot_path_identity "$volume"; then
-        echo -e "  ${YELLOW}${ICON_WARNING}${NC} External volume cleanup · ${GRAY}could not bind mounted volume, no changes${NC}"
+        echo -e "  ${YELLOW}${ICON_WARNING}${NC} Limpeza de volume externo · ${GRAY}não foi possível vincular o volume montado, nenhuma alteração${NC}"
         note_activity
         return 1
     fi
@@ -1873,7 +1873,7 @@ clean_external_volume_target() {
     local found_any=false
     local volume_name="${volume##*/}"
 
-    start_section_spinner "Scanning external volume..."
+    start_section_spinner "Analisando volume externo..."
 
     # Materialize the complete AppleDouble inventory before any external-volume
     # mutation. A timed-out find can leave a valid-looking prefix on stdout;
@@ -1885,7 +1885,7 @@ clean_external_volume_target() {
     if ! metadata_scan_file=$(mktemp_file "external-volume-metadata") ||
         ! metadata_scan_errors=$(create_temp_file); then
         stop_section_spinner
-        echo -e "  ${YELLOW}${ICON_WARNING}${NC} External volume cleanup · ${GRAY}could not prepare scan, no changes${NC}"
+        echo -e "  ${YELLOW}${ICON_WARNING}${NC} Limpeza de volume externo · ${GRAY}não foi possível preparar a varredura, nenhuma alteração${NC}"
         note_activity
         return 1
     fi
@@ -1915,11 +1915,11 @@ clean_external_volume_target() {
         : > "$metadata_scan_file" || true
         stop_section_spinner
         if mole_rc_timeout "$metadata_scan_rc"; then
-            echo -e "  ${YELLOW}${ICON_WARNING}${NC} External volume cleanup · ${GRAY}scan timed out, no changes${NC}"
+            echo -e "  ${YELLOW}${ICON_WARNING}${NC} Limpeza de volume externo · ${GRAY}a varredura expirou, nenhuma alteração${NC}"
         elif [[ $metadata_scan_rc -ge 128 ]]; then
-            echo -e "  ${YELLOW}${ICON_WARNING}${NC} External volume cleanup · ${GRAY}scan interrupted, no changes${NC}"
+            echo -e "  ${YELLOW}${ICON_WARNING}${NC} Limpeza de volume externo · ${GRAY}varredura interrompida, nenhuma alteração${NC}"
         else
-            echo -e "  ${YELLOW}${ICON_WARNING}${NC} External volume cleanup · ${GRAY}scan failed, no changes${NC}"
+            echo -e "  ${YELLOW}${ICON_WARNING}${NC} Limpeza de volume externo · ${GRAY}a varredura falhou, nenhuma alteração${NC}"
         fi
         _report_external_metadata_failure "$metadata_scan_errors" "$metadata_scan_rc"
         note_activity
@@ -2034,11 +2034,11 @@ clean_external_volume_target() {
         local size_human
         size_human=$(bytes_to_human "$((total_size * 1024))")
         if [[ "$DRY_RUN" == "true" ]]; then
-            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} External volume cleanup${NC} · ${YELLOW}${volume_name}, $(colorize_human_size "$size_human") ${YELLOW}dry${NC}"
+            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Limpeza de volume externo${NC} · ${YELLOW}${volume_name}, $(colorize_human_size "$size_human") ${YELLOW}simulação${NC}"
         else
             local line_color
             line_color=$(cleanup_result_color_kb "$total_size")
-            echo -e "  ${line_color}${ICON_SUCCESS}${NC} External volume cleanup${NC} · ${line_color}${volume_name}, $(colorize_human_size "${size_human}")"
+            echo -e "  ${line_color}${ICON_SUCCESS}${NC} Limpeza de volume externo${NC} · ${line_color}${volume_name}, $(colorize_human_size "${size_human}")"
         fi
         mole_add_cleaned_row "$cleaned_count" "$total_size"
         note_activity
@@ -2051,13 +2051,13 @@ clean_external_volume_target() {
 clean_browsers() {
     # Refusal reason for the Arc, Brave, Vivaldi, and QQ Browser process guards.
     local _MOLE_CLEAN_GUARD_REASON=""
-    safe_clean ~/Library/Caches/com.apple.Safari/* "Safari cache"
+    safe_clean ~/Library/Caches/com.apple.Safari/* "Cache do Safari"
     # Chrome/Chromium. The Caches root holds the live HTTP disk cache, so it
     # waits for Chrome to quit like the Application Support leaves below; an
     # empty or whitelisted root is not worth a deferral.
     if mole_cleanup_targets_exist "$HOME/Library/Caches/Google/Chrome"/*; then
-        _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Chrome cache" \
-            ~/Library/Caches/Google/Chrome/* "Chrome cache" || true
+        _user_safe_clean_process_guarded is_google_chrome_running "Chrome" "Cache do Chrome" \
+            ~/Library/Caches/Google/Chrome/* "Cache do Chrome" || true
     fi
     # Do not clean Chromium Service Worker ScriptCache. Even when the browser is
     # closed, removing MV3 extension bytecode can break extension service
@@ -2091,43 +2091,43 @@ clean_browsers() {
     elif [[ $chrome_state -eq 0 && "$chrome_support_has_targets" == "true" ]]; then
         mole_defer_cleanup_family "Chrome"
     elif [[ "$chrome_support_has_targets" == "true" ]]; then
-        echo -e "  ${GRAY}${ICON_WARNING}${NC} Chrome profile caches · skipped (process state unknown)"
+        echo -e "  ${GRAY}${ICON_WARNING}${NC} Caches de perfil do Chrome · ignorado (estado do processo desconhecido)"
         note_activity
     fi
     local _chrome_profile
     for _chrome_profile in "$HOME/Library/Application Support/Google/Chrome"/*/; do
         clean_service_worker_cache "Chrome" "${_chrome_profile%/}/Service Worker/CacheStorage"
     done
-    safe_clean ~/Library/Application\ Support/Google/GoogleUpdater/crx_cache/* "GoogleUpdater CRX cache"
-    safe_clean ~/Library/Application\ Support/Google/GoogleUpdater/*.old "GoogleUpdater old files"
-    safe_clean ~/Library/Caches/Chromium/* "Chromium cache"
-    safe_clean ~/.cache/puppeteer/* "Puppeteer browser cache"
-    safe_clean ~/Library/Caches/com.microsoft.edgemac/* "Edge cache"
+    safe_clean ~/Library/Application\ Support/Google/GoogleUpdater/crx_cache/* "Cache CRX do GoogleUpdater"
+    safe_clean ~/Library/Application\ Support/Google/GoogleUpdater/*.old "Arquivos antigos do GoogleUpdater"
+    safe_clean ~/Library/Caches/Chromium/* "Cache do Chromium"
+    safe_clean ~/.cache/puppeteer/* "Cache de navegador do Puppeteer"
+    safe_clean ~/Library/Caches/com.microsoft.edgemac/* "Cache do Edge"
     # Arc Browser.
     if [[ -d ~/Library/Application\ Support/Arc ]]; then
-        safe_clean ~/Library/Caches/company.thebrowser.Browser/* "Arc cache"
+        safe_clean ~/Library/Caches/company.thebrowser.Browser/* "Cache do Arc"
         local _arc_profile
         if mole_clean_process_guard _arc_process_state "Arc started"; then
-            safe_clean ~/Library/Application\ Support/Arc/*/Code\ Cache/* "Arc code cache"
-            safe_clean ~/Library/Application\ Support/Arc/*/GPUCache/* "Arc GPU cache"
-            safe_clean ~/Library/Application\ Support/Arc/*/DawnCache/* "Arc Dawn cache"
-            safe_clean ~/Library/Application\ Support/Arc/*/GrShaderCache/* "Arc GR shader cache"
-            safe_clean ~/Library/Application\ Support/Arc/*/GraphiteDawnCache/* "Arc Graphite Dawn cache"
-            safe_clean ~/Library/Application\ Support/Arc/ShaderCache/* "Arc shader cache"
-            safe_clean ~/Library/Application\ Support/Arc/GrShaderCache/* "Arc GR shader cache"
-            safe_clean ~/Library/Application\ Support/Arc/GraphiteDawnCache/* "Arc Dawn cache"
-            safe_clean ~/Library/Application\ Support/Arc/Crashpad/completed/* "Arc crash reports"
-            safe_clean ~/Library/Application\ Support/Arc/User\ Data/*/Code\ Cache/* "Arc code cache"
-            safe_clean ~/Library/Application\ Support/Arc/User\ Data/*/GPUCache/* "Arc GPU cache"
-            safe_clean ~/Library/Application\ Support/Arc/User\ Data/*/DawnCache/* "Arc Dawn cache"
-            safe_clean ~/Library/Application\ Support/Arc/User\ Data/*/GrShaderCache/* "Arc GR shader cache"
-            safe_clean ~/Library/Application\ Support/Arc/User\ Data/*/GraphiteDawnCache/* "Arc Graphite Dawn cache"
-            safe_clean ~/Library/Application\ Support/Arc/User\ Data/ShaderCache/* "Arc shader cache"
-            safe_clean ~/Library/Application\ Support/Arc/User\ Data/GrShaderCache/* "Arc GR shader cache"
-            safe_clean ~/Library/Application\ Support/Arc/User\ Data/GraphiteDawnCache/* "Arc Dawn cache"
-            safe_clean ~/Library/Application\ Support/Arc/User\ Data/component_crx_cache/* "Arc component CRX cache"
-            safe_clean ~/Library/Application\ Support/Arc/User\ Data/extensions_crx_cache/* "Arc extensions CRX cache"
-            safe_clean ~/Library/Application\ Support/Arc/User\ Data/Crashpad/completed/* "Arc crash reports"
+            safe_clean ~/Library/Application\ Support/Arc/*/Code\ Cache/* "Cache de código do Arc"
+            safe_clean ~/Library/Application\ Support/Arc/*/GPUCache/* "Cache de GPU do Arc"
+            safe_clean ~/Library/Application\ Support/Arc/*/DawnCache/* "Cache Dawn do Arc"
+            safe_clean ~/Library/Application\ Support/Arc/*/GrShaderCache/* "Cache de shader GR do Arc"
+            safe_clean ~/Library/Application\ Support/Arc/*/GraphiteDawnCache/* "Cache Graphite Dawn do Arc"
+            safe_clean ~/Library/Application\ Support/Arc/ShaderCache/* "Cache de shader do Arc"
+            safe_clean ~/Library/Application\ Support/Arc/GrShaderCache/* "Cache de shader GR do Arc"
+            safe_clean ~/Library/Application\ Support/Arc/GraphiteDawnCache/* "Cache Dawn do Arc"
+            safe_clean ~/Library/Application\ Support/Arc/Crashpad/completed/* "Relatórios de falha do Arc"
+            safe_clean ~/Library/Application\ Support/Arc/User\ Data/*/Code\ Cache/* "Cache de código do Arc"
+            safe_clean ~/Library/Application\ Support/Arc/User\ Data/*/GPUCache/* "Cache de GPU do Arc"
+            safe_clean ~/Library/Application\ Support/Arc/User\ Data/*/DawnCache/* "Cache Dawn do Arc"
+            safe_clean ~/Library/Application\ Support/Arc/User\ Data/*/GrShaderCache/* "Cache de shader GR do Arc"
+            safe_clean ~/Library/Application\ Support/Arc/User\ Data/*/GraphiteDawnCache/* "Cache Graphite Dawn do Arc"
+            safe_clean ~/Library/Application\ Support/Arc/User\ Data/ShaderCache/* "Cache de shader do Arc"
+            safe_clean ~/Library/Application\ Support/Arc/User\ Data/GrShaderCache/* "Cache de shader GR do Arc"
+            safe_clean ~/Library/Application\ Support/Arc/User\ Data/GraphiteDawnCache/* "Cache Dawn do Arc"
+            safe_clean ~/Library/Application\ Support/Arc/User\ Data/component_crx_cache/* "Cache CRX de componentes do Arc"
+            safe_clean ~/Library/Application\ Support/Arc/User\ Data/extensions_crx_cache/* "Cache CRX de extensões do Arc"
+            safe_clean ~/Library/Application\ Support/Arc/User\ Data/Crashpad/completed/* "Relatórios de falha do Arc"
         else
             mole_report_guard_stop "Arc profile caches" debug_log "Arc is running, skipping Arc profile caches"
         fi
@@ -2144,7 +2144,7 @@ clean_browsers() {
     # Chromium caches live under ~/Library/Caches/Dia/User Data (HTTP and code)
     # and ~/Library/Application Support/Dia/User Data (GPU and CRX).
     # Only the observed cache leaves are listed below, not Arc's full layout.
-    safe_clean ~/Library/Caches/company.thebrowser.dia/* "Dia cache"
+    safe_clean ~/Library/Caches/company.thebrowser.dia/* "Cache do Dia"
     if [[ -d ~/Library/Application\ Support/Dia ]]; then
         local _dia_profile
         local _dia_process_state=2
@@ -2156,19 +2156,19 @@ clean_browsers() {
             fi
         fi
         if [[ $_dia_process_state -eq 1 ]]; then
-            safe_clean ~/Library/Caches/Dia/User\ Data/*/Cache/* "Dia HTTP cache"
-            safe_clean ~/Library/Caches/Dia/User\ Data/*/Code\ Cache/* "Dia code cache"
-            safe_clean ~/Library/Application\ Support/Dia/User\ Data/GraphiteDawnCache/* "Dia Graphite Dawn cache"
-            safe_clean ~/Library/Application\ Support/Dia/User\ Data/GPUPersistentCache/* "Dia GPU cache"
-            safe_clean ~/Library/Application\ Support/Dia/User\ Data/component_crx_cache/* "Dia component CRX cache"
-            safe_clean ~/Library/Application\ Support/Dia/User\ Data/extensions_crx_cache/* "Dia extensions CRX cache"
-            safe_clean ~/Library/Application\ Support/Dia/User\ Data/*/DawnGraphiteCache/* "Dia Dawn Graphite cache"
-            safe_clean ~/Library/Application\ Support/Dia/User\ Data/*/DawnWebGPUCache/* "Dia Dawn WebGPU cache"
-            safe_clean ~/Library/Application\ Support/Dia/User\ Data/*/GPUCache/* "Dia GPU cache"
+            safe_clean ~/Library/Caches/Dia/User\ Data/*/Cache/* "Cache HTTP do Dia"
+            safe_clean ~/Library/Caches/Dia/User\ Data/*/Code\ Cache/* "Cache de código do Dia"
+            safe_clean ~/Library/Application\ Support/Dia/User\ Data/GraphiteDawnCache/* "Cache Graphite Dawn do Dia"
+            safe_clean ~/Library/Application\ Support/Dia/User\ Data/GPUPersistentCache/* "Cache de GPU do Dia"
+            safe_clean ~/Library/Application\ Support/Dia/User\ Data/component_crx_cache/* "Cache CRX de componentes do Dia"
+            safe_clean ~/Library/Application\ Support/Dia/User\ Data/extensions_crx_cache/* "Cache CRX de extensões do Dia"
+            safe_clean ~/Library/Application\ Support/Dia/User\ Data/*/DawnGraphiteCache/* "Cache Dawn Graphite do Dia"
+            safe_clean ~/Library/Application\ Support/Dia/User\ Data/*/DawnWebGPUCache/* "Cache Dawn WebGPU do Dia"
+            safe_clean ~/Library/Application\ Support/Dia/User\ Data/*/GPUCache/* "Cache de GPU do Dia"
         else
             local _dia_skip_reason="Dia running"
             [[ $_dia_process_state -gt 1 ]] && _dia_skip_reason="process state unknown"
-            echo -e "  ${GRAY}${ICON_WARNING}${NC} Dia Application Support cache · skipped ($_dia_skip_reason)"
+            echo -e "  ${GRAY}${ICON_WARNING}${NC} Cache do Application Support do Dia · ignorado ($_dia_skip_reason)"
             note_activity
         fi
         for _dia_profile in "$HOME/Library/Application Support/Dia/User Data"/*/; do
@@ -2178,22 +2178,22 @@ clean_browsers() {
     fi
     if [[ -d ~/Library/Application\ Support/BraveSoftware ]]; then
         if mole_cleanup_targets_exist "$HOME/Library/Caches/BraveSoftware/Brave-Browser"/*; then
-            _user_safe_clean_process_guarded is_brave_browser_running "Brave" "Brave cache" \
-                ~/Library/Caches/BraveSoftware/Brave-Browser/* "Brave cache" || true
+            _user_safe_clean_process_guarded is_brave_browser_running "Brave" "Cache do Brave" \
+                ~/Library/Caches/BraveSoftware/Brave-Browser/* "Cache do Brave" || true
         fi
         local _brave_profile
         if mole_clean_process_guard is_brave_browser_running "Brave started"; then
-            safe_clean ~/Library/Application\ Support/BraveSoftware/Brave-Browser/*/Application\ Cache/* "Brave app cache"
-            safe_clean ~/Library/Application\ Support/BraveSoftware/Brave-Browser/*/Code\ Cache/* "Brave code cache"
-            safe_clean ~/Library/Application\ Support/BraveSoftware/Brave-Browser/*/GPUCache/* "Brave GPU cache"
-            safe_clean ~/Library/Application\ Support/BraveSoftware/Brave-Browser/*/DawnCache/* "Brave Dawn cache"
-            safe_clean ~/Library/Application\ Support/BraveSoftware/Brave-Browser/*/GrShaderCache/* "Brave GR shader cache"
-            safe_clean ~/Library/Application\ Support/BraveSoftware/Brave-Browser/*/GraphiteDawnCache/* "Brave Graphite Dawn cache"
-            safe_clean ~/Library/Application\ Support/BraveSoftware/Brave-Browser/component_crx_cache/* "Brave component CRX cache"
-            safe_clean ~/Library/Application\ Support/BraveSoftware/Brave-Browser/ShaderCache/* "Brave shader cache"
-            safe_clean ~/Library/Application\ Support/BraveSoftware/Brave-Browser/GrShaderCache/* "Brave GR shader cache"
-            safe_clean ~/Library/Application\ Support/BraveSoftware/Brave-Browser/GraphiteDawnCache/* "Brave Dawn cache"
-            safe_clean ~/Library/Application\ Support/BraveSoftware/Brave-Browser/Crashpad/completed/* "Brave crash reports"
+            safe_clean ~/Library/Application\ Support/BraveSoftware/Brave-Browser/*/Application\ Cache/* "Cache de apps do Brave"
+            safe_clean ~/Library/Application\ Support/BraveSoftware/Brave-Browser/*/Code\ Cache/* "Cache de código do Brave"
+            safe_clean ~/Library/Application\ Support/BraveSoftware/Brave-Browser/*/GPUCache/* "Cache de GPU do Brave"
+            safe_clean ~/Library/Application\ Support/BraveSoftware/Brave-Browser/*/DawnCache/* "Cache Dawn do Brave"
+            safe_clean ~/Library/Application\ Support/BraveSoftware/Brave-Browser/*/GrShaderCache/* "Cache de shader GR do Brave"
+            safe_clean ~/Library/Application\ Support/BraveSoftware/Brave-Browser/*/GraphiteDawnCache/* "Cache Graphite Dawn do Brave"
+            safe_clean ~/Library/Application\ Support/BraveSoftware/Brave-Browser/component_crx_cache/* "Cache CRX de componentes do Brave"
+            safe_clean ~/Library/Application\ Support/BraveSoftware/Brave-Browser/ShaderCache/* "Cache de shader do Brave"
+            safe_clean ~/Library/Application\ Support/BraveSoftware/Brave-Browser/GrShaderCache/* "Cache de shader GR do Brave"
+            safe_clean ~/Library/Application\ Support/BraveSoftware/Brave-Browser/GraphiteDawnCache/* "Cache Dawn do Brave"
+            safe_clean ~/Library/Application\ Support/BraveSoftware/Brave-Browser/Crashpad/completed/* "Relatórios de falha do Brave"
         else
             mole_report_guard_stop "Brave profile caches" debug_log "Brave is running, skipping Brave profile caches"
         fi
@@ -2203,22 +2203,22 @@ clean_browsers() {
     fi
     # Helium Browser.
     if [[ -d ~/Library/Application\ Support/net.imput.helium ]]; then
-        safe_clean ~/Library/Caches/net.imput.helium/* "Helium cache"
-        safe_clean ~/Library/Application\ Support/net.imput.helium/*/GPUCache/* "Helium GPU cache"
-        safe_clean ~/Library/Application\ Support/net.imput.helium/component_crx_cache/* "Helium component cache"
-        safe_clean ~/Library/Application\ Support/net.imput.helium/extensions_crx_cache/* "Helium extensions cache"
-        safe_clean ~/Library/Application\ Support/net.imput.helium/GrShaderCache/* "Helium shader cache"
-        safe_clean ~/Library/Application\ Support/net.imput.helium/GraphiteDawnCache/* "Helium Dawn cache"
-        safe_clean ~/Library/Application\ Support/net.imput.helium/ShaderCache/* "Helium shader cache"
-        safe_clean ~/Library/Application\ Support/net.imput.helium/*/Application\ Cache/* "Helium app cache"
+        safe_clean ~/Library/Caches/net.imput.helium/* "Cache do Helium"
+        safe_clean ~/Library/Application\ Support/net.imput.helium/*/GPUCache/* "Cache de GPU do Helium"
+        safe_clean ~/Library/Application\ Support/net.imput.helium/component_crx_cache/* "Cache de componentes do Helium"
+        safe_clean ~/Library/Application\ Support/net.imput.helium/extensions_crx_cache/* "Cache de extensões do Helium"
+        safe_clean ~/Library/Application\ Support/net.imput.helium/GrShaderCache/* "Cache de shader do Helium"
+        safe_clean ~/Library/Application\ Support/net.imput.helium/GraphiteDawnCache/* "Cache Dawn do Helium"
+        safe_clean ~/Library/Application\ Support/net.imput.helium/ShaderCache/* "Cache de shader do Helium"
+        safe_clean ~/Library/Application\ Support/net.imput.helium/*/Application\ Cache/* "Cache de apps do Helium"
     fi
     # Yandex Browser.
     if [[ -d ~/Library/Application\ Support/Yandex ]]; then
-        safe_clean ~/Library/Caches/Yandex/YandexBrowser/* "Yandex cache"
-        safe_clean ~/Library/Application\ Support/Yandex/YandexBrowser/ShaderCache/* "Yandex shader cache"
-        safe_clean ~/Library/Application\ Support/Yandex/YandexBrowser/GrShaderCache/* "Yandex GR shader cache"
-        safe_clean ~/Library/Application\ Support/Yandex/YandexBrowser/GraphiteDawnCache/* "Yandex Dawn cache"
-        safe_clean ~/Library/Application\ Support/Yandex/YandexBrowser/*/GPUCache/* "Yandex GPU cache"
+        safe_clean ~/Library/Caches/Yandex/YandexBrowser/* "Cache do Yandex"
+        safe_clean ~/Library/Application\ Support/Yandex/YandexBrowser/ShaderCache/* "Cache de shader do Yandex"
+        safe_clean ~/Library/Application\ Support/Yandex/YandexBrowser/GrShaderCache/* "Cache de shader GR do Yandex"
+        safe_clean ~/Library/Application\ Support/Yandex/YandexBrowser/GraphiteDawnCache/* "Cache Dawn do Yandex"
+        safe_clean ~/Library/Application\ Support/Yandex/YandexBrowser/*/GPUCache/* "Cache de GPU do Yandex"
     fi
     local firefox_state=0
     _firefox_process_state || firefox_state=$?
@@ -2233,24 +2233,24 @@ clean_browsers() {
     elif [[ $firefox_state -eq 1 ]]; then
         _clean_firefox_caches_guarded || true
     elif [[ "$firefox_cache_targets" == "true" || "$firefox_profile_cache_targets" == "true" ]]; then
-        echo -e "  ${GRAY}${ICON_WARNING}${NC} Firefox caches · skipped (process state unknown)"
+        echo -e "  ${GRAY}${ICON_WARNING}${NC} Caches do Firefox · ignorado (estado do processo desconhecido)"
         note_activity
     fi
-    safe_clean ~/Library/Caches/com.operasoftware.Opera/* "Opera cache"
+    safe_clean ~/Library/Caches/com.operasoftware.Opera/* "Cache do Opera"
     # Vivaldi Browser.
     if [[ -d ~/Library/Application\ Support/Vivaldi ]]; then
-        safe_clean ~/Library/Caches/com.vivaldi.Vivaldi/* "Vivaldi cache"
+        safe_clean ~/Library/Caches/com.vivaldi.Vivaldi/* "Cache do Vivaldi"
         local _vivaldi_profile
         if mole_clean_process_guard _vivaldi_process_state "Vivaldi started"; then
-            safe_clean ~/Library/Application\ Support/Vivaldi/*/Code\ Cache/* "Vivaldi code cache"
-            safe_clean ~/Library/Application\ Support/Vivaldi/*/GPUCache/* "Vivaldi GPU cache"
-            safe_clean ~/Library/Application\ Support/Vivaldi/*/DawnCache/* "Vivaldi Dawn cache"
-            safe_clean ~/Library/Application\ Support/Vivaldi/*/GrShaderCache/* "Vivaldi GR shader cache"
-            safe_clean ~/Library/Application\ Support/Vivaldi/*/GraphiteDawnCache/* "Vivaldi Graphite Dawn cache"
-            safe_clean ~/Library/Application\ Support/Vivaldi/ShaderCache/* "Vivaldi shader cache"
-            safe_clean ~/Library/Application\ Support/Vivaldi/GrShaderCache/* "Vivaldi GR shader cache"
-            safe_clean ~/Library/Application\ Support/Vivaldi/GraphiteDawnCache/* "Vivaldi Dawn cache"
-            safe_clean ~/Library/Application\ Support/Vivaldi/Crashpad/completed/* "Vivaldi crash reports"
+            safe_clean ~/Library/Application\ Support/Vivaldi/*/Code\ Cache/* "Cache de código do Vivaldi"
+            safe_clean ~/Library/Application\ Support/Vivaldi/*/GPUCache/* "Cache de GPU do Vivaldi"
+            safe_clean ~/Library/Application\ Support/Vivaldi/*/DawnCache/* "Cache Dawn do Vivaldi"
+            safe_clean ~/Library/Application\ Support/Vivaldi/*/GrShaderCache/* "Cache de shader GR do Vivaldi"
+            safe_clean ~/Library/Application\ Support/Vivaldi/*/GraphiteDawnCache/* "Cache Graphite Dawn do Vivaldi"
+            safe_clean ~/Library/Application\ Support/Vivaldi/ShaderCache/* "Cache de shader do Vivaldi"
+            safe_clean ~/Library/Application\ Support/Vivaldi/GrShaderCache/* "Cache de shader GR do Vivaldi"
+            safe_clean ~/Library/Application\ Support/Vivaldi/GraphiteDawnCache/* "Cache Dawn do Vivaldi"
+            safe_clean ~/Library/Application\ Support/Vivaldi/Crashpad/completed/* "Relatórios de falha do Vivaldi"
         else
             mole_report_guard_stop "Vivaldi profile caches" debug_log "Vivaldi is running, skipping Vivaldi profile caches"
         fi
@@ -2258,24 +2258,24 @@ clean_browsers() {
             clean_service_worker_cache "Vivaldi" "${_vivaldi_profile%/}/Service Worker/CacheStorage"
         done
     fi
-    safe_clean ~/Library/Caches/Comet/* "Comet cache"
-    safe_clean ~/Library/Caches/com.kagi.kagimacOS/* "Orion cache"
-    safe_clean ~/Library/Caches/zen/* "Zen cache"
+    safe_clean ~/Library/Caches/Comet/* "Cache do Comet"
+    safe_clean ~/Library/Caches/com.kagi.kagimacOS/* "Cache do Orion"
+    safe_clean ~/Library/Caches/zen/* "Cache do Zen"
     clean_chrome_old_versions || return $?
     clean_edge_old_versions || return $?
     clean_edge_updater_old_versions || return $?
     clean_brave_old_versions || return $?
     # QQ Browser 3 (Chromium-based).
     if [[ -d ~/Library/Application\ Support/QQBrowser3 ]]; then
-        safe_clean ~/Library/Caches/com.tencent.QQBrowser3/* "QQ Browser cache"
+        safe_clean ~/Library/Caches/com.tencent.QQBrowser3/* "Cache do QQ Browser"
         if mole_clean_process_guard _qqbrowser_process_state "QQ Browser started"; then
-            safe_clean ~/Library/Application\ Support/QQBrowser3/*/Code\ Cache/* "QQ Browser code cache"
-            safe_clean ~/Library/Application\ Support/QQBrowser3/*/GPUCache/* "QQ Browser GPU cache"
-            safe_clean ~/Library/Application\ Support/QQBrowser3/ShaderCache/* "QQ Browser shader cache"
-            safe_clean ~/Library/Application\ Support/QQBrowser3/GrShaderCache/* "QQ Browser GR shader cache"
-            safe_clean ~/Library/Application\ Support/QQBrowser3/GraphiteDawnCache/* "QQ Browser Dawn cache"
-            safe_clean ~/Library/Application\ Support/QQBrowser3/component_crx_cache/* "QQ Browser component cache"
-            safe_clean ~/Library/Application\ Support/QQBrowser3/Crashpad/completed/* "QQ Browser crash reports"
+            safe_clean ~/Library/Application\ Support/QQBrowser3/*/Code\ Cache/* "Cache de código do QQ Browser"
+            safe_clean ~/Library/Application\ Support/QQBrowser3/*/GPUCache/* "Cache de GPU do QQ Browser"
+            safe_clean ~/Library/Application\ Support/QQBrowser3/ShaderCache/* "Cache de shader do QQ Browser"
+            safe_clean ~/Library/Application\ Support/QQBrowser3/GrShaderCache/* "Cache de shader GR do QQ Browser"
+            safe_clean ~/Library/Application\ Support/QQBrowser3/GraphiteDawnCache/* "Cache Dawn do QQ Browser"
+            safe_clean ~/Library/Application\ Support/QQBrowser3/component_crx_cache/* "Cache de componentes do QQ Browser"
+            safe_clean ~/Library/Application\ Support/QQBrowser3/Crashpad/completed/* "Relatórios de falha do QQ Browser"
         else
             mole_report_guard_stop "QQ Browser profile caches" debug_log "QQ Browser is running, skipping QQ Browser profile caches"
         fi
@@ -2283,17 +2283,17 @@ clean_browsers() {
     # BrowserOS (Chromium-based agentic browser).
     if [[ -d ~/Library/Application\ Support/BrowserOS || -d ~/Library/Caches/BrowserOS ]]; then
         if mole_clean_process_guard _browseros_process_state "BrowserOS started"; then
-            safe_clean ~/Library/Caches/BrowserOS/*/Cache/* "BrowserOS HTTP cache"
-            safe_clean ~/Library/Caches/BrowserOS/*/Code\ Cache/* "BrowserOS code cache"
-            safe_clean ~/Library/Application\ Support/BrowserOS/*/GPUCache/* "BrowserOS GPU cache"
-            safe_clean ~/Library/Application\ Support/BrowserOS/*/DawnGraphiteCache/* "BrowserOS Dawn Graphite cache"
-            safe_clean ~/Library/Application\ Support/BrowserOS/*/DawnWebGPUCache/* "BrowserOS Dawn WebGPU cache"
-            safe_clean ~/Library/Application\ Support/BrowserOS/ShaderCache/* "BrowserOS shader cache"
-            safe_clean ~/Library/Application\ Support/BrowserOS/GrShaderCache/* "BrowserOS GR shader cache"
-            safe_clean ~/Library/Application\ Support/BrowserOS/GraphiteDawnCache/* "BrowserOS Dawn cache"
-            safe_clean ~/Library/Application\ Support/BrowserOS/GPUPersistentCache/* "BrowserOS GPU persistent cache"
-            safe_clean ~/Library/Application\ Support/BrowserOS/component_crx_cache/* "BrowserOS component cache"
-            safe_clean ~/Library/Application\ Support/BrowserOS/Crashpad/completed/* "BrowserOS crash reports"
+            safe_clean ~/Library/Caches/BrowserOS/*/Cache/* "Cache HTTP do BrowserOS"
+            safe_clean ~/Library/Caches/BrowserOS/*/Code\ Cache/* "Cache de código do BrowserOS"
+            safe_clean ~/Library/Application\ Support/BrowserOS/*/GPUCache/* "Cache de GPU do BrowserOS"
+            safe_clean ~/Library/Application\ Support/BrowserOS/*/DawnGraphiteCache/* "Cache Dawn Graphite do BrowserOS"
+            safe_clean ~/Library/Application\ Support/BrowserOS/*/DawnWebGPUCache/* "Cache Dawn WebGPU do BrowserOS"
+            safe_clean ~/Library/Application\ Support/BrowserOS/ShaderCache/* "Cache de shader do BrowserOS"
+            safe_clean ~/Library/Application\ Support/BrowserOS/GrShaderCache/* "Cache de shader GR do BrowserOS"
+            safe_clean ~/Library/Application\ Support/BrowserOS/GraphiteDawnCache/* "Cache Dawn do BrowserOS"
+            safe_clean ~/Library/Application\ Support/BrowserOS/GPUPersistentCache/* "Cache persistente de GPU do BrowserOS"
+            safe_clean ~/Library/Application\ Support/BrowserOS/component_crx_cache/* "Cache de componentes do BrowserOS"
+            safe_clean ~/Library/Application\ Support/BrowserOS/Crashpad/completed/* "Relatórios de falha do BrowserOS"
         else
             mole_report_guard_stop "BrowserOS profile caches" debug_log "BrowserOS is running, skipping BrowserOS profile caches"
         fi
@@ -2318,7 +2318,7 @@ clean_cloud_storage() {
     elif mole_cleanup_targets_exist \
         "$HOME/Library/Caches/com.getdropbox.dropbox" \
         "$HOME/Library/Caches"/com.dropbox.*; then
-        echo -e "  ${GRAY}${ICON_WARNING}${NC} Dropbox cache · skipped (process state unknown)"
+        echo -e "  ${GRAY}${ICON_WARNING}${NC} Cache do Dropbox · ignorado (estado do processo desconhecido)"
         note_activity
     fi
     local google_drive_state=0
@@ -2331,16 +2331,16 @@ clean_cloud_storage() {
         _user_safe_clean_process_guarded \
             _google_drive_process_state \
             "Google Drive" \
-            "Google Drive cache" \
+            "Cache do Google Drive" \
             ~/Library/Caches/com.google.GoogleDrive \
-            "Google Drive cache" || true
+            "Cache do Google Drive" || true
     elif mole_cleanup_targets_exist "$HOME/Library/Caches/com.google.GoogleDrive"; then
-        echo -e "  ${GRAY}${ICON_WARNING}${NC} Google Drive cache · skipped (process state unknown)"
+        echo -e "  ${GRAY}${ICON_WARNING}${NC} Cache do Google Drive · ignorado (estado do processo desconhecido)"
         note_activity
     fi
-    safe_clean ~/Library/Caches/com.baidu.netdisk "Baidu Netdisk cache"
-    safe_clean ~/Library/Caches/com.alibaba.teambitiondisk "Alibaba Cloud cache"
-    safe_clean ~/Library/Caches/com.box.desktop "Box cache"
+    safe_clean ~/Library/Caches/com.baidu.netdisk "Cache do Baidu Netdisk"
+    safe_clean ~/Library/Caches/com.alibaba.teambitiondisk "Cache do Alibaba Cloud"
+    safe_clean ~/Library/Caches/com.box.desktop "Cache do Box"
     local onedrive_state=0
     _onedrive_process_state || onedrive_state=$?
     if [[ $onedrive_state -eq 0 ]]; then
@@ -2351,11 +2351,11 @@ clean_cloud_storage() {
         _user_safe_clean_process_guarded \
             _onedrive_process_state \
             "OneDrive" \
-            "OneDrive cache" \
+            "Cache do OneDrive" \
             ~/Library/Caches/com.microsoft.OneDrive \
-            "OneDrive cache" || true
+            "Cache do OneDrive" || true
     elif mole_cleanup_targets_exist "$HOME/Library/Caches/com.microsoft.OneDrive"; then
-        echo -e "  ${GRAY}${ICON_WARNING}${NC} OneDrive cache · skipped (process state unknown)"
+        echo -e "  ${GRAY}${ICON_WARNING}${NC} Cache do OneDrive · ignorado (estado do processo desconhecido)"
         note_activity
     fi
 }
@@ -2367,26 +2367,26 @@ clean_office_applications() {
     if [[ "${MO_DEBUG:-0}" == "1" ]]; then
         echo "[DEBUG] Cleaning office application caches..." >&2
     fi
-    safe_clean ~/Library/Caches/com.microsoft.Word "Microsoft Word cache"
+    safe_clean ~/Library/Caches/com.microsoft.Word "Cache do Microsoft Word"
     if [[ "${MO_DEBUG:-0}" == "1" ]]; then
         echo "[DEBUG] Cleaning Word container cache..." >&2
     fi
-    safe_clean ~/Library/Containers/com.microsoft.Word/Data/Library/Caches/* "Microsoft Word container cache"
-    safe_clean ~/Library/Containers/com.microsoft.Word/Data/tmp/* "Microsoft Word temp files"
-    safe_clean ~/Library/Containers/com.microsoft.Word/Data/Library/Logs/* "Microsoft Word container logs"
-    safe_clean ~/Library/Caches/com.microsoft.Excel "Microsoft Excel cache"
+    safe_clean ~/Library/Containers/com.microsoft.Word/Data/Library/Caches/* "Cache de container do Microsoft Word"
+    safe_clean ~/Library/Containers/com.microsoft.Word/Data/tmp/* "Arquivos temporários do Microsoft Word"
+    safe_clean ~/Library/Containers/com.microsoft.Word/Data/Library/Logs/* "Logs de container do Microsoft Word"
+    safe_clean ~/Library/Caches/com.microsoft.Excel "Cache do Microsoft Excel"
     if [[ "${MO_DEBUG:-0}" == "1" ]]; then
         echo "[DEBUG] Cleaning Excel container cache..." >&2
     fi
-    safe_clean ~/Library/Containers/com.microsoft.Excel/Data/Library/Caches/* "Microsoft Excel container cache"
-    safe_clean ~/Library/Containers/com.microsoft.Excel/Data/tmp/* "Microsoft Excel temp files"
-    safe_clean ~/Library/Containers/com.microsoft.Excel/Data/Library/Logs/* "Microsoft Excel container logs"
-    safe_clean ~/Library/Caches/com.microsoft.Powerpoint "Microsoft PowerPoint cache"
-    safe_clean ~/Library/Caches/com.microsoft.Outlook/* "Microsoft Outlook cache"
-    safe_clean ~/Library/Caches/com.apple.iWork.* "Apple iWork cache"
-    safe_clean ~/Library/Caches/com.kingsoft.wpsoffice.mac "WPS Office cache"
-    safe_clean ~/Library/Caches/org.mozilla.thunderbird/* "Thunderbird cache"
-    safe_clean ~/Library/Caches/com.apple.mail/* "Apple Mail cache"
+    safe_clean ~/Library/Containers/com.microsoft.Excel/Data/Library/Caches/* "Cache de container do Microsoft Excel"
+    safe_clean ~/Library/Containers/com.microsoft.Excel/Data/tmp/* "Arquivos temporários do Microsoft Excel"
+    safe_clean ~/Library/Containers/com.microsoft.Excel/Data/Library/Logs/* "Logs de container do Microsoft Excel"
+    safe_clean ~/Library/Caches/com.microsoft.Powerpoint "Cache do Microsoft PowerPoint"
+    safe_clean ~/Library/Caches/com.microsoft.Outlook/* "Cache do Microsoft Outlook"
+    safe_clean ~/Library/Caches/com.apple.iWork.* "Cache do Apple iWork"
+    safe_clean ~/Library/Caches/com.kingsoft.wpsoffice.mac "Cache do WPS Office"
+    safe_clean ~/Library/Caches/org.mozilla.thunderbird/* "Cache do Thunderbird"
+    safe_clean ~/Library/Caches/com.apple.mail/* "Cache do Apple Mail"
 }
 
 # Virtualization caches.
@@ -2403,9 +2403,9 @@ clean_utm_caches() {
         return 0
     fi
 
-    safe_clean ~/Library/Caches/com.utmapp.UTM/* "UTM app cache"
-    safe_clean ~/Library/Containers/com.utmapp.UTM/Data/Library/Caches/* "UTM sandbox cache"
-    safe_clean ~/Library/Containers/com.utmapp.UTM/Data/tmp/* "UTM temporary files"
+    safe_clean ~/Library/Caches/com.utmapp.UTM/* "Cache de apps do UTM"
+    safe_clean ~/Library/Containers/com.utmapp.UTM/Data/Library/Caches/* "Cache de sandbox do UTM"
+    safe_clean ~/Library/Containers/com.utmapp.UTM/Data/tmp/* "Arquivos temporários do UTM"
 }
 
 clean_tart_caches() {
@@ -2423,9 +2423,9 @@ clean_tart_caches() {
 
     if is_path_whitelisted "$cache_root"; then
         if [[ "${DRY_RUN:-false}" == "true" ]]; then
-            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Tart caches · would skip (whitelist)"
+            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Caches do Tart · seria ignorado (lista de proteção)"
         else
-            echo -e "  ${GREEN}${ICON_SUCCESS}${NC} Tart caches · skipped (whitelist)"
+            echo -e "  ${GREEN}${ICON_SUCCESS}${NC} Caches do Tart · ignorado (lista de proteção)"
         fi
         note_activity
         return 0
@@ -2435,7 +2435,7 @@ clean_tart_caches() {
     mole_pgrep_any -x "tart" || tart_state=$?
     if [[ $tart_state -ne 1 ]]; then
         if [[ $tart_state -eq 2 ]]; then
-            echo -e "  ${GRAY}${ICON_WARNING}${NC} Tart caches · skipped (process state unknown)"
+            echo -e "  ${GRAY}${ICON_WARNING}${NC} Caches do Tart · ignorado (estado do processo desconhecido)"
             note_activity
         else
             mole_defer_cleanup_family "Tart"
@@ -2446,14 +2446,14 @@ clean_tart_caches() {
     local cache_size_human
     cache_size_human=$(bytes_to_human "$((cache_size_kb * 1024))")
     if [[ "${DRY_RUN:-false}" == "true" ]]; then
-        echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Tart caches · would prune items older than ${MOLE_ORPHAN_AGE_DAYS} days (${cache_size_human})"
+        echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Caches do Tart · removeria itens com mais de ${MOLE_ORPHAN_AGE_DAYS} dias (${cache_size_human})"
         echo -e "    ${GRAY}tart prune --entries caches --older-than ${MOLE_ORPHAN_AGE_DAYS}${NC}"
         note_activity
         return 0
     fi
 
     if [[ -t 1 ]]; then
-        start_section_spinner "Pruning Tart caches..."
+        start_section_spinner "Podando caches do Tart..."
     fi
     local prune_succeeded=false
     local prune_rc=0
@@ -2462,7 +2462,7 @@ clean_tart_caches() {
     if [[ $tart_state -ne 1 ]]; then
         [[ -t 1 ]] && stop_section_spinner
         if [[ $tart_state -eq 2 ]]; then
-            echo -e "  ${GRAY}${ICON_WARNING}${NC} Tart caches · stopped (process state unknown)"
+            echo -e "  ${GRAY}${ICON_WARNING}${NC} Caches do Tart · interrompido (estado do processo desconhecido)"
             note_activity
         else
             mole_defer_cleanup_family "Tart"
@@ -2479,12 +2479,12 @@ clean_tart_caches() {
     if mole_rc_signal "$prune_rc"; then
         # Ctrl-C while tart holds the terminal reaches only the child.
         debug_log "Tart caches: owner command interrupted (exit $prune_rc)"
-        _mole_record_clean_cancellation "$prune_rc" "Tart caches"
+        _mole_record_clean_cancellation "$prune_rc" "Caches do Tart"
         return "$prune_rc"
     fi
 
     if [[ "$prune_succeeded" != "true" ]]; then
-        echo -e "  ${GRAY}${ICON_WARNING}${NC} Tart caches · prune failed"
+        echo -e "  ${GRAY}${ICON_WARNING}${NC} Caches do Tart · falha ao podar"
         debug_log "tart prune failed for cache-only ${MOLE_ORPHAN_AGE_DAYS}-day policy"
         note_activity
         return 0
@@ -2499,18 +2499,18 @@ clean_tart_caches() {
     local reclaimed_kb=$((cache_size_kb - remaining_kb))
     [[ "$reclaimed_kb" -ge 0 ]] || reclaimed_kb=0
 
-    echo -e "  ${GREEN}${ICON_SUCCESS}${NC} Tart caches · pruned, $(bytes_to_human "$((reclaimed_kb * 1024))") reclaimed"
+    echo -e "  ${GREEN}${ICON_SUCCESS}${NC} Caches do Tart · podado, $(bytes_to_human "$((reclaimed_kb * 1024))") recuperados"
     note_activity
 }
 
 clean_virtualization_tools() {
     stop_section_spinner
-    safe_clean ~/Library/Caches/com.vmware.fusion "VMware Fusion cache"
-    safe_clean ~/Library/Caches/com.parallels.* "Parallels cache"
+    safe_clean ~/Library/Caches/com.vmware.fusion "Cache do VMware Fusion"
+    safe_clean ~/Library/Caches/com.parallels.* "Cache do Parallels"
     clean_utm_caches
-    safe_clean ~/VirtualBox\ VMs/.cache "VirtualBox cache"
-    safe_clean ~/Library/Caches/lima/download/by-url-sha256/* "Lima download cache"
-    safe_clean ~/.vagrant.d/tmp/* "Vagrant temporary files"
+    safe_clean ~/VirtualBox\ VMs/.cache "Cache do VirtualBox"
+    safe_clean ~/Library/Caches/lima/download/by-url-sha256/* "Cache de downloads do Lima"
+    safe_clean ~/.vagrant.d/tmp/* "Arquivos temporários do Vagrant"
     clean_tart_caches
 }
 
@@ -2593,10 +2593,10 @@ app_support_dir_has_regenerable_cache_markers() {
 clean_application_support_logs() {
     if [[ ! -d "$HOME/Library/Application Support" ]] || ! ls "$HOME/Library/Application Support" > /dev/null 2>&1; then
         note_activity
-        echo -e "  ${GRAY}${ICON_WARNING}${NC} Skipped: No permission to access Application Support"
+        echo -e "  ${GRAY}${ICON_WARNING}${NC} Ignorado: sem permissão para acessar o Application Support"
         return 0
     fi
-    start_section_spinner "Scanning Application Support..."
+    start_section_spinner "Analisando Application Support..."
     local total_size_bytes=0
     local total_size_partial=false
     local cleaned_count=0
@@ -2680,7 +2680,7 @@ clean_application_support_logs() {
                         app_label="${app_label:0:21}..."
                     fi
                     stop_section_spinner
-                    start_section_spinner "Scanning Application Support... $app_count/$total_apps [$app_label, bulk clean]"
+                    start_section_spinner "Analisando Application Support... $app_count/$total_apps [$app_label, limpeza em lote]"
                     if [[ "$DRY_RUN" == "true" ]]; then
                         if declare -f record_dry_run_cleanup_target > /dev/null 2>&1; then
                             record_dry_run_cleanup_target "$candidate" 0 1 false || continue
@@ -2736,7 +2736,7 @@ clean_application_support_logs() {
                                 app_label="${app_label:0:21}..."
                             fi
                             stop_section_spinner
-                            start_section_spinner "Scanning Application Support... $app_count/$total_apps [$app_label, $candidate_item_count items]"
+                            start_section_spinner "Analisando Application Support... $app_count/$total_apps [$app_label, $candidate_item_count itens]"
                             last_progress_update=$current_time
                         fi
                     fi
@@ -2775,7 +2775,7 @@ clean_application_support_logs() {
                         container_label="${container_label:0:21}..."
                     fi
                     stop_section_spinner
-                    start_section_spinner "Scanning Application Support... group [$container_label, bulk clean]"
+                    start_section_spinner "Analisando Application Support... grupo [$container_label, limpeza em lote]"
                     if [[ "$DRY_RUN" == "true" ]]; then
                         if declare -f record_dry_run_cleanup_target > /dev/null 2>&1; then
                             record_dry_run_cleanup_target "$candidate" 0 1 false || continue
@@ -2827,7 +2827,7 @@ clean_application_support_logs() {
                                 container_label="${container_label:0:21}..."
                             fi
                             stop_section_spinner
-                            start_section_spinner "Scanning Application Support... group [$container_label, $candidate_item_count items]"
+                            start_section_spinner "Analisando Application Support... grupo [$container_label, $candidate_item_count itens]"
                             last_progress_update=$current_time
                         fi
                     fi
@@ -2861,17 +2861,17 @@ clean_application_support_logs() {
         local total_size_kb=$(((total_size_bytes + 1023) / 1024))
         if [[ "$DRY_RUN" == "true" ]]; then
             if [[ "$total_size_partial" == "true" ]]; then
-                echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Application Support logs/caches${NC} · ${YELLOW}at least $(colorize_human_size "$size_human") ${YELLOW}dry${NC}"
+                echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Logs/caches de Application Support${NC} · ${YELLOW}pelo menos $(colorize_human_size "$size_human") ${YELLOW}simulação${NC}"
             else
-                echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Application Support logs/caches${NC} · $(colorize_human_size "$size_human") ${YELLOW}dry${NC}"
+                echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Logs/caches de Application Support${NC} · $(colorize_human_size "$size_human") ${YELLOW}simulação${NC}"
             fi
         else
             local line_color
             line_color=$(cleanup_result_color_kb "$total_size_kb")
             if [[ "$total_size_partial" == "true" ]]; then
-                echo -e "  ${line_color}${ICON_SUCCESS}${NC} Application Support logs/caches${NC} · ${line_color}at least $(colorize_human_size "${size_human}")"
+                echo -e "  ${line_color}${ICON_SUCCESS}${NC} Logs/caches de Application Support${NC} · ${line_color}pelo menos $(colorize_human_size "${size_human}")"
             else
-                echo -e "  ${line_color}${ICON_SUCCESS}${NC} Application Support logs/caches${NC} · $(colorize_human_size "${size_human}")"
+                echo -e "  ${line_color}${ICON_SUCCESS}${NC} Logs/caches de Application Support${NC} · $(colorize_human_size "${size_human}")"
             fi
         fi
         mole_add_cleaned_row "$cleaned_count" "$total_size_kb"
@@ -3007,11 +3007,11 @@ clean_cached_device_firmware() {
         local size_human
         size_human=$(bytes_to_human "$((total_size_kb * 1024))")
         if [[ "$DRY_RUN" == "true" ]]; then
-            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Cached device firmware${NC} · ${YELLOW}${cleaned_count} files, $(colorize_human_size "$size_human") ${YELLOW}dry${NC}"
+            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Firmware de dispositivos em cache${NC} · ${YELLOW}${cleaned_count} arquivos, $(colorize_human_size "$size_human") ${YELLOW}simulação${NC}"
         else
             local line_color
             line_color=$(cleanup_result_color_kb "$total_size_kb")
-            echo -e "  ${line_color}${ICON_SUCCESS}${NC} Cached device firmware${NC} · ${line_color}${cleaned_count} files, $(colorize_human_size "${size_human}")"
+            echo -e "  ${line_color}${ICON_SUCCESS}${NC} Firmware de dispositivos em cache${NC} · ${line_color}${cleaned_count} arquivos, $(colorize_human_size "${size_human}")"
         fi
         mole_add_cleaned_row "$cleaned_count" "$total_size_kb"
         note_activity
@@ -3128,9 +3128,9 @@ report_agent_worktree_candidates() {
         owner="${owner%/*}"
         owner="${owner##*/}"
         [[ "$container" == */.codex/worktrees ]] && owner="Codex"
-        mole_review_row "AI agent worktrees" "$container" "$(bytes_to_human "$((size_kb * 1024))")" "$owner"
+        mole_review_row "Worktrees de agentes de IA" "$container" "$(bytes_to_human "$((size_kb * 1024))")" "$owner"
         note_activity
-        start_section_spinner "Scanning large files..."
+        start_section_spinner "Procurando arquivos grandes..."
     }
 
     local container rc=0
@@ -3165,9 +3165,9 @@ docker_df_review_segment() {
         fi
     fi
     if [[ "$contradicts" == "true" ]]; then
-        printf '%s %s (%s/%s in use)\n' "$type" "$size" "$active" "$total"
+        printf '%s %s (%s/%s em uso)\n' "$type" "$size" "$active" "$total"
     else
-        printf '%s %s (%s reclaimable)\n' "$type" "$size" "$reclaimable"
+        printf '%s %s (%s recuperáveis)\n' "$type" "$size" "$reclaimable"
     fi
 }
 
@@ -3367,7 +3367,7 @@ check_large_file_candidates() {
         _lp_dir=""
     fi
 
-    start_section_spinner "Scanning large files..."
+    start_section_spinner "Procurando arquivos grandes..."
     local body_rc=0
     if [[ -n "$_lp_dir" && ${#_lp_paths[@]} -gt 0 ]]; then
         _large_prefetch_run || body_rc=$?
@@ -3486,13 +3486,13 @@ _check_large_file_candidates_body() {
                 local fact
                 fact=$(mole_count_label "$count" build)
                 if [[ -n "$first" ]]; then
-                    local -a months=(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec)
+                    local -a months=(Jan Fev Mar Abr Mai Jun Jul Ago Set Out Nov Dez)
                     local from="${months[$((10#${first:5:2} - 1))]}"
                     local to="${months[$((10#${last:5:2} - 1))]}"
                     if [[ "${first:0:4}" != "${last:0:4}" ]]; then
-                        fact+=", $from ${first:0:4} to $to ${last:0:4}"
+                        fact+=", $from ${first:0:4} a $to ${last:0:4}"
                     elif [[ "${first:0:7}" != "${last:0:7}" ]]; then
-                        fact+=", $from to $to"
+                        fact+=", $from a $to"
                     else
                         fact+=", $to"
                     fi
@@ -3525,7 +3525,7 @@ _check_large_file_candidates_body() {
         stop_section_spinner
         mole_review_row "$label" "$path" "$size_human" "$fact"
         found_any=true
-        start_section_spinner "Scanning large files..."
+        start_section_spinner "Procurando arquivos grandes..."
     }
 
     # Pass a _large_dir_fact kind as $4 ("date" on rows where staleness
@@ -3567,16 +3567,16 @@ _check_large_file_candidates_body() {
 
     # The du probes below (Mail, backups, package stores) take seconds in
     # total; keep loading feedback on screen between rows.
-    start_section_spinner "Scanning large files..."
+    start_section_spinner "Procurando arquivos grandes..."
 
-    _report_large_or_stop "Mail data" "$HOME/Library/Mail" || return $?
-    _report_large_or_stop "Mail downloads" "$HOME/Library/Mail Downloads" || return $?
+    _report_large_or_stop "Dados do Mail" "$HOME/Library/Mail" || return $?
+    _report_large_or_stop "Downloads do Mail" "$HOME/Library/Mail Downloads" || return $?
 
     # Conductor workspaces and archived chats are authored state, not caches.
     # Report occupied space only; age or a missing worktree registration does
     # not establish that local changes, commits, or context are disposable.
-    _report_large_or_stop "Conductor workspaces" "$HOME/Conductor/workspaces" || return $?
-    _report_large_or_stop "Conductor archived contexts" "$HOME/Conductor/archived-contexts" || return $?
+    _report_large_or_stop "Workspaces do Conductor" "$HOME/Conductor/workspaces" || return $?
+    _report_large_or_stop "Contextos arquivados do Conductor" "$HOME/Conductor/archived-contexts" || return $?
 
     local installer_path
     for installer_path in /Applications/Install\ macOS*.app; do
@@ -3596,12 +3596,12 @@ _check_large_file_candidates_body() {
             if [[ "$installer_kb" -gt 0 ]]; then
                 local installer_human
                 installer_human=$(bytes_to_human "$((installer_kb * 1024))")
-                _report_large_review_row "macOS installer" "$installer_human" "$installer_path"
+                _report_large_review_row "Instalador do macOS" "$installer_human" "$installer_path"
             fi
         fi
     done
 
-    _report_large_or_stop "macOS updates cache" "$HOME/Library/Updates" || return $?
+    _report_large_or_stop "Cache de atualizações do macOS" "$HOME/Library/Updates" || return $?
 
     if [[ "${SYSTEM_CLEAN:-false}" != "true" ]] && command -v tmutil > /dev/null 2>&1 &&
         defaults read /Library/Preferences/com.apple.TimeMachine AutoBackup 2> /dev/null | grep -qE '^[01]$'; then
@@ -3611,9 +3611,9 @@ _check_large_file_candidates_body() {
             snapshot_count=$(echo "$snapshot_list" | { grep -Eo 'com\.apple\.TimeMachine\.[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{6}' || true; } | wc -l | awk '{print $1}')
             if [[ "$snapshot_count" =~ ^[0-9]+$ && "$snapshot_count" -gt 0 ]]; then
                 stop_section_spinner
-                mole_review_row "Time Machine local snapshots" "" "$snapshot_count" "macOS removes them when space runs low"
+                mole_review_row "Snapshots locais do Time Machine" "" "$snapshot_count" "o macOS os remove quando o espaço acaba"
                 found_any=true
-                start_section_spinner "Scanning large files..."
+                start_section_spinner "Procurando arquivos grandes..."
             fi
         fi
     fi
@@ -3632,19 +3632,19 @@ _check_large_file_candidates_body() {
             done <<< "$docker_output"
             if [[ -n "$docker_detail" ]]; then
                 stop_section_spinner
-                mole_review_row "Docker storage" "" "" "$docker_detail"
+                mole_review_row "Armazenamento do Docker" "" "" "$docker_detail"
                 found_any=true
                 docker_reported=true
-                start_section_spinner "Scanning large files..."
+                start_section_spinner "Procurando arquivos grandes..."
             fi
         else
             docker_output=$(run_with_timeout "$MOLE_TIMEOUT_SHORT_QUERY_SEC" docker system df 2> /dev/null || true)
             if [[ -n "$docker_output" ]]; then
                 stop_section_spinner
-                echo -e "  ${YELLOW}${ICON_REVIEW}${NC} Docker storage · ${GRAY}docker system df${NC}"
+                echo -e "  ${YELLOW}${ICON_REVIEW}${NC} Armazenamento do Docker · ${GRAY}docker system df${NC}"
                 found_any=true
                 docker_reported=true
-                start_section_spinner "Scanning large files..."
+                start_section_spinner "Procurando arquivos grandes..."
             fi
         fi
     fi
@@ -3652,41 +3652,41 @@ _check_large_file_candidates_body() {
     # Developer tools already cleaned or previewed every DerivedData project
     # this run, so a second row here would count the same bytes twice.
     if [[ "${_MOLE_DERIVED_DATA_COVERED:-false}" != "true" ]]; then
-        _report_large_or_stop "Xcode DerivedData" "$HOME/Library/Developer/Xcode/DerivedData" "" projects || return $?
+        _report_large_or_stop "DerivedData do Xcode" "$HOME/Library/Developer/Xcode/DerivedData" "" projects || return $?
     fi
     # Archives hold the dSYMs that symbolicate crashes from shipped builds, so
     # the build count and month range separate releases still worth keeping
     # from repeated export attempts left behind on one afternoon.
-    _report_large_or_stop "Xcode archives" "$HOME/Library/Developer/Xcode/Archives" "" archives || return $?
-    _report_large_or_stop "Simulator data" "$HOME/Library/Developer/CoreSimulator/Devices" "" simulators || return $?
+    _report_large_or_stop "Arquivos do Xcode" "$HOME/Library/Developer/Xcode/Archives" "" archives || return $?
+    _report_large_or_stop "Dados do Simulador" "$HOME/Library/Developer/CoreSimulator/Devices" "" simulators || return $?
     if [[ "$docker_reported" != "true" ]]; then
-        _report_large_or_stop "Docker Desktop data" "$HOME/Library/Containers/com.docker.docker/Data" || return $?
+        _report_large_or_stop "Dados do Docker Desktop" "$HOME/Library/Containers/com.docker.docker/Data" || return $?
     fi
     # Device backups reach 100GB+ with millions of small files; the default
     # 3s du budget times out cold and silently drops the most valuable row,
     # so give this probe the hint-scan budget instead.
-    _report_large_or_stop "iOS backups" "$HOME/Library/Application Support/MobileSync/Backup" "$MOLE_TIMEOUT_HINT_SCAN_SEC" "date" || return $?
-    _report_large_or_stop "LM Studio models" "$HOME/.lmstudio/models" || return $?
+    _report_large_or_stop "Backups do iOS" "$HOME/Library/Application Support/MobileSync/Backup" "$MOLE_TIMEOUT_HINT_SCAN_SEC" "date" || return $?
+    _report_large_or_stop "Modelos do LM Studio" "$HOME/.lmstudio/models" || return $?
     local orbstack_data
     for orbstack_data in "$HOME"/Library/Group\ Containers/*dev.orbstack/data "$HOME/OrbStack"; do
-        _report_large_or_stop "OrbStack data" "$orbstack_data" || return $?
+        _report_large_or_stop "Dados do OrbStack" "$orbstack_data" || return $?
     done
-    _report_large_or_stop "Lima data" "$HOME/.lima" || return $?
-    _report_large_or_stop "Maven local repository" "$HOME/.m2/repository" || return $?
-    _report_large_or_stop "Ivy local repository" "$HOME/.ivy2/cache" || return $?
-    _report_large_or_stop "NuGet packages" "$HOME/.nuget/packages" || return $?
+    _report_large_or_stop "Dados do Lima" "$HOME/.lima" || return $?
+    _report_large_or_stop "Repositório local do Maven" "$HOME/.m2/repository" || return $?
+    _report_large_or_stop "Repositório local do Ivy" "$HOME/.ivy2/cache" || return $?
+    _report_large_or_stop "Pacotes do NuGet" "$HOME/.nuget/packages" || return $?
     local deno_module_cache=""
     if deno_module_cache=$(mole_deno_cache_root 2> /dev/null); then
-        _report_large_or_stop "Deno module cache" "$deno_module_cache" || return $?
+        _report_large_or_stop "Cache de módulos do Deno" "$deno_module_cache" || return $?
     fi
-    _report_large_or_stop "pnpm store" "$HOME/Library/pnpm/store" "" stores || return $?
-    _report_large_or_stop "Conda packages" "$HOME/.conda/pkgs" || return $?
-    _report_large_or_stop "Anaconda packages" "$HOME/anaconda3/pkgs" || return $?
+    _report_large_or_stop "Store do pnpm" "$HOME/Library/pnpm/store" "" stores || return $?
+    _report_large_or_stop "Pacotes do Conda" "$HOME/.conda/pkgs" || return $?
+    _report_large_or_stop "Pacotes do Anaconda" "$HOME/anaconda3/pkgs" || return $?
     # ~/.gradle/caches holds modules-2, the dependency store builds resolve
     # from, so it is surfaced for review like ~/.m2 rather than deleted. The
     # row measures the whole folder, including the build-cache slices that
     # clean_dev_jvm resets.
-    _report_large_or_stop "Gradle caches" "$HOME/.gradle/caches" || return $?
+    _report_large_or_stop "Caches do Gradle" "$HOME/.gradle/caches" || return $?
 
     # E5RT caches stay protected. This row measures occupied space only;
     # neither the current build nor older build subdirectories are deleted.
@@ -3707,7 +3707,7 @@ _check_large_file_candidates_body() {
                 [[ -d "$compiled_path" && ! -L "$compiled_path" && ! -L "${compiled_path%/*}" ]] || continue
                 compiled_timeout=$(_mole_timeout_with_deadline "$MOLE_TIMEOUT_HINT_SCAN_SEC" "$compiled_deadline") || break
                 compiled_owner="${compiled_path%/*}"
-                _report_large_or_stop "Compiled model cache (${compiled_owner##*/})" "$compiled_path" "$compiled_timeout" "" exact || {
+                _report_large_or_stop "Cache de modelos compilados (${compiled_owner##*/})" "$compiled_path" "$compiled_timeout" "" exact || {
                     compiled_rc=$?
                     break
                 }
@@ -3729,29 +3729,29 @@ _check_large_file_candidates_body() {
     # remove what is unused; Mole never deletes them.
     local android_avd_root="$HOME/.android/avd"
     [[ "${ANDROID_AVD_HOME:-}" == /* ]] && android_avd_root="$ANDROID_AVD_HOME"
-    _report_large_or_stop "Android emulators" "$android_avd_root" "" "date" || return $?
+    _report_large_or_stop "Emuladores Android" "$android_avd_root" "" "date" || return $?
     local android_sdk_root="$HOME/Library/Android/sdk"
     if [[ "${ANDROID_HOME:-}" == /* ]]; then
         android_sdk_root="$ANDROID_HOME"
     elif [[ "${ANDROID_SDK_ROOT:-}" == /* ]]; then
         android_sdk_root="$ANDROID_SDK_ROOT"
     fi
-    _report_large_or_stop "Android system images" "$android_sdk_root/system-images" || return $?
+    _report_large_or_stop "Imagens de sistema Android" "$android_sdk_root/system-images" || return $?
     local hf_root="$HOME/.cache/huggingface"
     [[ "${HF_HOME:-}" == /* ]] && hf_root="$HF_HOME"
-    _report_large_or_stop "Hugging Face cache" "$hf_root" || return $?
+    _report_large_or_stop "Cache do Hugging Face" "$hf_root" || return $?
     local mise_installs="$HOME/.local/share/mise/installs"
     [[ "${MISE_DATA_DIR:-}" == /* ]] && mise_installs="$MISE_DATA_DIR/installs"
     local mise_tool_dir
     for mise_tool_dir in "$mise_installs"/*; do
         [[ -d "$mise_tool_dir" && ! -L "$mise_tool_dir" ]] || continue
-        _report_large_or_stop "mise ${mise_tool_dir##*/} installs" "$mise_tool_dir" || return $?
+        _report_large_or_stop "Instalações do mise ${mise_tool_dir##*/}" "$mise_tool_dir" || return $?
     done
     # FVM keeps one full Flutter SDK per installed version; `fvm list` shows
     # which ones projects still pin and `fvm remove` owns removal.
     local fvm_versions="$HOME/fvm/versions"
     [[ "${FVM_CACHE_PATH:-}" == /* ]] && fvm_versions="$FVM_CACHE_PATH/versions"
-    _report_large_or_stop "FVM Flutter SDKs" "$fvm_versions" || return $?
+    _report_large_or_stop "SDKs Flutter do FVM" "$fvm_versions" || return $?
 
     # JetBrains keeps one data dir per IDE version (GoLand2025.1, ...). After
     # an upgrade the previous version's dir lingers forever with plugins and
@@ -3762,7 +3762,7 @@ _check_large_file_candidates_body() {
     local jb_stale
     while IFS= read -r jb_stale; do
         [[ -n "$jb_stale" ]] || continue
-        _report_large_or_stop "JetBrains old version data" "$jetbrains_support/$jb_stale" || return $?
+        _report_large_or_stop "Dados de versões antigas do JetBrains" "$jetbrains_support/$jb_stale" || return $?
     done < <(jetbrains_stale_version_dirs "$jetbrains_support")
 
     _large_prefetch_worktree_wait
@@ -3787,9 +3787,9 @@ clean_apple_silicon_caches() {
     if [[ "${IS_M_SERIES:-false}" != "true" ]]; then
         return 0
     fi
-    start_section "Apple Silicon updates"
-    safe_clean /Library/Apple/usr/share/rosetta/rosetta_update_bundle "Rosetta 2 cache"
-    safe_clean ~/Library/Caches/com.apple.rosetta.update "Rosetta 2 user cache"
-    safe_clean ~/Library/Caches/com.apple.amp.mediasevicesd "Apple Silicon media service cache"
+    start_section "Atualizações do Apple Silicon"
+    safe_clean /Library/Apple/usr/share/rosetta/rosetta_update_bundle "Cache do Rosetta 2"
+    safe_clean ~/Library/Caches/com.apple.rosetta.update "Cache de usuário do Rosetta 2"
+    safe_clean ~/Library/Caches/com.apple.amp.mediasevicesd "Cache do serviço de mídia do Apple Silicon"
     end_section
 }

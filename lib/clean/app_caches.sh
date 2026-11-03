@@ -219,7 +219,7 @@ clean_xcode_derived_data() {
 
     # Filtering runs a protection check per project, about a second for 128
     # projects before the measuring spinner below starts.
-    start_section_spinner "Checking Xcode DerivedData..."
+    start_section_spinner "Verificando DerivedData do Xcode..."
 
     # Count projects before recording an active-process skip, so an empty
     # DerivedData root stays silent.
@@ -246,7 +246,7 @@ clean_xcode_derived_data() {
     if [[ $xcode_state -ne 1 ]]; then
         stop_section_spinner
         if [[ $xcode_state -eq 2 ]]; then
-            echo -e "  ${GRAY}${ICON_WARNING}${NC} Xcode DerivedData · skipped (process state unknown)"
+            echo -e "  ${GRAY}${ICON_WARNING}${NC} DerivedData do Xcode · ignorado (estado do processo desconhecido)"
             note_activity
         else
             mole_defer_cleanup_family "Xcode"
@@ -254,8 +254,8 @@ clean_xcode_derived_data() {
         return 0
     fi
 
-    local project_label="projects"
-    [[ $project_count -eq 1 ]] && project_label="project"
+    local project_label="projetos"
+    [[ $project_count -eq 1 ]] && project_label="projeto"
 
     if [[ "${DRY_RUN:-false}" == "true" ]]; then
         # Measure and register only the filtered project set. Sizing the parent
@@ -269,10 +269,10 @@ clean_xcode_derived_data() {
         # Sizing every project means one du per entry plus a process probe on
         # each side of it. On a real DerivedData that is tens of seconds with
         # nothing on screen, which reads as a freeze.
-        start_section_spinner "Measuring Xcode DerivedData, 0/${project_count}..."
+        start_section_spinner "Medindo DerivedData do Xcode, 0/${project_count}..."
         for dir in "${projects[@]}"; do
             dry_run_seen=$((dry_run_seen + 1))
-            start_section_spinner "Measuring Xcode DerivedData, ${dry_run_seen}/${project_count}..."
+            start_section_spinner "Medindo DerivedData do Xcode, ${dry_run_seen}/${project_count}..."
             xcode_state=0
             _xcode_cleanup_process_state || xcode_state=$?
             if [[ $xcode_state -ne 1 ]]; then
@@ -305,11 +305,11 @@ clean_xcode_derived_data() {
         done
         stop_section_spinner
         if [[ $dry_run_count -gt 0 ]]; then
-            project_label="projects"
-            [[ $dry_run_count -eq 1 ]] && project_label="project"
+            project_label="projetos"
+            [[ $dry_run_count -eq 1 ]] && project_label="projeto"
             local size_human
             size_human=$(bytes_to_human "$((size_kb * 1024))")
-            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Xcode DerivedData · ${dry_run_count} ${project_label}, $(colorize_human_size "${size_human}") ${YELLOW}dry${NC}"
+            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} DerivedData do Xcode · ${dry_run_count} ${project_label}, $(colorize_human_size "${size_human}") ${YELLOW}simulado${NC}"
             note_activity
             # Large files skips its DerivedData row only when this row holds
             # every project; a kept or skipped one still needs that row.
@@ -319,7 +319,7 @@ clean_xcode_derived_data() {
         fi
         if [[ -n "$dry_run_stopped_reason" ]]; then
             if [[ "$dry_run_stopped_reason" == "process state unknown" ]]; then
-                echo -e "  ${GRAY}${ICON_WARNING}${NC} Xcode DerivedData · stopped (${dry_run_stopped_reason})"
+                echo -e "  ${GRAY}${ICON_WARNING}${NC} DerivedData do Xcode · interrompido (${dry_run_stopped_reason})"
                 note_activity
             else
                 mole_defer_cleanup_family "Xcode"
@@ -336,10 +336,10 @@ clean_xcode_derived_data() {
     # Each project costs a du, two process probes, and the removal itself, so a
     # large DerivedData runs for tens of seconds. Without this the section
     # prints nothing until every project is gone.
-    start_section_spinner "Removing Xcode DerivedData, 0/${project_count}..."
+    start_section_spinner "Removendo DerivedData do Xcode, 0/${project_count}..."
     for dir in "${projects[@]}"; do
         seen=$((seen + 1))
-        start_section_spinner "Removing Xcode DerivedData, ${seen}/${project_count}..."
+        start_section_spinner "Removendo DerivedData do Xcode, ${seen}/${project_count}..."
         xcode_state=0
         _xcode_cleanup_process_state || xcode_state=$?
         if [[ $xcode_state -ne 1 ]]; then
@@ -373,13 +373,13 @@ clean_xcode_derived_data() {
     stop_section_spinner
 
     if [[ $removed -gt 0 ]]; then
-        project_label="projects"
-        [[ $removed -eq 1 ]] && project_label="project"
+        project_label="projetos"
+        [[ $removed -eq 1 ]] && project_label="projeto"
         local size_human
         size_human=$(bytes_to_human "$((removed_size_kb * 1024))")
         local line_color
         line_color=$(cleanup_result_color_kb "$removed_size_kb" 2> /dev/null || echo "$GREEN")
-        echo -e "  ${line_color}${ICON_SUCCESS}${NC} Xcode DerivedData · ${removed} ${project_label}, $(colorize_human_size "${size_human}")"
+        echo -e "  ${line_color}${ICON_SUCCESS}${NC} DerivedData do Xcode · ${removed} ${project_label}, $(colorize_human_size "${size_human}")"
         mole_add_cleaned_row "$removed" "$removed_size_kb"
         note_activity
         if [[ -z "$stopped_reason" && $removed -eq $all_count ]]; then
@@ -388,7 +388,7 @@ clean_xcode_derived_data() {
     fi
     if [[ -n "$stopped_reason" ]]; then
         if [[ "$stopped_reason" == "process state unknown" ]]; then
-            echo -e "  ${GRAY}${ICON_WARNING}${NC} Xcode DerivedData · stopped (${stopped_reason})"
+            echo -e "  ${GRAY}${ICON_WARNING}${NC} DerivedData do Xcode · interrompido (${stopped_reason})"
             note_activity
         else
             mole_defer_cleanup_family "Xcode"
@@ -423,18 +423,18 @@ clean_xcode_tools() {
         if [[ $simulator_state -eq 1 ]]; then
             _app_cache_safe_clean_guarded \
                 _simulator_app_cache_delete_guard_allows \
-                "Simulator caches" \
+                "Caches do Simulator" \
                 ~/Library/Developer/CoreSimulator/Caches/* \
-                "Simulator cache" || {
+                "Cache do Simulator" || {
                 guarded_rc=$?
                 mole_rc_signal "$guarded_rc" && return "$guarded_rc"
                 return 0
             }
             _app_cache_safe_clean_guarded \
                 _simulator_app_cache_delete_guard_allows \
-                "Simulator temp files" \
+                "Arquivos temporários do Simulator" \
                 ~/Library/Developer/CoreSimulator/Devices/*/data/tmp/* \
-                "Simulator temp files" || {
+                "Arquivos temporários do Simulator" || {
                 guarded_rc=$?
                 mole_rc_signal "$guarded_rc" && return "$guarded_rc"
                 return 0
@@ -442,9 +442,9 @@ clean_xcode_tools() {
             if [[ ${#simulator_device_leaves[@]} -gt 0 ]]; then
                 _app_cache_safe_clean_guarded \
                     _simulator_device_leaf_delete_guard_allows \
-                    "Simulator device data" \
+                    "Dados de dispositivos do Simulator" \
                     "${simulator_device_leaves[@]}" \
-                    "Simulator device data" || {
+                    "Dados de dispositivos do Simulator" || {
                     guarded_rc=$?
                     mole_rc_signal "$guarded_rc" && return "$guarded_rc"
                     return 0
@@ -452,16 +452,16 @@ clean_xcode_tools() {
             fi
             _app_cache_safe_clean_guarded \
                 _simulator_app_cache_delete_guard_allows \
-                "CoreSimulator logs" \
+                "Logs do CoreSimulator" \
                 ~/Library/Logs/CoreSimulator/* \
-                "CoreSimulator logs" || {
+                "Logs do CoreSimulator" || {
                 guarded_rc=$?
                 mole_rc_signal "$guarded_rc" && return "$guarded_rc"
                 return 0
             }
         else
             if [[ $simulator_state -eq 2 ]]; then
-                echo -e "  ${GRAY}${ICON_WARNING}${NC} Simulator caches · skipped (process state unknown)"
+                echo -e "  ${GRAY}${ICON_WARNING}${NC} Caches do Simulator · ignorado (estado do processo desconhecido)"
                 note_activity
             else
                 mole_defer_cleanup_family "Simulator"
@@ -485,9 +485,9 @@ clean_xcode_tools() {
             if [[ "$xcode_cache_has_targets" == "true" ]]; then
                 _app_cache_safe_clean_guarded \
                     _xcode_app_cache_delete_guard_allows \
-                    "Xcode cache" \
+                    "Cache do Xcode" \
                     ~/Library/Caches/com.apple.dt.Xcode/* \
-                    "Xcode cache" || {
+                    "Cache do Xcode" || {
                     guarded_rc=$?
                     mole_rc_signal "$guarded_rc" && return "$guarded_rc"
                     return 0
@@ -508,7 +508,7 @@ clean_xcode_tools() {
             _xcode_cleanup_process_state || xcode_state=$?
             if [[ $xcode_state -ne 1 ]]; then
                 if [[ $xcode_state -eq 2 ]]; then
-                    echo -e "  ${GRAY}${ICON_WARNING}${NC} Xcode build products/DerivedData · stopped (process state unknown)"
+                    echo -e "  ${GRAY}${ICON_WARNING}${NC} Produtos de build/DerivedData do Xcode · interrompido (estado do processo desconhecido)"
                     note_activity
                 else
                     mole_defer_cleanup_family "Xcode"
@@ -517,9 +517,9 @@ clean_xcode_tools() {
             fi
             _app_cache_safe_clean_guarded \
                 _xcode_app_cache_delete_guard_allows \
-                "Xcode build products" \
+                "Produtos de build do Xcode" \
                 ~/Library/Developer/Xcode/Products/* \
-                "Xcode build products" || {
+                "Produtos de build do Xcode" || {
                 guarded_rc=$?
                 mole_rc_signal "$guarded_rc" && return "$guarded_rc"
                 return 0
@@ -527,7 +527,7 @@ clean_xcode_tools() {
             clean_xcode_derived_data || return $?
         else
             if [[ $xcode_state -eq 2 ]]; then
-                echo -e "  ${GRAY}${ICON_WARNING}${NC} Xcode cache/build products · skipped (process state unknown)"
+                echo -e "  ${GRAY}${ICON_WARNING}${NC} Cache/produtos de build do Xcode · ignorado (estado do processo desconhecido)"
                 note_activity
             else
                 mole_defer_cleanup_family "Xcode"
@@ -607,7 +607,7 @@ clean_editor_obsolete_extensions() {
             esac
             target="$ext_root/$key"
             [[ -d "$target" ]] || continue
-            safe_clean "$target" "Obsolete $editor_label extension"
+            safe_clean "$target" "Extensão obsoleta do $editor_label"
         done < <(_mole_obsolete_extension_keys "$obsolete_file")
     done
 }
@@ -620,41 +620,41 @@ _codebuddy_shared_cache_running() {
 
 # Code editors.
 clean_code_editors() {
-    mole_safe_clean_app_cache "Visual Studio Code" ~/Library/Application\ Support/Code/logs/* "VS Code logs"
-    mole_safe_clean_app_cache "Visual Studio Code" ~/Library/Application\ Support/Code/Cache/* "VS Code cache"
-    mole_safe_clean_app_cache "Visual Studio Code" ~/Library/Application\ Support/Code/CachedExtensionVSIXs/* "VS Code extension cache"
-    mole_safe_clean_app_cache "Cursor" ~/Library/Application\ Support/Cursor/CachedExtensionVSIXs/* "Cursor extension cache"
-    mole_safe_clean_app_cache "Visual Studio Code" ~/Library/Application\ Support/Code/CachedData/* "VS Code data cache"
-    mole_safe_clean_app_cache "Visual Studio Code" ~/Library/Application\ Support/Code/WebStorage/*/CacheStorage/* "VS Code webview cache"
-    safe_clean ~/Library/Caches/com.sublimetext.*/* "Sublime Text cache"
-    safe_clean ~/Library/Caches/Zed/* "Zed cache"
+    mole_safe_clean_app_cache "Visual Studio Code" ~/Library/Application\ Support/Code/logs/* "Logs do VS Code"
+    mole_safe_clean_app_cache "Visual Studio Code" ~/Library/Application\ Support/Code/Cache/* "Cache do VS Code"
+    mole_safe_clean_app_cache "Visual Studio Code" ~/Library/Application\ Support/Code/CachedExtensionVSIXs/* "Cache de extensões do VS Code"
+    mole_safe_clean_app_cache "Cursor" ~/Library/Application\ Support/Cursor/CachedExtensionVSIXs/* "Cache de extensões do Cursor"
+    mole_safe_clean_app_cache "Visual Studio Code" ~/Library/Application\ Support/Code/CachedData/* "Cache de dados do VS Code"
+    mole_safe_clean_app_cache "Visual Studio Code" ~/Library/Application\ Support/Code/WebStorage/*/CacheStorage/* "Cache de webview do VS Code"
+    safe_clean ~/Library/Caches/com.sublimetext.*/* "Cache do Sublime Text"
+    safe_clean ~/Library/Caches/Zed/* "Cache do Zed"
     # Zed npm caches: node/cache (system-node scratch) and node/node-v*/cache
     # (per-version managed runtime, see #88); keep editor state under db/ untouched.
-    mole_safe_clean_app_cache "Zed" ~/Library/Application\ Support/Zed/node/cache/* "Zed npm cache"
-    mole_safe_clean_app_cache "Zed" ~/Library/Application\ Support/Zed/node/node-v*/cache/* "Zed npm cache"
-    safe_clean ~/Library/Logs/Zed/* "Zed logs"
+    mole_safe_clean_app_cache "Zed" ~/Library/Application\ Support/Zed/node/cache/* "Cache de npm do Zed"
+    mole_safe_clean_app_cache "Zed" ~/Library/Application\ Support/Zed/node/node-v*/cache/* "Cache de npm do Zed"
+    safe_clean ~/Library/Logs/Zed/* "Logs do Zed"
     clean_editor_obsolete_extensions
     # Shared desktop extension caches have more than one possible owner.
     if [[ -d ~/Library/Application\ Support/CodeBuddyExtension ]]; then
         local codebuddy_rc=0
-        _dev_safe_clean_process_guarded _codebuddy_shared_cache_running "CodeBuddy" "CodeBuddy Extension cache" \
-            ~/Library/Application\ Support/CodeBuddyExtension/Cache/* "CodeBuddy Extension cache" || codebuddy_rc=$?
+        _dev_safe_clean_process_guarded _codebuddy_shared_cache_running "CodeBuddy" "Cache da extensão do CodeBuddy" \
+            ~/Library/Application\ Support/CodeBuddyExtension/Cache/* "Cache da extensão do CodeBuddy" || codebuddy_rc=$?
         [[ $codebuddy_rc -le 1 ]] || return "$codebuddy_rc"
         codebuddy_rc=0
-        _dev_safe_clean_process_guarded _codebuddy_shared_cache_running "CodeBuddy" "CodeBuddy Extension logs" \
-            ~/Library/Application\ Support/CodeBuddyExtension/logs/* "CodeBuddy Extension logs" || codebuddy_rc=$?
+        _dev_safe_clean_process_guarded _codebuddy_shared_cache_running "CodeBuddy" "Logs da extensão do CodeBuddy" \
+            ~/Library/Application\ Support/CodeBuddyExtension/logs/* "Logs da extensão do CodeBuddy" || codebuddy_rc=$?
         [[ $codebuddy_rc -le 1 ]] || return "$codebuddy_rc"
     fi
     # CodeBuddy CN (VS Code fork, Electron)
     if [[ -d ~/Library/Application\ Support/CodeBuddy\ CN ]]; then
-        mole_safe_clean_app_cache "CodeBuddy CN" ~/Library/Application\ Support/CodeBuddy\ CN/Cache/* "CodeBuddy CN cache"
-        mole_safe_clean_app_cache "CodeBuddy CN" ~/Library/Application\ Support/CodeBuddy\ CN/CachedData/* "CodeBuddy CN cached data"
-        mole_safe_clean_app_cache "CodeBuddy CN" ~/Library/Application\ Support/CodeBuddy\ CN/CachedExtensionVSIXs/* "CodeBuddy CN extension cache"
-        mole_safe_clean_app_cache "CodeBuddy CN" ~/Library/Application\ Support/CodeBuddy\ CN/Code\ Cache/* "CodeBuddy CN code cache"
-        mole_safe_clean_app_cache "CodeBuddy CN" ~/Library/Application\ Support/CodeBuddy\ CN/GPUCache/* "CodeBuddy CN GPU cache"
-        mole_safe_clean_app_cache "CodeBuddy CN" ~/Library/Application\ Support/CodeBuddy\ CN/DawnGraphiteCache/* "CodeBuddy CN Dawn cache"
-        mole_safe_clean_app_cache "CodeBuddy CN" ~/Library/Application\ Support/CodeBuddy\ CN/DawnWebGPUCache/* "CodeBuddy CN WebGPU cache"
-        mole_safe_clean_app_cache "CodeBuddy CN" ~/Library/Application\ Support/CodeBuddy\ CN/logs/* "CodeBuddy CN logs"
+        mole_safe_clean_app_cache "CodeBuddy CN" ~/Library/Application\ Support/CodeBuddy\ CN/Cache/* "Cache do CodeBuddy CN"
+        mole_safe_clean_app_cache "CodeBuddy CN" ~/Library/Application\ Support/CodeBuddy\ CN/CachedData/* "Dados em cache do CodeBuddy CN"
+        mole_safe_clean_app_cache "CodeBuddy CN" ~/Library/Application\ Support/CodeBuddy\ CN/CachedExtensionVSIXs/* "Cache de extensões do CodeBuddy CN"
+        mole_safe_clean_app_cache "CodeBuddy CN" ~/Library/Application\ Support/CodeBuddy\ CN/Code\ Cache/* "Cache de código do CodeBuddy CN"
+        mole_safe_clean_app_cache "CodeBuddy CN" ~/Library/Application\ Support/CodeBuddy\ CN/GPUCache/* "Cache de GPU do CodeBuddy CN"
+        mole_safe_clean_app_cache "CodeBuddy CN" ~/Library/Application\ Support/CodeBuddy\ CN/DawnGraphiteCache/* "Cache Dawn do CodeBuddy CN"
+        mole_safe_clean_app_cache "CodeBuddy CN" ~/Library/Application\ Support/CodeBuddy\ CN/DawnWebGPUCache/* "Cache WebGPU do CodeBuddy CN"
+        mole_safe_clean_app_cache "CodeBuddy CN" ~/Library/Application\ Support/CodeBuddy\ CN/logs/* "Logs do CodeBuddy CN"
     fi
 }
 # Lark / Feishu desktop embeds a Chromium webview (the "aha" explorer profile)
@@ -748,7 +748,7 @@ clean_feishu_service_worker_caches() {
 
     local _MOLE_CLEAN_GUARD_REASON=""
     if ! _feishu_service_worker_delete_guard_allows; then
-        mole_report_guard_stop "Feishu/Lark Service Worker" \
+        mole_report_guard_stop "Service Worker do Feishu/Lark" \
             mole_defer_cleanup_family "Feishu/Lark"
         return 0
     fi
@@ -763,7 +763,7 @@ clean_feishu_service_worker_caches() {
             _feishu_service_worker_delete_guard_allows \
             "$cleanup_deadline" || guarded_rc=$?
         if [[ $guarded_rc -eq 75 ]]; then
-            mole_report_guard_stop "Feishu/Lark Service Worker" \
+            mole_report_guard_stop "Service Worker do Feishu/Lark" \
                 mole_defer_cleanup_family "Feishu/Lark"
             return 0
         fi
@@ -826,7 +826,7 @@ clean_notion_service_worker_caches() {
 
     local _MOLE_CLEAN_GUARD_REASON=""
     if ! _notion_service_worker_delete_guard_allows; then
-        mole_report_guard_stop "Notion Service Worker" \
+        mole_report_guard_stop "Service Worker do Notion" \
             mole_defer_cleanup_family "Notion"
         return 0
     fi
@@ -840,7 +840,7 @@ clean_notion_service_worker_caches() {
             _notion_service_worker_delete_guard_allows \
             "$cleanup_deadline" || guarded_rc=$?
         if [[ $guarded_rc -eq 75 ]]; then
-            mole_report_guard_stop "Notion Service Worker" \
+            mole_report_guard_stop "Service Worker do Notion" \
                 mole_defer_cleanup_family "Notion"
             return 0
         fi
@@ -1006,7 +1006,7 @@ _clean_messaging_container_roots() {
 
     local _MOLE_CLEAN_GUARD_REASON=""
     if ! "$process_guard"; then
-        mole_report_guard_stop "$family container caches" \
+        mole_report_guard_stop "Caches de container do $family" \
             mole_defer_cleanup_family "$family"
         return 0
     fi
@@ -1033,7 +1033,7 @@ _clean_messaging_container_roots() {
         guarded_rc=0
         safe_clean_guarded "$delete_guard" "${label_targets[@]}" "$label" || guarded_rc=$?
         if [[ $guarded_rc -eq 75 ]]; then
-            mole_report_guard_stop "$family container caches" \
+            mole_report_guard_stop "Caches de container do $family" \
                 mole_defer_cleanup_family "$family"
             return 0
         fi
@@ -1104,23 +1104,23 @@ clean_wechat_container_caches() {
 
 # Communication apps.
 clean_communication_apps() {
-    mole_safe_clean_app_cache "Discord" ~/Library/Application\ Support/discord/Cache/* "Discord cache"
-    mole_safe_clean_app_cache "Legcord" ~/Library/Application\ Support/legcord/Cache/* "Legcord cache"
+    mole_safe_clean_app_cache "Discord" ~/Library/Application\ Support/discord/Cache/* "Cache do Discord"
+    mole_safe_clean_app_cache "Legcord" ~/Library/Application\ Support/legcord/Cache/* "Cache do Legcord"
     # Vesktop moves Electron's session data to sessionData; its vencordFiles sibling stays.
-    mole_safe_clean_app_cache "Vesktop" ~/Library/Application\ Support/vesktop/sessionData/Cache/* "Vesktop cache"
-    mole_safe_clean_app_cache "Vesktop" ~/Library/Application\ Support/vesktop/sessionData/Code\ Cache/* "Vesktop code cache"
-    mole_safe_clean_app_cache "Slack" ~/Library/Application\ Support/Slack/Cache/* "Slack cache"
-    safe_clean ~/Library/Caches/us.zoom.xos/* "Zoom cache"
-    safe_clean ~/Library/Caches/com.tencent.xinWeChat/* "WeChat cache"
-    safe_clean ~/Library/Caches/ru.keepcoder.Telegram/* "Telegram cache"
+    mole_safe_clean_app_cache "Vesktop" ~/Library/Application\ Support/vesktop/sessionData/Cache/* "Cache do Vesktop"
+    mole_safe_clean_app_cache "Vesktop" ~/Library/Application\ Support/vesktop/sessionData/Code\ Cache/* "Cache de código do Vesktop"
+    mole_safe_clean_app_cache "Slack" ~/Library/Application\ Support/Slack/Cache/* "Cache do Slack"
+    safe_clean ~/Library/Caches/us.zoom.xos/* "Cache do Zoom"
+    safe_clean ~/Library/Caches/com.tencent.xinWeChat/* "Cache do WeChat"
+    safe_clean ~/Library/Caches/ru.keepcoder.Telegram/* "Cache do Telegram"
 
-    safe_clean ~/Library/Caches/com.microsoft.teams2/* "Microsoft Teams cache"
-    safe_clean ~/Library/Caches/net.whatsapp.WhatsApp/* "WhatsApp cache"
-    safe_clean ~/Library/Caches/com.skype.skype/* "Skype cache"
-    safe_clean ~/Library/Caches/com.tencent.meeting/* "Tencent Meeting cache"
-    safe_clean ~/Library/Caches/com.tencent.WeWorkMac/* "WeCom cache"
-    safe_clean ~/Library/Caches/com.tencent.qq/* "QQ cache"
-    safe_clean ~/Library/Caches/com.feishu.*/* "Feishu cache"
+    safe_clean ~/Library/Caches/com.microsoft.teams2/* "Cache do Microsoft Teams"
+    safe_clean ~/Library/Caches/net.whatsapp.WhatsApp/* "Cache do WhatsApp"
+    safe_clean ~/Library/Caches/com.skype.skype/* "Cache do Skype"
+    safe_clean ~/Library/Caches/com.tencent.meeting/* "Cache do Tencent Meeting"
+    safe_clean ~/Library/Caches/com.tencent.WeWorkMac/* "Cache do WeCom"
+    safe_clean ~/Library/Caches/com.tencent.qq/* "Cache do QQ"
+    safe_clean ~/Library/Caches/com.feishu.*/* "Cache do Feishu"
     _clean_messaging_container_roots "Feishu/Lark" \
         _feishu_service_worker_delete_guard_allows \
         _feishu_disk_cache_delete_guard_allows \
@@ -1129,30 +1129,30 @@ clean_communication_apps() {
     clean_feishu_service_worker_caches
     clean_notion_service_worker_caches
     if [[ -d ~/Library/Application\ Support/Microsoft/Teams ]]; then
-        mole_safe_clean_app_cache "Microsoft Teams" ~/Library/Application\ Support/Microsoft/Teams/Cache/* "Microsoft Teams legacy cache"
-        mole_safe_clean_app_cache "Microsoft Teams" ~/Library/Application\ Support/Microsoft/Teams/Application\ Cache/* "Microsoft Teams legacy application cache"
-        mole_safe_clean_app_cache "Microsoft Teams" ~/Library/Application\ Support/Microsoft/Teams/Code\ Cache/* "Microsoft Teams legacy code cache"
-        mole_safe_clean_app_cache "Microsoft Teams" ~/Library/Application\ Support/Microsoft/Teams/GPUCache/* "Microsoft Teams legacy GPU cache"
-        mole_safe_clean_app_cache "Microsoft Teams" ~/Library/Application\ Support/Microsoft/Teams/logs/* "Microsoft Teams legacy logs"
-        mole_safe_clean_app_cache "Microsoft Teams" ~/Library/Application\ Support/Microsoft/Teams/tmp/* "Microsoft Teams legacy temp files"
+        mole_safe_clean_app_cache "Microsoft Teams" ~/Library/Application\ Support/Microsoft/Teams/Cache/* "Cache legado do Microsoft Teams"
+        mole_safe_clean_app_cache "Microsoft Teams" ~/Library/Application\ Support/Microsoft/Teams/Application\ Cache/* "Cache de aplicativo legado do Microsoft Teams"
+        mole_safe_clean_app_cache "Microsoft Teams" ~/Library/Application\ Support/Microsoft/Teams/Code\ Cache/* "Cache de código legado do Microsoft Teams"
+        mole_safe_clean_app_cache "Microsoft Teams" ~/Library/Application\ Support/Microsoft/Teams/GPUCache/* "Cache de GPU legado do Microsoft Teams"
+        mole_safe_clean_app_cache "Microsoft Teams" ~/Library/Application\ Support/Microsoft/Teams/logs/* "Logs legados do Microsoft Teams"
+        mole_safe_clean_app_cache "Microsoft Teams" ~/Library/Application\ Support/Microsoft/Teams/tmp/* "Arquivos temporários legados do Microsoft Teams"
     fi
     clean_wechat_container_caches
 }
 # DingTalk.
 clean_dingtalk() {
-    safe_clean ~/Library/Caches/dd.work.exclusive4aliding/* "DingTalk iDingTalk cache"
-    safe_clean ~/Library/Caches/com.alibaba.AliLang.osx/* "AliLang security component"
+    safe_clean ~/Library/Caches/dd.work.exclusive4aliding/* "Cache do DingTalk iDingTalk"
+    safe_clean ~/Library/Caches/com.alibaba.AliLang.osx/* "Componente de segurança do AliLang"
     if [[ -d ~/Library/Application\ Support/iDingTalk ]]; then
-        safe_clean ~/Library/Application\ Support/iDingTalk/log/* "DingTalk logs"
-        safe_clean ~/Library/Application\ Support/iDingTalk/holmeslogs/* "DingTalk holmes logs"
+        safe_clean ~/Library/Application\ Support/iDingTalk/log/* "Logs do DingTalk"
+        safe_clean ~/Library/Application\ Support/iDingTalk/holmeslogs/* "Logs holmes do DingTalk"
     fi
 }
 # AI assistants.
 clean_ai_apps() {
-    safe_clean ~/Library/Caches/com.openai.chat/* "ChatGPT cache"
-    safe_clean ~/Library/Caches/com.anthropic.claudefordesktop/* "Claude desktop cache"
-    safe_clean ~/Library/Logs/Claude/* "Claude logs"
-    safe_clean ~/Library/Caches/com.lmstudio.lmstudio/* "LM Studio cache"
+    safe_clean ~/Library/Caches/com.openai.chat/* "Cache do ChatGPT"
+    safe_clean ~/Library/Caches/com.anthropic.claudefordesktop/* "Cache do Claude desktop"
+    safe_clean ~/Library/Logs/Claude/* "Logs do Claude"
+    safe_clean ~/Library/Caches/com.lmstudio.lmstudio/* "Cache do LM Studio"
     # LM Studio <=0.3.5 used ~/.cache/lm-studio as its complete home directory,
     # including models, presets, chats, and runtime state. LM Studio moved new
     # installs to ~/.lmstudio in 0.3.6, but existing data is not migrated, so
@@ -1186,19 +1186,19 @@ _adobe_app_running() {
 
 # Design and creative tools.
 clean_design_tools() {
-    safe_clean ~/Library/Caches/com.bohemiancoding.sketch3/* "Sketch cache"
-    safe_clean ~/Library/Application\ Support/com.bohemiancoding.sketch3/cache/* "Sketch app cache"
+    safe_clean ~/Library/Caches/com.bohemiancoding.sketch3/* "Cache do Sketch"
+    safe_clean ~/Library/Application\ Support/com.bohemiancoding.sketch3/cache/* "Cache do app Sketch"
     local adobe_rc=0
-    _dev_safe_clean_process_guarded _adobe_app_running "Adobe" "Adobe cache" \
-        ~/Library/Caches/Adobe/* "Adobe cache" || adobe_rc=$?
+    _dev_safe_clean_process_guarded _adobe_app_running "Adobe" "Cache da Adobe" \
+        ~/Library/Caches/Adobe/* "Cache da Adobe" || adobe_rc=$?
     [[ $adobe_rc -le 1 ]] || return "$adobe_rc"
-    _dev_safe_clean_process_guarded _adobe_app_running "Adobe" "Adobe app caches" \
-        ~/Library/Caches/com.adobe.*/* "Adobe app caches" || adobe_rc=$?
+    _dev_safe_clean_process_guarded _adobe_app_running "Adobe" "Caches de apps da Adobe" \
+        ~/Library/Caches/com.adobe.*/* "Caches de apps da Adobe" || adobe_rc=$?
     [[ $adobe_rc -le 1 ]] || return "$adobe_rc"
-    safe_clean ~/Library/Caches/com.figma.Desktop/* "Figma cache"
+    safe_clean ~/Library/Caches/com.figma.Desktop/* "Cache do Figma"
     local adobe_media_rc=0
-    _dev_safe_clean_process_guarded _adobe_media_cache_running "Adobe" "Adobe media cache files" \
-        ~/Library/Application\ Support/Adobe/Common/Media\ Cache\ Files/* "Adobe media cache files" || adobe_media_rc=$?
+    _dev_safe_clean_process_guarded _adobe_media_cache_running "Adobe" "Arquivos de cache de mídia da Adobe" \
+        ~/Library/Application\ Support/Adobe/Common/Media\ Cache\ Files/* "Arquivos de cache de mídia da Adobe" || adobe_media_rc=$?
     [[ $adobe_media_rc -le 1 ]] || return "$adobe_media_rc"
 }
 # Video editing tools.
@@ -1234,7 +1234,7 @@ clean_jianying_pro_generated_caches() {
     if [[ $process_state -ne 1 ]]; then
         local skip_reason="JianyingPro running"
         [[ $process_state -eq 2 ]] && skip_reason="process state unknown"
-        echo -e "  ${GRAY}${ICON_WARNING}${NC} JianyingPro generated caches · skipped ($skip_reason)"
+        echo -e "  ${GRAY}${ICON_WARNING}${NC} Caches gerados do JianyingPro · ignorado ($skip_reason)"
         note_activity
         return 0
     fi
@@ -1261,11 +1261,11 @@ clean_jianying_pro_generated_caches() {
 }
 
 clean_video_tools() {
-    safe_clean ~/Library/Caches/net.telestream.screenflow10/* "ScreenFlow cache"
-    safe_clean ~/Library/Caches/com.apple.FinalCut/* "Final Cut Pro cache"
-    safe_clean ~/Library/Caches/com.blackmagic-design.DaVinciResolve/* "DaVinci Resolve cache"
-    safe_clean ~/Movies/CacheClip/* "DaVinci Resolve CacheClip"
-    safe_clean ~/Library/Caches/com.adobe.PremierePro.*/* "Premiere Pro cache"
+    safe_clean ~/Library/Caches/net.telestream.screenflow10/* "Cache do ScreenFlow"
+    safe_clean ~/Library/Caches/com.apple.FinalCut/* "Cache do Final Cut Pro"
+    safe_clean ~/Library/Caches/com.blackmagic-design.DaVinciResolve/* "Cache do DaVinci Resolve"
+    safe_clean ~/Movies/CacheClip/* "CacheClip do DaVinci Resolve"
+    safe_clean ~/Library/Caches/com.adobe.PremierePro.*/* "Cache do Premiere Pro"
     clean_jianying_pro_generated_caches
 }
 # Autodesk Fusion helpers (AcCoreConsole, ADPClientService) outlive the main
@@ -1698,7 +1698,7 @@ clean_autodesk_fusion_old_bundles() {
 
     local _MOLE_AUTODESK_FUSION_PRODUCTION_ROOT=""
     if ! _autodesk_fusion_trusted_production_root "$production_dir"; then
-        echo -e "  ${GRAY}${ICON_WARNING}${NC} Autodesk Fusion old versions · skipped (production root not trusted)"
+        echo -e "  ${GRAY}${ICON_WARNING}${NC} Versões antigas do Autodesk Fusion · ignorado (raiz de produção não confiável)"
         note_activity
         return 0
     fi
@@ -1710,13 +1710,13 @@ clean_autodesk_fusion_old_bundles() {
     _autodesk_fusion_resolve_current_version \
         "$production_root" "$cleanup_deadline" || current_rc=$?
     if mole_rc_timeout "$current_rc"; then
-        echo -e "  ${GRAY}${ICON_WARNING}${NC} Autodesk Fusion old versions · skipped (current version probe timed out)"
+        echo -e "  ${GRAY}${ICON_WARNING}${NC} Versões antigas do Autodesk Fusion · ignorado (tempo esgotado ao verificar a versão atual)"
         note_activity
         return 0
     elif [[ $current_rc -ge 128 ]]; then
         return "$current_rc"
     elif [[ $current_rc -ne 0 ]]; then
-        echo -e "  ${GRAY}${ICON_WARNING}${NC} Autodesk Fusion old versions · skipped (current version unknown)"
+        echo -e "  ${GRAY}${ICON_WARNING}${NC} Versões antigas do Autodesk Fusion · ignorado (versão atual desconhecida)"
         note_activity
         return 0
     fi
@@ -1728,13 +1728,13 @@ clean_autodesk_fusion_old_bundles() {
         "$production_root" "$current_dir" "$current_version" \
         "$cleanup_deadline" || plan_rc=$?
     if mole_rc_timeout "$plan_rc"; then
-        echo -e "  ${GRAY}${ICON_WARNING}${NC} Autodesk Fusion old versions · skipped (inventory timed out)"
+        echo -e "  ${GRAY}${ICON_WARNING}${NC} Versões antigas do Autodesk Fusion · ignorado (tempo esgotado no inventário)"
         note_activity
         return 0
     elif [[ $plan_rc -ge 128 ]]; then
         return "$plan_rc"
     elif [[ $plan_rc -ne 0 ]]; then
-        echo -e "  ${GRAY}${ICON_WARNING}${NC} Autodesk Fusion old versions · skipped (inventory incomplete)"
+        echo -e "  ${GRAY}${ICON_WARNING}${NC} Versões antigas do Autodesk Fusion · ignorado (inventário incompleto)"
         note_activity
         return 0
     fi
@@ -1744,7 +1744,7 @@ clean_autodesk_fusion_old_bundles() {
     autodesk_cache_process_state || process_state=$?
     if [[ $process_state -ne 1 ]]; then
         if [[ $process_state -eq 2 ]]; then
-            echo -e "  ${GRAY}${ICON_WARNING}${NC} Autodesk Fusion old versions · skipped (process state unknown)"
+            echo -e "  ${GRAY}${ICON_WARNING}${NC} Versões antigas do Autodesk Fusion · ignorado (estado do processo desconhecido)"
             note_activity
         else
             mole_defer_cleanup_family "Autodesk Fusion"
@@ -1858,29 +1858,29 @@ clean_autodesk_fusion_old_bundles() {
         local size_human
         size_human=$(bytes_to_human "$((total_size * 1024))")
         if [[ "${DRY_RUN:-false}" == "true" ]]; then
-            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Autodesk Fusion old versions${NC} · ${YELLOW}$(mole_count_label "${cleaned_count}" dir), $(colorize_human_size "$size_human") ${YELLOW}dry${NC}"
+            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Versões antigas do Autodesk Fusion${NC} · ${YELLOW}$(mole_count_label "${cleaned_count}" dir), $(colorize_human_size "$size_human") ${YELLOW}simulado${NC}"
         else
             local line_color
             line_color=$(cleanup_result_color_kb "$total_size")
-            echo -e "  ${line_color}${ICON_SUCCESS}${NC} Autodesk Fusion old versions${NC} · ${line_color}$(mole_count_label "${cleaned_count}" dir), $(colorize_human_size "${size_human}")"
+            echo -e "  ${line_color}${ICON_SUCCESS}${NC} Versões antigas do Autodesk Fusion${NC} · ${line_color}$(mole_count_label "${cleaned_count}" dir), $(colorize_human_size "${size_human}")"
         fi
         mole_add_cleaned_row "$cleaned_count" "$total_size"
         note_activity
     fi
     if [[ $failed_count -gt 0 ]]; then
-        echo -e "  ${GRAY}${ICON_WARNING}${NC} Autodesk Fusion old versions · ${failed_count} failed"
+        echo -e "  ${GRAY}${ICON_WARNING}${NC} Versões antigas do Autodesk Fusion · ${failed_count} com falha"
         note_activity
     fi
     if [[ -n "$stopped_reason" ]]; then
-        echo -e "  ${GRAY}${ICON_WARNING}${NC} Autodesk Fusion old versions · stopped (${stopped_reason})"
+        echo -e "  ${GRAY}${ICON_WARNING}${NC} Versões antigas do Autodesk Fusion · interrompido (${stopped_reason})"
         note_activity
     fi
 }
 
 # 3D and CAD tools.
 clean_3d_tools() {
-    safe_clean ~/Library/Caches/org.blenderfoundation.blender/* "Blender cache"
-    safe_clean ~/Library/Caches/com.maxon.cinema4d/* "Cinema 4D cache"
+    safe_clean ~/Library/Caches/org.blenderfoundation.blender/* "Cache do Blender"
+    safe_clean ~/Library/Caches/com.maxon.cinema4d/* "Cache do Cinema 4D"
 
     local -a autodesk_targets=()
     local autodesk_entry
@@ -1897,7 +1897,7 @@ clean_3d_tools() {
         autodesk_cache_process_state || process_state=$?
         if [[ $process_state -ne 1 ]]; then
             if [[ $process_state -eq 2 ]]; then
-                echo -e "  ${GRAY}${ICON_WARNING}${NC} Autodesk cache · skipped (process state unknown)"
+                echo -e "  ${GRAY}${ICON_WARNING}${NC} Cache do Autodesk · ignorado (estado do processo desconhecido)"
                 note_activity
             else
                 mole_defer_cleanup_family "Autodesk"
@@ -1905,13 +1905,13 @@ clean_3d_tools() {
         else
             _app_cache_safe_clean_guarded \
                 _autodesk_cache_delete_guard_allows \
-                "Autodesk cache" \
+                "Cache do Autodesk" \
                 "${autodesk_targets[@]}" \
-                "Autodesk cache" || true
+                "Cache do Autodesk" || true
         fi
     fi
 
-    safe_clean ~/Library/Caches/com.sketchup.*/* "SketchUp cache"
+    safe_clean ~/Library/Caches/com.sketchup.*/* "Cache do SketchUp"
 
     # Remove old Autodesk Fusion app bundles left by the in-app updater.
     # The updater keeps every version under webdeploy/production and leaves an
@@ -1948,49 +1948,49 @@ clean_futu_update_downloads() {
 
     local _MOLE_CLEAN_GUARD_REASON=""
     if ! _futu_update_delete_guard_allows; then
-        mole_report_guard_stop "Futu update downloads" mole_defer_cleanup_family "Futu"
+        mole_report_guard_stop "Downloads de atualização do Futu" mole_defer_cleanup_family "Futu"
         return 0
     fi
     local guarded_rc=0
     safe_clean_guarded _futu_update_delete_guard_allows "$root"/* "Futu update downloads" || guarded_rc=$?
     if [[ $guarded_rc -eq 75 ]]; then
-        mole_report_guard_stop "Futu update downloads" mole_defer_cleanup_family "Futu"
+        mole_report_guard_stop "Downloads de atualização do Futu" mole_defer_cleanup_family "Futu"
         return 0
     fi
     return "$guarded_rc"
 }
 
 clean_productivity_apps() {
-    safe_clean ~/Library/Caches/com.tw93.MiaoYan/* "MiaoYan cache"
-    safe_clean ~/Library/Caches/com.klee.desktop/* "Klee cache"
-    safe_clean ~/Library/Caches/klee_desktop/* "Klee desktop cache"
-    safe_clean ~/Library/Caches/com.orabrowser.app/* "Ora browser cache"
-    safe_clean ~/Library/Caches/com.filo.client/* "Filo cache"
-    safe_clean ~/Library/Caches/com.flomoapp.mac/* "Flomo cache"
-    safe_clean ~/Library/Application\ Support/Quark/Cache/videoCache/* "Quark video cache"
-    safe_clean ~/Library/Containers/com.ranchero.NetNewsWire-Evergreen/Data/Library/Caches/* "NetNewsWire cache"
-    safe_clean ~/Library/Containers/com.ideasoncanvas.mindnode/Data/Library/Caches/* "MindNode cache"
-    safe_clean ~/.cache/kaku/* "Kaku cache"
-    safe_clean ~/Library/Application\ Support/spacedrive/thumbnails/* "Spacedrive thumbnail cache"
-    safe_clean ~/Library/Containers/is.follow/Data/Library/Application\ Support/Folo/Cache/Cache_Data/* "Folo cache"
+    safe_clean ~/Library/Caches/com.tw93.MiaoYan/* "Cache do MiaoYan"
+    safe_clean ~/Library/Caches/com.klee.desktop/* "Cache do Klee"
+    safe_clean ~/Library/Caches/klee_desktop/* "Cache do Klee desktop"
+    safe_clean ~/Library/Caches/com.orabrowser.app/* "Cache do navegador Ora"
+    safe_clean ~/Library/Caches/com.filo.client/* "Cache do Filo"
+    safe_clean ~/Library/Caches/com.flomoapp.mac/* "Cache do Flomo"
+    safe_clean ~/Library/Application\ Support/Quark/Cache/videoCache/* "Cache de vídeo do Quark"
+    safe_clean ~/Library/Containers/com.ranchero.NetNewsWire-Evergreen/Data/Library/Caches/* "Cache do NetNewsWire"
+    safe_clean ~/Library/Containers/com.ideasoncanvas.mindnode/Data/Library/Caches/* "Cache do MindNode"
+    safe_clean ~/.cache/kaku/* "Cache do Kaku"
+    safe_clean ~/Library/Application\ Support/spacedrive/thumbnails/* "Cache de miniaturas do Spacedrive"
+    safe_clean ~/Library/Containers/is.follow/Data/Library/Application\ Support/Folo/Cache/Cache_Data/* "Cache do Folo"
     clean_futu_update_downloads
 }
 # Music/media players (protect Spotify offline music).
 clean_media_players() {
     # Spotify's cache can contain offline music in more than one layout.
     # Absence of an offline marker does not prove it disposable.
-    safe_clean ~/Library/Caches/com.apple.Music "Apple Music cache"
-    safe_clean ~/Library/Caches/com.apple.podcasts "Apple Podcasts cache"
+    safe_clean ~/Library/Caches/com.apple.Music "Cache do Apple Music"
+    safe_clean ~/Library/Caches/com.apple.podcasts "Cache do Apple Podcasts"
     # Apple Podcasts sandbox container: zombie sparse files and stale artwork cache (#387)
-    safe_clean ~/Library/Containers/com.apple.podcasts/Data/tmp/StreamedMedia "Podcasts streamed media"
-    safe_clean ~/Library/Containers/com.apple.podcasts/Data/tmp/*.heic "Podcasts artwork cache"
-    safe_clean ~/Library/Containers/com.apple.podcasts/Data/tmp/*.img "Podcasts image cache"
-    safe_clean ~/Library/Containers/com.apple.podcasts/Data/tmp/*CFNetworkDownload*.tmp "Podcasts download temp"
-    safe_clean ~/Library/Caches/com.apple.TV/* "Apple TV cache"
-    safe_clean ~/Library/Caches/tv.plex.player.desktop "Plex cache"
-    safe_clean ~/Library/Caches/com.netease.163music "NetEase Music cache"
-    safe_clean ~/Library/Caches/com.tencent.QQMusic/* "QQ Music cache"
-    safe_clean ~/Library/Caches/com.tencent.QQMusicMac/* "QQ Music Mac cache"
+    safe_clean ~/Library/Containers/com.apple.podcasts/Data/tmp/StreamedMedia "Mídia em streaming do Podcasts"
+    safe_clean ~/Library/Containers/com.apple.podcasts/Data/tmp/*.heic "Cache de capas do Podcasts"
+    safe_clean ~/Library/Containers/com.apple.podcasts/Data/tmp/*.img "Cache de imagens do Podcasts"
+    safe_clean ~/Library/Containers/com.apple.podcasts/Data/tmp/*CFNetworkDownload*.tmp "Temporários de download do Podcasts"
+    safe_clean ~/Library/Caches/com.apple.TV/* "Cache do Apple TV"
+    safe_clean ~/Library/Caches/tv.plex.player.desktop "Cache do Plex"
+    safe_clean ~/Library/Caches/com.netease.163music "Cache do NetEase Music"
+    safe_clean ~/Library/Caches/com.tencent.QQMusic/* "Cache do QQ Music"
+    safe_clean ~/Library/Caches/com.tencent.QQMusicMac/* "Cache do QQ Music Mac"
     # QQ Music Mac sandboxed container caches (protect offline downloads in iDownloadProxy).
     local _qqmusic_container="$HOME/Library/Containers/com.tencent.QQMusicMac/Data/Library/Application Support/QQMusicMac"
     if [[ -d "$_qqmusic_container" ]]; then
@@ -1999,17 +1999,17 @@ clean_media_players() {
         safe_clean "$_qqmusic_container/iCache"/* "QQ Music cache"
         safe_clean "$_qqmusic_container/iTemp"/* "QQ Music temp files"
     fi
-    safe_clean ~/Library/Containers/com.tencent.QQMusicMac/Data/Library/Caches/* "QQ Music container cache"
-    safe_clean ~/Library/Caches/com.kugou.mac/* "Kugou Music cache"
-    safe_clean ~/Library/Caches/com.kuwo.mac/* "Kuwo Music cache"
+    safe_clean ~/Library/Containers/com.tencent.QQMusicMac/Data/Library/Caches/* "Cache do container do QQ Music"
+    safe_clean ~/Library/Caches/com.kugou.mac/* "Cache do Kugou Music"
+    safe_clean ~/Library/Caches/com.kuwo.mac/* "Cache do Kuwo Music"
 }
 # Video players.
 clean_video_players() {
-    safe_clean ~/Library/Caches/com.colliderli.iina "IINA cache"
-    safe_clean ~/Library/Caches/org.videolan.vlc "VLC cache"
-    safe_clean ~/Library/Caches/io.mpv "MPV cache"
-    safe_clean ~/Library/Caches/com.iqiyi.player "iQIYI cache"
-    safe_clean ~/Library/Caches/com.tencent.tenvideo "Tencent Video cache"
+    safe_clean ~/Library/Caches/com.colliderli.iina "Cache do IINA"
+    safe_clean ~/Library/Caches/org.videolan.vlc "Cache do VLC"
+    safe_clean ~/Library/Caches/io.mpv "Cache do MPV"
+    safe_clean ~/Library/Caches/com.iqiyi.player "Cache do iQIYI"
+    safe_clean ~/Library/Caches/com.tencent.tenvideo "Cache do Tencent Video"
     # Tencent Video sandboxed container caches.
     local _tenvideo_as="$HOME/Library/Containers/com.tencent.tenvideo/Data/Library/Application Support"
     if [[ -d "$_tenvideo_as" ]]; then
@@ -2017,23 +2017,23 @@ clean_video_players() {
         safe_clean "$_tenvideo_as/VideoNative"/* "Tencent Video native cache"
         safe_clean "$_tenvideo_as/documentCache"/* "Tencent Video document cache"
     fi
-    safe_clean ~/Library/Caches/tv.danmaku.bili/* "Bilibili cache"
-    safe_clean ~/Library/Caches/com.douyu.*/* "Douyu cache"
-    safe_clean ~/Library/Caches/com.huya.*/* "Huya cache"
-    safe_clean ~/Library/Containers/com.wuziqi.SenPlayer/Data/tmp/videoCache/* "SenPlayer video cache"
-    safe_clean ~/Library/Caches/smart.stremio*/* "Stremio cache"
+    safe_clean ~/Library/Caches/tv.danmaku.bili/* "Cache do Bilibili"
+    safe_clean ~/Library/Caches/com.douyu.*/* "Cache do Douyu"
+    safe_clean ~/Library/Caches/com.huya.*/* "Cache do Huya"
+    safe_clean ~/Library/Containers/com.wuziqi.SenPlayer/Data/tmp/videoCache/* "Cache de vídeo do SenPlayer"
+    safe_clean ~/Library/Caches/smart.stremio*/* "Cache do Stremio"
     if [[ -d ~/Library/Application\ Support/stremio ]]; then
-        safe_clean ~/Library/Application\ Support/stremio/stremio-server/stremio-cache/* "Stremio server cache"
+        safe_clean ~/Library/Application\ Support/stremio/stremio-server/stremio-cache/* "Cache do servidor do Stremio"
     fi
 }
 # Download managers.
 clean_download_managers() {
-    safe_clean ~/Library/Caches/net.xmac.aria2gui "Aria2 cache"
-    safe_clean ~/Library/Caches/org.m0k.transmission "Transmission cache"
-    safe_clean ~/Library/Caches/com.qbittorrent.qBittorrent "qBittorrent cache"
-    safe_clean ~/Library/Caches/com.downie.Downie-* "Downie cache"
-    safe_clean ~/Library/Caches/com.folx.*/* "Folx cache"
-    safe_clean ~/Library/Caches/com.charlessoft.pacifist/* "Pacifist cache"
+    safe_clean ~/Library/Caches/net.xmac.aria2gui "Cache do Aria2"
+    safe_clean ~/Library/Caches/org.m0k.transmission "Cache do Transmission"
+    safe_clean ~/Library/Caches/com.qbittorrent.qBittorrent "Cache do qBittorrent"
+    safe_clean ~/Library/Caches/com.downie.Downie-* "Cache do Downie"
+    safe_clean ~/Library/Caches/com.folx.*/* "Cache do Folx"
+    safe_clean ~/Library/Caches/com.charlessoft.pacifist/* "Cache do Pacifist"
     clean_neatdm_stale_segments || return $?
 }
 # Neat Download Manager: clean stale incomplete download segments.
@@ -2091,11 +2091,11 @@ clean_neatdm_stale_segments() {
         local size_human
         size_human=$(bytes_to_human "$((stale_kb * 1024))")
         if [[ "$DRY_RUN" == "true" ]]; then
-            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} NeatDM stale downloads · $(mole_count_label "${stale_count}" item), $(colorize_human_size "$size_human") ${YELLOW}dry${NC}"
+            echo -e "  ${YELLOW}${ICON_DRY_RUN}${NC} Downloads obsoletos do NeatDM · $(mole_count_label "${stale_count}" item), $(colorize_human_size "$size_human") ${YELLOW}simulado${NC}"
         else
             local line_color
             line_color=$(cleanup_result_color_kb "$stale_kb")
-            echo -e "  ${line_color}${ICON_SUCCESS}${NC} NeatDM stale downloads · $(mole_count_label "${stale_count}" item), $(colorize_human_size "${size_human}")"
+            echo -e "  ${line_color}${ICON_SUCCESS}${NC} Downloads obsoletos do NeatDM · $(mole_count_label "${stale_count}" item), $(colorize_human_size "${size_human}")"
         fi
         mole_add_cleaned_row "$stale_count" "$stale_kb"
         note_activity
@@ -2103,119 +2103,119 @@ clean_neatdm_stale_segments() {
 }
 # Gaming platforms.
 clean_gaming_platforms() {
-    safe_clean ~/Library/Caches/com.valvesoftware.steam/* "Steam cache"
+    safe_clean ~/Library/Caches/com.valvesoftware.steam/* "Cache do Steam"
     if [[ -d ~/Library/Application\ Support/Steam ]]; then
-        safe_clean ~/Library/Application\ Support/Steam/htmlcache/* "Steam web cache"
-        safe_clean ~/Library/Application\ Support/Steam/appcache/* "Steam app cache"
-        safe_clean ~/Library/Application\ Support/Steam/depotcache/* "Steam depot cache"
-        safe_clean ~/Library/Application\ Support/Steam/steamapps/shadercache/* "Steam shader cache"
-        safe_clean ~/Library/Application\ Support/Steam/logs/* "Steam logs"
+        safe_clean ~/Library/Application\ Support/Steam/htmlcache/* "Cache web do Steam"
+        safe_clean ~/Library/Application\ Support/Steam/appcache/* "Cache de apps do Steam"
+        safe_clean ~/Library/Application\ Support/Steam/depotcache/* "Cache de depot do Steam"
+        safe_clean ~/Library/Application\ Support/Steam/steamapps/shadercache/* "Cache de shaders do Steam"
+        safe_clean ~/Library/Application\ Support/Steam/logs/* "Logs do Steam"
     fi
-    safe_clean ~/Library/Caches/com.epicgames.EpicGamesLauncher/* "Epic Games cache"
-    safe_clean ~/Library/Caches/com.blizzard.Battle.net/* "Battle.net cache"
+    safe_clean ~/Library/Caches/com.epicgames.EpicGamesLauncher/* "Cache do Epic Games"
+    safe_clean ~/Library/Caches/com.blizzard.Battle.net/* "Cache do Battle.net"
     if [[ -d ~/Library/Application\ Support/Battle.net ]]; then
-        safe_clean ~/Library/Application\ Support/Battle.net/Cache/* "Battle.net app cache"
+        safe_clean ~/Library/Application\ Support/Battle.net/Cache/* "Cache de apps do Battle.net"
     fi
-    safe_clean ~/Library/Caches/com.ea.*/* "EA Origin cache"
-    safe_clean ~/Library/Caches/com.gog.galaxy/* "GOG Galaxy cache"
-    safe_clean ~/Library/Caches/com.riotgames.*/* "Riot Games cache"
+    safe_clean ~/Library/Caches/com.ea.*/* "Cache do EA Origin"
+    safe_clean ~/Library/Caches/com.gog.galaxy/* "Cache do GOG Galaxy"
+    safe_clean ~/Library/Caches/com.riotgames.*/* "Cache do Riot Games"
     if [[ -d ~/Library/Application\ Support/minecraft ]]; then
-        safe_clean ~/Library/Application\ Support/minecraft/logs/* "Minecraft logs"
-        safe_clean ~/Library/Application\ Support/minecraft/crash-reports/* "Minecraft crash reports"
-        safe_clean ~/Library/Application\ Support/minecraft/webcache/* "Minecraft web cache"
-        safe_clean ~/Library/Application\ Support/minecraft/webcache2/* "Minecraft web cache 2"
+        safe_clean ~/Library/Application\ Support/minecraft/logs/* "Logs do Minecraft"
+        safe_clean ~/Library/Application\ Support/minecraft/crash-reports/* "Relatórios de falha do Minecraft"
+        safe_clean ~/Library/Application\ Support/minecraft/webcache/* "Cache web do Minecraft"
+        safe_clean ~/Library/Application\ Support/minecraft/webcache2/* "Cache web 2 do Minecraft"
     fi
     if [[ -d ~/.lunarclient ]]; then
-        safe_clean ~/.lunarclient/game-cache/* "Lunar Client game cache"
-        safe_clean ~/.lunarclient/launcher-cache/* "Lunar Client launcher cache"
-        safe_clean ~/.lunarclient/logs/* "Lunar Client logs"
-        safe_clean ~/.lunarclient/offline/*/logs/* "Lunar Client offline logs"
-        safe_clean ~/.lunarclient/offline/files/*/logs/* "Lunar Client offline file logs"
+        safe_clean ~/.lunarclient/game-cache/* "Cache de jogo do Lunar Client"
+        safe_clean ~/.lunarclient/launcher-cache/* "Cache do launcher do Lunar Client"
+        safe_clean ~/.lunarclient/logs/* "Logs do Lunar Client"
+        safe_clean ~/.lunarclient/offline/*/logs/* "Logs offline do Lunar Client"
+        safe_clean ~/.lunarclient/offline/files/*/logs/* "Logs de arquivos offline do Lunar Client"
     fi
-    safe_clean ~/Library/Caches/net.pcsx2.PCSX2/* "PCSX2 cache"
+    safe_clean ~/Library/Caches/net.pcsx2.PCSX2/* "Cache do PCSX2"
     if [[ -d ~/Library/Application\ Support/PCSX2 ]]; then
-        safe_clean ~/Library/Application\ Support/PCSX2/cache/* "PCSX2 shader cache"
-        safe_clean ~/Library/Logs/PCSX2/* "PCSX2 logs"
+        safe_clean ~/Library/Application\ Support/PCSX2/cache/* "Cache de shaders do PCSX2"
+        safe_clean ~/Library/Logs/PCSX2/* "Logs do PCSX2"
     fi
     if [[ -d ~/Library/Application\ Support/rpcs3 ]]; then
-        safe_clean ~/Library/Caches/net.rpcs3.rpcs3/* "RPCS3 cache"
-        safe_clean ~/Library/Application\ Support/rpcs3/logs/* "RPCS3 logs"
+        safe_clean ~/Library/Caches/net.rpcs3.rpcs3/* "Cache do RPCS3"
+        safe_clean ~/Library/Application\ Support/rpcs3/logs/* "Logs do RPCS3"
     fi
 }
 # Translation/dictionary apps.
 clean_translation_apps() {
-    safe_clean ~/Library/Caches/com.youdao.YoudaoDict "Youdao Dictionary cache"
-    safe_clean ~/Library/Caches/com.eudic.* "Eudict cache"
-    safe_clean ~/Library/Caches/com.bob-build.Bob "Bob Translation cache"
+    safe_clean ~/Library/Caches/com.youdao.YoudaoDict "Cache do Youdao Dictionary"
+    safe_clean ~/Library/Caches/com.eudic.* "Cache do Eudict"
+    safe_clean ~/Library/Caches/com.bob-build.Bob "Cache do Bob Translation"
 }
 # Screenshot/recording tools.
 clean_screenshot_tools() {
-    safe_clean ~/Library/Caches/com.cleanshot.* "CleanShot cache"
-    safe_clean ~/Library/Caches/com.reincubate.camo "Camo cache"
-    safe_clean ~/Library/Caches/com.xnipapp.xnip "Xnip cache"
+    safe_clean ~/Library/Caches/com.cleanshot.* "Cache do CleanShot"
+    safe_clean ~/Library/Caches/com.reincubate.camo "Cache do Camo"
+    safe_clean ~/Library/Caches/com.xnipapp.xnip "Cache do Xnip"
 }
 # Email clients.
 clean_email_clients() {
-    safe_clean ~/Library/Caches/com.readdle.smartemail-Mac "Spark cache"
-    safe_clean ~/Library/Caches/com.airmail.* "Airmail cache"
+    safe_clean ~/Library/Caches/com.readdle.smartemail-Mac "Cache do Spark"
+    safe_clean ~/Library/Caches/com.airmail.* "Cache do Airmail"
 }
 # Task management apps.
 clean_task_apps() {
-    safe_clean ~/Library/Caches/com.todoist.mac.Todoist "Todoist cache"
-    safe_clean ~/Library/Caches/com.any.do.* "Any.do cache"
+    safe_clean ~/Library/Caches/com.todoist.mac.Todoist "Cache do Todoist"
+    safe_clean ~/Library/Caches/com.any.do.* "Cache do Any.do"
 }
 # Shell/terminal utilities.
 clean_shell_utils() {
-    safe_clean ~/.zcompdump* "Zsh completion cache"
-    safe_clean ~/.lesshst "less history"
-    safe_clean ~/.viminfo.tmp "Vim temporary files"
-    safe_clean ~/.wget-hsts "wget HSTS cache"
-    safe_clean ~/.cacher/logs/* "Cacher logs"
-    safe_clean ~/.kite/logs/* "Kite logs"
-    safe_clean ~/Library/Caches/dev.warp.Warp-Stable/* "Warp cache"
-    safe_clean ~/Library/Logs/warp.log "Warp log"
-    safe_clean ~/Library/Caches/SentryCrash/Warp/* "Warp Sentry crash reports"
-    safe_clean ~/Library/Caches/com.mitchellh.ghostty/* "Ghostty cache"
+    safe_clean ~/.zcompdump* "Cache de completion do Zsh"
+    safe_clean ~/.lesshst "Histórico do less"
+    safe_clean ~/.viminfo.tmp "Arquivos temporários do Vim"
+    safe_clean ~/.wget-hsts "Cache HSTS do wget"
+    safe_clean ~/.cacher/logs/* "Logs do Cacher"
+    safe_clean ~/.kite/logs/* "Logs do Kite"
+    safe_clean ~/Library/Caches/dev.warp.Warp-Stable/* "Cache do Warp"
+    safe_clean ~/Library/Logs/warp.log "Logs do Warp"
+    safe_clean ~/Library/Caches/SentryCrash/Warp/* "Relatórios de falha Sentry do Warp"
+    safe_clean ~/Library/Caches/com.mitchellh.ghostty/* "Cache do Ghostty"
 }
 # Input methods and system utilities.
 clean_system_utils() {
-    safe_clean ~/Library/Caches/com.runjuu.Input-Source-Pro/* "Input Source Pro cache"
-    safe_clean ~/Library/Caches/macos-wakatime.WakaTime/* "WakaTime cache"
+    safe_clean ~/Library/Caches/com.runjuu.Input-Source-Pro/* "Cache do Input Source Pro"
+    safe_clean ~/Library/Caches/macos-wakatime.WakaTime/* "Cache do WakaTime"
     # WeType input method (image and dict update cache, not engine or user dict)
-    safe_clean ~/Library/Application\ Support/WeType/com.onevcat.Kingfisher.ImageCache.WeType/* "WeType image cache"
-    safe_clean ~/Library/Application\ Support/WeType/DictUpdate/* "WeType dict update cache"
+    safe_clean ~/Library/Application\ Support/WeType/com.onevcat.Kingfisher.ImageCache.WeType/* "Cache de imagens do WeType"
+    safe_clean ~/Library/Application\ Support/WeType/DictUpdate/* "Cache de atualização de dicionário do WeType"
     # mihomo-party proxy tool (Electron)
     if [[ -d ~/Library/Application\ Support/mihomo-party ]]; then
-        mole_safe_clean_app_cache "mihomo-party" ~/Library/Application\ Support/mihomo-party/Cache/* "mihomo-party cache"
-        mole_safe_clean_app_cache "mihomo-party" ~/Library/Application\ Support/mihomo-party/Code\ Cache/* "mihomo-party code cache"
-        mole_safe_clean_app_cache "mihomo-party" ~/Library/Application\ Support/mihomo-party/GPUCache/* "mihomo-party GPU cache"
-        mole_safe_clean_app_cache "mihomo-party" ~/Library/Application\ Support/mihomo-party/DawnGraphiteCache/* "mihomo-party Dawn cache"
-        mole_safe_clean_app_cache "mihomo-party" ~/Library/Application\ Support/mihomo-party/DawnWebGPUCache/* "mihomo-party WebGPU cache"
-        mole_safe_clean_app_cache "mihomo-party" ~/Library/Application\ Support/mihomo-party/logs/* "mihomo-party logs"
+        mole_safe_clean_app_cache "mihomo-party" ~/Library/Application\ Support/mihomo-party/Cache/* "Cache do mihomo-party"
+        mole_safe_clean_app_cache "mihomo-party" ~/Library/Application\ Support/mihomo-party/Code\ Cache/* "Cache de código do mihomo-party"
+        mole_safe_clean_app_cache "mihomo-party" ~/Library/Application\ Support/mihomo-party/GPUCache/* "Cache de GPU do mihomo-party"
+        mole_safe_clean_app_cache "mihomo-party" ~/Library/Application\ Support/mihomo-party/DawnGraphiteCache/* "Cache Dawn do mihomo-party"
+        mole_safe_clean_app_cache "mihomo-party" ~/Library/Application\ Support/mihomo-party/DawnWebGPUCache/* "Cache WebGPU do mihomo-party"
+        mole_safe_clean_app_cache "mihomo-party" ~/Library/Application\ Support/mihomo-party/logs/* "Logs do mihomo-party"
     fi
     # Stash proxy tool
-    safe_clean ~/Library/Caches/ws.stash.app.mac/* "Stash cache"
+    safe_clean ~/Library/Caches/ws.stash.app.mac/* "Cache do Stash"
 }
 # Note-taking apps.
 clean_note_apps() {
-    safe_clean ~/Library/Caches/notion.id/* "Notion cache"
-    safe_clean ~/Library/Caches/md.obsidian/* "Obsidian cache"
-    safe_clean ~/Library/Caches/com.logseq.*/* "Logseq cache"
-    safe_clean ~/Library/Caches/com.bear-writer.*/* "Bear cache"
-    safe_clean ~/Library/Caches/com.evernote.*/* "Evernote cache"
-    safe_clean ~/Library/Caches/com.yinxiang.*/* "Yinxiang Note cache"
+    safe_clean ~/Library/Caches/notion.id/* "Cache do Notion"
+    safe_clean ~/Library/Caches/md.obsidian/* "Cache do Obsidian"
+    safe_clean ~/Library/Caches/com.logseq.*/* "Cache do Logseq"
+    safe_clean ~/Library/Caches/com.bear-writer.*/* "Cache do Bear"
+    safe_clean ~/Library/Caches/com.evernote.*/* "Cache do Evernote"
+    safe_clean ~/Library/Caches/com.yinxiang.*/* "Cache do Yinxiang Note"
 }
 # Launchers and automation tools.
 clean_launcher_apps() {
-    safe_clean ~/Library/Caches/com.runningwithcrayons.Alfred/* "Alfred cache"
-    safe_clean ~/Library/Caches/cx.c3.theunarchiver/* "The Unarchiver cache"
+    safe_clean ~/Library/Caches/com.runningwithcrayons.Alfred/* "Cache do Alfred"
+    safe_clean ~/Library/Caches/cx.c3.theunarchiver/* "Cache do The Unarchiver"
 }
 # Remote desktop tools.
 clean_remote_desktop() {
-    safe_clean ~/Library/Caches/com.teamviewer.*/* "TeamViewer cache"
-    safe_clean ~/Library/Caches/com.anydesk.*/* "AnyDesk cache"
-    safe_clean ~/Library/Caches/com.todesk.*/* "ToDesk cache"
-    safe_clean ~/Library/Caches/com.sunlogin.*/* "Sunlogin cache"
+    safe_clean ~/Library/Caches/com.teamviewer.*/* "Cache do TeamViewer"
+    safe_clean ~/Library/Caches/com.anydesk.*/* "Cache do AnyDesk"
+    safe_clean ~/Library/Caches/com.todesk.*/* "Cache do ToDesk"
+    safe_clean ~/Library/Caches/com.sunlogin.*/* "Cache do Sunlogin"
 }
 # Main entry for GUI app cleanup.
 clean_user_gui_applications() {
@@ -2231,7 +2231,7 @@ clean_user_gui_applications() {
         clean_gaming_platforms clean_translation_apps clean_screenshot_tools \
         clean_email_clients clean_task_apps clean_shell_utils clean_system_utils \
         clean_note_apps clean_launcher_apps clean_remote_desktop; do
-        start_section_spinner "Scanning apps..."
+        start_section_spinner "Analisando apps..."
         if [[ "$app_group" == "clean_download_managers" ]]; then
             group_rc=0
             "$app_group" || group_rc=$?

@@ -28,7 +28,7 @@ func runWatchStdout(interval time.Duration) {
 		result := collector.collectMode(schedule.nextMode(time.Now()))
 		delay := schedule.recordCompletion(result, interval)
 		if result.err != nil {
-			fmt.Fprintf(os.Stderr, "status: collect failed: %v\n", result.err)
+			fmt.Fprintf(os.Stderr, "status: falha na coleta: %v\n", result.err)
 		}
 		if !result.data.CollectedAt.IsZero() {
 			if err := enc.Encode(result.data); err != nil {
